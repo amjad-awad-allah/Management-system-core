@@ -1,0 +1,7 @@
+{
+    "name": "Nachhilfe",
+    "version": "1.0.0",
+    "enabled": true,
+    "dependencies": [],
+    "description": "Tutoring management system"
+}

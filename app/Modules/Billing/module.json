@@ -1,0 +1,7 @@
+{
+    "name": "Billing",
+    "version": "1.0.0",
+    "enabled": false,
+    "dependencies": [],
+    "description": "General billing and payments system"
+}

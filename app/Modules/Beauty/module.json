@@ -1,0 +1,7 @@
+{
+    "name": "Beauty",
+    "version": "1.0.0",
+    "enabled": false,
+    "dependencies": [],
+    "description": "Beauty Salon booking management system"
+}

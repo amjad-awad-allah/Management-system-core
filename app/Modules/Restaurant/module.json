@@ -1,0 +1,7 @@
+{
+    "name": "Restaurant",
+    "version": "1.0.0",
+    "enabled": false,
+    "dependencies": [],
+    "description": "Restaurant order and table management system"
+}
