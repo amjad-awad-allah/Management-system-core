@@ -15,18 +15,16 @@ class EloquentLessonRepository implements LessonRepositoryInterface
 
     public function save(Lesson $lesson): void
     {
-        LessonModel::updateOrCreate(
-            ['id' => $lesson->id],
-            [
-                'student_id' => $lesson->studentId,
-                'teacher_id' => $lesson->teacherId,
-                'subject_id' => $lesson->subjectId,
-                'scheduled_at' => $lesson->scheduledAt,
-                'duration_minutes' => $lesson->durationMinutes,
-                'status' => $lesson->status,
-                'price' => $lesson->price->amount(),
-            ]
-        );
+        $model = LessonModel::find($lesson->id) ?? new LessonModel();
+        $model->id = $lesson->id;
+        $model->student_id = $lesson->studentId;
+        $model->teacher_id = $lesson->teacherId;
+        $model->subject_id = $lesson->subjectId;
+        $model->scheduled_at = $lesson->scheduledAt;
+        $model->duration_minutes = $lesson->durationMinutes;
+        $model->status = $lesson->status;
+        $model->price = $lesson->price->amount();
+        $model->save();
 
         $events = $lesson->releaseDomainEvents();
         foreach ($events as $event) {

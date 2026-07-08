@@ -14,32 +14,31 @@ class BookLessonAction
         private readonly LessonRepositoryInterface $lessonRepository
     ) {}
 
-    public function execute(
-        string $studentId,
-        string $teacherId,
-        string $subjectId,
-        \DateTimeImmutable $scheduledAt,
-        int $durationMinutes,
-        float $priceAmount
-    ): Lesson {
+    public function execute(\App\Modules\Nachhilfe\Application\DTOs\LessonBookingData $dto): Lesson {
         $lessonId = (string) Str::ulid();
+        
+        // Pricing calculation belongs to the application layer.
+        // For demonstration, 20.00 base rate per hour.
+        $hours = $dto->durationMinutes / 60;
+        $priceAmount = round(20.00 * $hours, 2);
+        
         $money = Money::of($priceAmount);
 
         $lesson = new Lesson(
             id: $lessonId,
-            studentId: $studentId,
-            teacherId: $teacherId,
-            subjectId: $subjectId,
-            scheduledAt: $scheduledAt,
-            durationMinutes: $durationMinutes,
+            studentId: $dto->studentId,
+            teacherId: $dto->teacherId,
+            subjectId: $dto->subjectId,
+            scheduledAt: $dto->scheduledAt,
+            durationMinutes: $dto->durationMinutes,
             status: 'scheduled',
             price: $money
         );
 
         $lesson->recordDomainEvent(new LessonBooked(
             lessonId: $lessonId,
-            studentId: $studentId,
-            teacherId: $teacherId,
+            studentId: $dto->studentId,
+            teacherId: $dto->teacherId,
             priceAmount: $priceAmount
         ));
 

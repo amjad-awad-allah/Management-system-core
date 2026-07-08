@@ -2,7 +2,6 @@
 
 namespace App\Modules\Nachhilfe\Infrastructure\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -13,11 +12,13 @@ use Illuminate\Database\Eloquent\Model;
  */
 class SubjectModel extends Model
 {
-    use HasUlids;
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $table = 'subjects';
 
     protected $fillable = [
+        'id',
         'name',
         'description',
         'is_active',

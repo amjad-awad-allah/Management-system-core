@@ -2,16 +2,17 @@
 
 namespace App\Modules\Nachhilfe\Infrastructure\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 class Teacher extends Model
 {
-    use HasUlids;
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $table = 'teachers';
 
     protected $fillable = [
+        'id',
         'user_id',
         'name',
         'qualification',

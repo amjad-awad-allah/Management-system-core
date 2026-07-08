@@ -2,17 +2,20 @@
 
 namespace App\Modules\Nachhilfe\Infrastructure\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LessonModel extends Model
 {
-    use HasUlids, SoftDeletes;
+    use SoftDeletes;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $table = 'lessons';
 
     protected $fillable = [
+        'id',
         'student_id',
         'teacher_id',
         'subject_id',
