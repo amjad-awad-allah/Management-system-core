@@ -10,10 +10,23 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TeacherController
 {
-    public function index(): AnonymousResourceCollection
+    public function index(\Illuminate\Http\Request $request): AnonymousResourceCollection
     {
-        $teachers = Teacher::paginate();
+        $query = Teacher::query();
+        
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%{$search}%")
+                  ->orWhere('qualification', 'like', "%{$search}%");
+        }
+
+        $teachers = $query->paginate();
         return TeacherResource::collection($teachers);
+    }
+
+    public function show(string $id): TeacherResource
+    {
+        $teacher = Teacher::findOrFail($id);
+        return new TeacherResource($teacher);
     }
 
     public function store(CreateTeacherRequest $request, CreateTeacherAction $action): \Illuminate\Http\JsonResponse
@@ -27,5 +40,28 @@ class TeacherController
         );
 
         return (new TeacherResource($teacher))->response()->setStatusCode(201);
+    }
+
+    public function update(\Illuminate\Http\Request $request, string $id): TeacherResource
+    {
+        $teacher = Teacher::findOrFail($id);
+        
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'qualification' => 'sometimes|required|string|max:255',
+            'hourly_rate' => 'sometimes|required|numeric|min:0',
+        ]);
+
+        $teacher->update($validated);
+
+        return new TeacherResource($teacher);
+    }
+
+    public function destroy(string $id): \Illuminate\Http\Response
+    {
+        $teacher = Teacher::findOrFail($id);
+        $teacher->delete();
+        
+        return response()->noContent();
     }
 }

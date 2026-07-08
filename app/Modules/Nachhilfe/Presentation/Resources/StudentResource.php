@@ -19,6 +19,8 @@ class StudentResource extends JsonResource
             // Exclude birth_date for privacy unless explicitly needed
             'school' => $this->resource->school,
             'grade' => $this->resource->grade,
+            'parent_phone_1' => $this->resource->parent_phone_1,
+            'parent_phone_2' => $this->resource->parent_phone_2,
         ];
     }
 }

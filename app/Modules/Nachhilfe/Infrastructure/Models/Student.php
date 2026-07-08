@@ -5,9 +5,11 @@ namespace App\Modules\Nachhilfe\Infrastructure\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Student extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -21,6 +23,8 @@ class Student extends Model
         'birth_date',
         'school',
         'grade',
+        'parent_phone_1',
+        'parent_phone_2',
     ];
 
     protected function casts(): array
@@ -28,5 +32,18 @@ class Student extends Model
         return [
             'birth_date' => 'encrypted',
         ];
+    }
+
+    public function lessons()
+    {
+        return $this->belongsToMany(Lesson::class, 'lesson_students')
+            ->withPivot('id', 'package_id', 'hours_consumed', 'notes')
+            ->withTimestamps()
+            ->using(LessonStudent::class);
+    }
+
+    public function lessonStudents()
+    {
+        return $this->hasMany(LessonStudent::class);
     }
 }

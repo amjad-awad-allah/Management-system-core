@@ -14,13 +14,26 @@ class LessonResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'student_id' => $this->student_id,
             'teacher_id' => $this->teacher_id,
+            'room_id' => $this->room_id,
             'subject_id' => $this->subject_id,
-            'scheduled_at' => $this->scheduled_at,
-            'duration_minutes' => (int) $this->duration_minutes,
+            'type' => $this->type,
+            'date' => $this->date,
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
+            'duration_minutes' => $this->duration_minutes,
             'status' => $this->status,
-            'price' => (float) $this->price,
+            'notes' => $this->notes,
+            'students' => $this->whenLoaded('students', function () {
+                return $this->students->map(function ($student) {
+                    return [
+                        'id' => $student->id,
+                        'name' => $student->first_name . ' ' . $student->last_name,
+                        'package_id' => $student->pivot->package_id,
+                        'hours_consumed' => $student->pivot->hours_consumed,
+                    ];
+                });
+            }),
             'created_at' => $this->created_at,
         ];
     }

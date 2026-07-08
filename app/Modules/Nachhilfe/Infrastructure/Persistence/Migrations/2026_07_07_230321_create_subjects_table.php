@@ -6,23 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('subjects', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->string('name')->index(); // Not Encrypted
+            $table->string('name'); // Mathematik, Deutsch, Englisch
+            $table->string('code')->unique()->nullable(); // MATH, DEU, ENG
             $table->text('description')->nullable();
-            $table->boolean('is_active')->default(true)->index();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('subjects');

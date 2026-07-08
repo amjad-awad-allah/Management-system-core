@@ -12,7 +12,7 @@ class CreateStudentAction
         private readonly StudentRepositoryInterface $repository
     ) {}
 
-    public function execute(string $firstName, string $lastName, string $birthDate, string $school, int $grade): Student
+    public function execute(string $firstName, string $lastName, string $birthDate, string $school, int $grade, string $parentPhone1, ?string $parentPhone2 = null): Student
     {
         $student = new Student();
         $student->id = (string) Str::ulid();
@@ -21,6 +21,8 @@ class CreateStudentAction
         $student->birth_date = $birthDate;
         $student->school = $school;
         $student->grade = $grade;
+        $student->parent_phone_1 = $parentPhone1;
+        $student->parent_phone_2 = $parentPhone2;
 
         $this->repository->save($student);
 
