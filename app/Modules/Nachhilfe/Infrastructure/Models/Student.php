@@ -42,6 +42,19 @@ class Student extends Model
             ->using(LessonStudent::class);
     }
 
+    public function subjects()
+    {
+        return $this->belongsToMany(SubjectModel::class, 'student_subjects', 'student_id', 'subject_id');
+    }
+
+    public function teachers()
+    {
+        return $this->hasManyThrough(Lesson::class, LessonStudent::class, 'student_id', 'id', 'id', 'lesson_id')
+            ->join('teachers', 'teachers.id', '=', 'lessons.teacher_id')
+            ->select('teachers.*')
+            ->distinct();
+    }
+
     public function lessonStudents()
     {
         return $this->hasMany(LessonStudent::class);

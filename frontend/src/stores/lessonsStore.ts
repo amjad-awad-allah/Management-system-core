@@ -25,7 +25,7 @@ export const useLessonsStore = defineStore('lessons', () => {
   async function fetchLessons() {
     isLoading.value = true
     try {
-      const response = await api.get('/lessons')
+      const response = await api.get('/nachhilfe/lessons')
       lessons.value = response.data.data
     } catch (e) {
       console.error(e)
@@ -38,7 +38,7 @@ export const useLessonsStore = defineStore('lessons', () => {
     // Optimistic UI could be implemented here by pushing to `lessons.value`
     // but due to IDs and relations, it's safer to re-fetch on success or push the returned data
     try {
-      const response = await api.post('/lessons', data)
+      const response = await api.post('/nachhilfe/lessons', data)
       lessons.value.push(response.data.data)
       toast.success('Lesson booked successfully')
       return true
@@ -49,7 +49,7 @@ export const useLessonsStore = defineStore('lessons', () => {
   
   async function markAttendance(lessonStudentId: string, data: { status: string, note?: string }) {
     try {
-      await api.post(`/lesson-students/${lessonStudentId}/attendance`, data)
+      await api.post(`/nachhilfe/lesson-students/${lessonStudentId}/attendance`, data)
       toast.success('Attendance marked successfully')
       return true
     } catch (e) {

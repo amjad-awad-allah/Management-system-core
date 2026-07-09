@@ -32,6 +32,18 @@ class StudentPackageController
 
         $package = StudentPackage::create($validated);
 
+        if ($validated['funding_source'] === 'private') {
+            try {
+                $billing = app(\App\Shared\Contracts\Billing\BillingContract::class);
+                // For a real app, amount should come from the Package model. 
+                // Since this is a demo, we will calculate a dummy amount (e.g. 15 per hour).
+                $amount = $validated['total_hours'] * 15;
+                $billing->createInvoice('student_package', $package->id, $amount);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to generate invoice', ['error' => $e->getMessage()]);
+            }
+        }
+
         return response()->json($package, 201);
     }
 }

@@ -106,6 +106,13 @@
             <SunIcon v-if="uiStore.isDarkMode" class="w-6 h-6" />
             <MoonIcon v-else class="w-6 h-6" />
           </button>
+          
+          <!-- Logout -->
+          <div class="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+          <button @click="handleLogout" class="flex items-center gap-2 p-2 text-sm font-semibold text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+            <ArrowRightOnRectangleIcon class="w-5 h-5" />
+            <span class="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </div>
 
@@ -120,7 +127,7 @@
             leave-to-class="opacity-0 translate-y-1"
             mode="out-in"
           >
-            <component :is="Component" />
+            <component :is="Component" :key="$route.fullPath" />
           </transition>
         </router-view>
       </main>
@@ -137,16 +144,39 @@ import {
   AcademicCapIcon,
   Bars3Icon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  UserGroupIcon,
+  CurrencyEuroIcon,
+  BriefcaseIcon,
+  CurrencyDollarIcon,
+  BookOpenIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 import { useUiStore } from '@/stores/uiStore'
+import { useRouter } from 'vue-router'
+import api from '@/api'
+import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
 
 const uiStore = useUiStore()
+const router = useRouter()
+
+async function handleLogout() {
+  try {
+    await api.post('/logout')
+  } catch (e) {
+    console.error(e)
+  }
+  localStorage.removeItem('auth_token')
+  router.push('/login')
+}
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Lessons', href: '/lessons', icon: CalendarIcon },
   { name: 'Students', href: '/students', icon: UsersIcon },
   { name: 'Teachers', href: '/teachers', icon: AcademicCapIcon },
+  { name: 'Packages', href: '/packages', icon: BriefcaseIcon },
+  { name: 'Invoices', href: '/invoices', icon: CurrencyDollarIcon },
+  { name: 'Lessons', href: '/lessons', icon: BookOpenIcon },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 </script>

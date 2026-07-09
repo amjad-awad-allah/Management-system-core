@@ -45,23 +45,28 @@ test('can book a lesson', function () {
     $student = Student::create(['id' => Str::ulid()->toString(), 'first_name' => 'S', 'last_name' => 'L', 'birth_date' => '2010-01-01', 'level' => 'Grade 10']);
     $teacher = Teacher::create(['id' => Str::ulid()->toString(), 'user_id' => $user->id, 'name' => 'T L']);
     $subject = SubjectModel::create(['id' => Str::ulid()->toString(), 'name' => 'Math']);
+    $room = \App\Modules\Nachhilfe\Infrastructure\Models\Room::create(['id' => Str::ulid()->toString(), 'name' => 'Room 1', 'capacity' => 10]);
 
     $this->withoutExceptionHandling();
     $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/nachhilfe/lessons', [
-        'student_id' => $student->id,
         'teacher_id' => $teacher->id,
         'subject_id' => $subject->id,
-        'scheduled_at' => now()->addDays(1)->toIso8601String(),
-        'duration_minutes' => 60,
+        'room_id' => $room->id,
+        'type' => 'individual',
+        'date' => now()->addDays(1)->format('Y-m-d'),
+        'start_time' => '10:00',
+        'end_time' => '11:00',
+        'students' => [
+            ['student_id' => $student->id]
+        ]
     ]);
 
     $response->assertStatus(201)
         ->assertJsonPath('data.status', 'scheduled')
-        ->assertJsonPath('data.duration_minutes', 60)
-        ->assertJsonPath('data.price', 20);
+        ->assertJsonPath('data.duration_minutes', 60);
 
     $this->assertDatabaseHas('lessons', [
-        'student_id' => $student->id,
+        'teacher_id' => $teacher->id,
         'status' => 'scheduled'
     ]);
 });

@@ -12,7 +12,7 @@ class CreateTeacherAction
         private readonly TeacherRepositoryInterface $repository
     ) {}
 
-    public function execute(string $userId, string $name, string $qualification, float $hourlyRate): Teacher
+    public function execute(string $userId, string $name, string $qualification, float $hourlyRate, array $subjectIds = []): Teacher
     {
         $teacher = new Teacher();
         $teacher->id = (string) Str::ulid();
@@ -22,6 +22,10 @@ class CreateTeacherAction
         $teacher->hourly_rate = $hourlyRate;
 
         $this->repository->save($teacher);
+
+        if (!empty($subjectIds)) {
+            $teacher->subjects()->sync($subjectIds);
+        }
 
         return $teacher;
     }

@@ -82,7 +82,13 @@ const form = ref({
   students: [{ student_id: '', package_id: null }]
 })
 
-function open() {
+function open(dateStr?: string) {
+  if (dateStr) {
+    form.value.date = dateStr
+  } else {
+    // default to today
+    form.value.date = new Date().toISOString().split('T')[0]
+  }
   isOpen.value = true
 }
 

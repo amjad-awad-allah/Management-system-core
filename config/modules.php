@@ -14,7 +14,7 @@ return [
         'provider' => App\Modules\Restaurant\Providers\RestaurantServiceProvider::class,
     ],
     'Billing' => [
-        'enabled'  => false,
+        'enabled'  => true,
         'provider' => App\Modules\Billing\Providers\BillingServiceProvider::class,
     ],
 ];

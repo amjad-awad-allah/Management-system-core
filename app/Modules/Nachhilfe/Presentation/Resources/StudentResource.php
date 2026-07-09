@@ -21,6 +21,13 @@ class StudentResource extends JsonResource
             'grade' => $this->resource->grade,
             'parent_phone_1' => $this->resource->parent_phone_1,
             'parent_phone_2' => $this->resource->parent_phone_2,
+            'subjects' => $this->whenLoaded('subjects'),
+            'teachers' => $this->whenLoaded('teachers', function() {
+                return $this->resource->teachers->map(fn($t) => [
+                    'id' => $t->id,
+                    'name' => $t->name,
+                ]);
+            }),
         ];
     }
 }

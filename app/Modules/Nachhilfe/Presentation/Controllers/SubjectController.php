@@ -32,4 +32,22 @@ class SubjectController extends Controller
 
         return (new SubjectResource($subject))->response()->setStatusCode(201);
     }
+
+    public function update(\Illuminate\Http\Request $request, SubjectModel $subject)
+    {
+        $data = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean'
+        ]);
+
+        $subject->update($data);
+        return new SubjectResource($subject);
+    }
+
+    public function destroy(SubjectModel $subject)
+    {
+        $subject->delete();
+        return response()->noContent();
+    }
 }

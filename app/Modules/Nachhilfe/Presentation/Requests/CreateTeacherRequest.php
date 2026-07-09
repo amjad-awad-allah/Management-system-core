@@ -18,6 +18,8 @@ class CreateTeacherRequest extends FormRequest
             'name' => 'required|string|max:255',
             'qualification' => 'required|string|max:255',
             'hourly_rate' => 'required|numeric|min:0',
+            'subject_ids' => 'sometimes|array',
+            'subject_ids.*' => 'string|exists:subjects,id',
         ];
     }
 }

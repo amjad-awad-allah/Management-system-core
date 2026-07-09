@@ -11,7 +11,10 @@ class BillingServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            \App\Shared\Contracts\Billing\BillingContract::class,
+            \App\Modules\Billing\Application\Services\BillingService::class
+        );
     }
 
     /**
@@ -20,5 +23,6 @@ class BillingServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__ . '/../Infrastructure/Persistence/Migrations');
+        $this->loadRoutesFrom(__DIR__ . '/../Presentation/Routes/api.php');
     }
 }

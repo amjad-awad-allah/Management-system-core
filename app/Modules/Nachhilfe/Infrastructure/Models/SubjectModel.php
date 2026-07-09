@@ -30,4 +30,14 @@ class SubjectModel extends Model
             'is_active' => 'boolean',
         ];
     }
+
+    public function teachers()
+    {
+        return $this->belongsToMany(Teacher::class, 'teacher_subjects', 'subject_id', 'teacher_id');
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(Student::class, 'student_subjects', 'subject_id', 'student_id');
+    }
 }

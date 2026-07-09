@@ -27,6 +27,8 @@ test('can create a student', function () {
         'birth_date' => '2010-05-15',
         'school' => 'High School',
         'grade' => 10,
+        'parent_name_1' => 'Parent One',
+        'parent_phone_1' => '123456789'
     ]);
 
     $response->assertStatus(201)

@@ -12,7 +12,7 @@ class StudentController
 {
     public function index(\Illuminate\Http\Request $request): AnonymousResourceCollection
     {
-        $query = Student::query();
+        $query = Student::with(['subjects', 'teachers']);
         
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
@@ -28,7 +28,7 @@ class StudentController
 
     public function show(string $id): StudentResource
     {
-        $student = Student::findOrFail($id);
+        $student = Student::with(['subjects', 'teachers'])->findOrFail($id);
         return new StudentResource($student);
     }
 
@@ -42,9 +42,11 @@ class StudentController
             school: $validated['school'],
             grade: (int) $validated['grade'],
             parentPhone1: $validated['parent_phone_1'],
-            parentPhone2: $validated['parent_phone_2'] ?? null
+            parentPhone2: $validated['parent_phone_2'] ?? null,
+            subjectIds: $validated['subject_ids'] ?? []
         );
 
+        $student->load(['subjects', 'teachers']);
         return (new StudentResource($student))->response()->setStatusCode(201);
     }
 
@@ -60,11 +62,18 @@ class StudentController
             'grade' => 'sometimes|required|integer|min:1|max:13',
             'parent_phone_1' => 'sometimes|required|string|max:20',
             'parent_phone_2' => 'nullable|string|max:20',
+            'subject_ids' => 'sometimes|array',
+            'subject_ids.*' => 'string|exists:subjects,id',
         ]);
 
-        $student->update($validated);
+        $updateData = \Illuminate\Support\Arr::except($validated, ['subject_ids']);
+        $student->update($updateData);
 
-        return new StudentResource($student);
+        if ($request->has('subject_ids')) {
+            $student->subjects()->sync($validated['subject_ids']);
+        }
+
+        return new StudentResource($student->load(['subjects', 'teachers']));
     }
 
     public function destroy(string $id): \Illuminate\Http\Response
@@ -73,5 +82,20 @@ class StudentController
         $student->delete();
         
         return response()->noContent();
+    }
+
+    public function statement(string $id): \Illuminate\Http\JsonResponse
+    {
+        $student = Student::findOrFail($id);
+        
+        // Fetch lesson consumptions for this student
+        $consumptions = \App\Modules\Nachhilfe\Infrastructure\Models\LessonConsumption::with(['lesson.subject', 'lesson.teacher', 'package.package'])
+            ->whereHas('lessonStudent', function ($query) use ($id) {
+                $query->where('student_id', $id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($consumptions);
     }
 }

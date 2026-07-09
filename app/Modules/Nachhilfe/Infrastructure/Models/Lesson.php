@@ -16,7 +16,7 @@ class Lesson extends Model
 
     public function teacher() { return $this->belongsTo(Teacher::class); }
     public function room() { return $this->belongsTo(Room::class); }
-    public function subject() { return $this->belongsTo(Subject::class); }
+    public function subject() { return $this->belongsTo(SubjectModel::class); }
     public function scheduleTemplate() { return $this->belongsTo(ScheduleTemplate::class); }
     public function students() { return $this->belongsToMany(Student::class, 'lesson_students')->withPivot('id', 'package_id', 'hours_consumed', 'notes')->withTimestamps()->using(LessonStudent::class); }
     public function lessonStudents() { return $this->hasMany(LessonStudent::class); }

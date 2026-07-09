@@ -21,6 +21,8 @@ class CreateStudentRequest extends FormRequest
             'grade' => 'required|integer|min:1|max:13',
             'parent_phone_1' => 'required|string|max:20',
             'parent_phone_2' => 'nullable|string|max:20',
+            'subject_ids' => 'sometimes|array',
+            'subject_ids.*' => 'string|exists:subjects,id',
         ];
     }
 }

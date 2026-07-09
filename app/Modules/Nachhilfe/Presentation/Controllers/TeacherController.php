@@ -12,11 +12,13 @@ class TeacherController
 {
     public function index(\Illuminate\Http\Request $request): AnonymousResourceCollection
     {
-        $query = Teacher::query();
+        $query = Teacher::with(['subjects', 'students']);
         
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('qualification', 'like', "%{$search}%");
+                  ->orWhere('qualification', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
         }
 
         $teachers = $query->paginate();
@@ -25,7 +27,7 @@ class TeacherController
 
     public function show(string $id): TeacherResource
     {
-        $teacher = Teacher::findOrFail($id);
+        $teacher = Teacher::with(['subjects', 'students'])->findOrFail($id);
         return new TeacherResource($teacher);
     }
 
@@ -36,9 +38,11 @@ class TeacherController
             userId: $validated['user_id'],
             name: $validated['name'],
             qualification: $validated['qualification'],
-            hourlyRate: (float) $validated['hourly_rate']
+            hourlyRate: (float) $validated['hourly_rate'],
+            subjectIds: $validated['subject_ids'] ?? []
         );
 
+        $teacher->load(['subjects', 'students']);
         return (new TeacherResource($teacher))->response()->setStatusCode(201);
     }
 
@@ -48,13 +52,22 @@ class TeacherController
         
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|nullable|string|email|max:255',
+            'phone' => 'sometimes|nullable|string|max:255',
             'qualification' => 'sometimes|required|string|max:255',
             'hourly_rate' => 'sometimes|required|numeric|min:0',
+            'subject_ids' => 'sometimes|array',
+            'subject_ids.*' => 'string|exists:subjects,id',
         ]);
 
-        $teacher->update($validated);
+        $updateData = \Illuminate\Support\Arr::except($validated, ['subject_ids']);
+        $teacher->update($updateData);
 
-        return new TeacherResource($teacher);
+        if ($request->has('subject_ids')) {
+            $teacher->subjects()->sync($validated['subject_ids']);
+        }
+
+        return new TeacherResource($teacher->load(['subjects', 'students']));
     }
 
     public function destroy(string $id): \Illuminate\Http\Response

@@ -18,46 +18,54 @@ class DeductVoucherListener implements ShouldQueue
     public function handle(AttendanceMarkedEvent $event): void
     {
         $attendance = $event->attendance;
-        $lessonStudent = $attendance->lessonStudent()->with(['lesson', 'package'])->first();
+        $lessonStudent = $attendance->lessonStudent()->with('lesson')->first();
         
-        if (!$lessonStudent || !$lessonStudent->package_id) {
-            return; // No package to deduct from
+        if (!$lessonStudent) {
+            return;
         }
 
-        // Only deduct for present or unexcused absence
+        // Only deduct for present or unexcused absence or late
         if (in_array($attendance->status, ['present', 'absent_unexcused', 'late'])) {
             DB::transaction(function () use ($attendance, $lessonStudent) {
-                // Determine hours to deduct based on lesson duration
                 $durationMinutes = $lessonStudent->lesson->duration_minutes;
                 if (!$durationMinutes) {
-                    return; // Cannot deduct without duration
+                    return;
                 }
                 
                 $hoursToDeduct = round($durationMinutes / 60, 2);
 
-                // Note: We need to deduct from the actual student balance, which might be in student_packages or packages.
-                // For this architecture, we assume the package_id in lesson_student links to the specific package instance 
-                // tracking remaining hours. If we need to fetch StudentPackage, we'll do it here.
-                
-                // Assuming $lessonStudent->package tracks the balance (from the provided schema)
-                $package = $lessonStudent->package; // or StudentPackage where package_id = ...
-                
-                // Let's assume there's a StudentPackage table that tracks this for the user, 
-                // but based on the provided schema, we'll record the consumption.
-                
+                // Find active package for student
+                $studentPackage = StudentPackage::where('student_id', $lessonStudent->student_id)
+                    ->where('status', 'active')
+                    ->where('remaining_hours', '>=', $hoursToDeduct)
+                    ->first();
+
+                if (!$studentPackage) {
+                    Log::warning("No active package with enough hours for student {$lessonStudent->student_id}");
+                    return;
+                }
+
+                $balanceBefore = $studentPackage->remaining_hours;
+                $studentPackage->remaining_hours -= $hoursToDeduct;
+
+                if ($studentPackage->remaining_hours <= 0) {
+                    $studentPackage->status = 'exhausted';
+                }
+                $studentPackage->save();
+
                 // Record the consumption
                 LessonConsumption::create([
                     'id' => (string) Str::ulid(),
                     'lesson_student_id' => $lessonStudent->id,
-                    'package_id' => $lessonStudent->package_id,
+                    'package_id' => $studentPackage->package_id,
                     'hours_used' => $hoursToDeduct,
                     'consumption_type' => 'attendance',
-                    'balance_before' => 0, // Should be fetched from StudentPackage
-                    'balance_after' => 0, // Should be updated
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $studentPackage->remaining_hours,
                     'notes' => 'Deducted automatically by AttendanceMarkedEvent',
                 ]);
                 
-                Log::info("Deducted {$hoursToDeduct} hours for Attendance ID: {$attendance->id}");
+                Log::info("Deducted {$hoursToDeduct} hours for Attendance ID: {$attendance->id} from StudentPackage ID: {$studentPackage->id}");
             });
         }
     }
