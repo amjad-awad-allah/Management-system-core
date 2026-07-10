@@ -39,6 +39,9 @@ Route::prefix('api/v1/nachhilfe')
 
         Route::get('/packages', [\App\Modules\Nachhilfe\Presentation\Controllers\PackageController::class, 'index']);
         Route::post('/packages', [\App\Modules\Nachhilfe\Presentation\Controllers\PackageController::class, 'store']);
+        Route::get('/packages/{id}', [\App\Modules\Nachhilfe\Presentation\Controllers\PackageController::class, 'show']);
+        Route::put('/packages/{id}', [\App\Modules\Nachhilfe\Presentation\Controllers\PackageController::class, 'update']);
+        Route::delete('/packages/{id}', [\App\Modules\Nachhilfe\Presentation\Controllers\PackageController::class, 'destroy']);
 
         Route::get('/students/{id}/packages', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentPackageController::class, 'index']);
         Route::get('/students/{id}/statement', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentController::class, 'statement']);

@@ -38,7 +38,15 @@ class StudentPackageController
                 // For a real app, amount should come from the Package model. 
                 // Since this is a demo, we will calculate a dummy amount (e.g. 15 per hour).
                 $amount = $validated['total_hours'] * 15;
-                $billing->createInvoice('student_package', $package->id, $amount);
+                $items = [
+                    [
+                        'description' => "Student Package ({$validated['total_hours']} Hours)",
+                        'quantity' => $validated['total_hours'],
+                        'unit_price' => 15,
+                        'total' => $amount
+                    ]
+                ];
+                $billing->createInvoice('student_package', $package->id, $amount, $items);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Failed to generate invoice', ['error' => $e->getMessage()]);
             }

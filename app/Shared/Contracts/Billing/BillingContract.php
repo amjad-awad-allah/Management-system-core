@@ -9,7 +9,7 @@ interface BillingContract
      *
      * @return array<string, mixed>
      */
-    public function createInvoice(string $referenceType, string $referenceId, float $amount): array;
+    public function createInvoice(string $referenceType, string $referenceId, float $amount, array $items = []): array;
 
     /**
      * Record a payment against a specific invoice.

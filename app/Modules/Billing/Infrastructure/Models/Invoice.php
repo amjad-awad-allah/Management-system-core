@@ -15,8 +15,25 @@ class Invoice extends Model
         'due_date' => 'date',
     ];
 
+    protected $appends = ['total_paid', 'balance'];
+
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+
+    public function getTotalPaidAttribute()
+    {
+        return $this->payments()->where('status', 'completed')->sum('amount');
+    }
+
+    public function getBalanceAttribute()
+    {
+        return max(0, $this->amount - $this->total_paid);
     }
 }

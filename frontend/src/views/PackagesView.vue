@@ -58,6 +58,9 @@
           <button @click="openEditSlideOver(pkg)" class="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             Edit
           </button>
+          <button @click="confirmDelete(pkg.id)" class="flex-none bg-white dark:bg-gray-800 border border-red-300 dark:border-red-900/50 text-red-600 dark:text-red-400 px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -88,5 +91,11 @@ function openCreateSlideOver() {
 
 function openEditSlideOver(pkg: Package) {
   editSlideOver.value?.open(pkg)
+}
+
+function confirmDelete(id: string) {
+  if (confirm('Are you sure you want to delete this package? This action cannot be undone.')) {
+    store.deletePackage(id)
+  }
 }
 </script>

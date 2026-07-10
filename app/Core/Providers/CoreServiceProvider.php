@@ -7,6 +7,7 @@ use App\Core\Auth\Contracts\AuthenticationContract;
 use App\Core\Auth\Providers\SessionAuthenticationProvider;
 use App\Core\Authorization\Contracts\AuthorizationContract;
 use App\Core\Authorization\Providers\SpatieAuthorizationProvider;
+use Illuminate\Support\Facades\Gate;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -19,10 +20,16 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(AuthorizationContract::class, SpatieAuthorizationProvider::class);
         $this->app->singleton(\App\Shared\Contracts\Events\DomainEventBus::class, \App\Core\Events\OutboxEventBus::class);
         $this->app->singleton(\App\Core\Notification\Contracts\WhatsAppNotificationServiceInterface::class, \App\Core\Notification\Services\LogWhatsAppNotificationService::class);
+        // Register Commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \App\Core\Console\Commands\LoadTestCommand::class,
+            ]);
+        }
     }
 
     /**
-     * Bootstrap services.
+     * Bootstrap any application services.
      */
     public function boot(): void
     {
@@ -31,5 +38,9 @@ class CoreServiceProvider extends ServiceProvider
                 \App\Core\Console\Commands\OutboxWorkCommand::class,
             ]);
         }
+
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('Super Admin') ? true : null;
+        });
     }
 }

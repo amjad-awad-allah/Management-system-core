@@ -68,8 +68,9 @@ export const useTeachersStore = defineStore('teachers', () => {
       teachers.value = teachers.value.filter(t => t.id !== id)
       toast.success('Teacher deleted successfully')
       return true
-    } catch (e) {
-      toast.error('Failed to delete teacher')
+    } catch (e: any) {
+      console.error(e.response?.data || e)
+      toast.error('Delete Error', e.response?.data?.message || 'Failed to delete teacher')
       return false
     }
   }

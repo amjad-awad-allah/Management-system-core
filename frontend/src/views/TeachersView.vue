@@ -63,8 +63,8 @@
               </td>
               <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div class="flex items-center justify-end space-x-4">
-                  <button @click="openEditSlideOver(teacher)" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">Edit</button>
-                  <button @click="confirmDeleteTeacher(teacher)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                  <button @click.stop="openEditSlideOver(teacher)" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">Edit</button>
+                  <button @click.stop="confirmDeleteTeacher(teacher)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
                 </div>
               </td>
             </tr>

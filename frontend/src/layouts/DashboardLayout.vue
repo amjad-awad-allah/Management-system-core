@@ -93,7 +93,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="lg:pl-72 w-full flex flex-col">
+    <div class="lg:pl-72 w-full flex flex-col min-w-0">
       <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
         <button type="button" class="-m-2.5 p-2.5 text-gray-700 dark:text-gray-300 lg:hidden" @click="uiStore.setSidebarOpen(true)">
           <span class="sr-only">Open sidebar</span>
@@ -116,7 +116,7 @@
         </div>
       </div>
 
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+      <main class="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <router-view v-slot="{ Component }">
           <transition 
             enter-active-class="transition ease-out duration-200"
@@ -150,7 +150,9 @@ import {
   BriefcaseIcon,
   CurrencyDollarIcon,
   BookOpenIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  ShieldCheckIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/vue/24/outline'
 import { useUiStore } from '@/stores/uiStore'
 import { useRouter } from 'vue-router'
@@ -178,5 +180,8 @@ const navigation = [
   { name: 'Invoices', href: '/invoices', icon: CurrencyDollarIcon },
   { name: 'Lessons', href: '/lessons', icon: BookOpenIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  { name: 'Users', href: '/users', icon: UsersIcon },
+  { name: 'Roles', href: '/roles', icon: ShieldCheckIcon },
+  { name: 'Audit Logs', href: '/audit-logs', icon: ClipboardDocumentListIcon },
 ]
 </script>

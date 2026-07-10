@@ -58,6 +58,21 @@ const router = createRouter({
           component: () => import('@/views/TeacherProfileView.vue'),
         },
         {
+          path: 'users',
+          name: 'Users',
+          component: () => import('@/views/core/UsersView.vue'),
+        },
+        {
+          path: 'roles',
+          name: 'Roles',
+          component: () => import('@/views/core/RolesView.vue'),
+        },
+        {
+          path: 'audit-logs',
+          name: 'AuditLogs',
+          component: () => import('@/views/core/AuditLogsView.vue'),
+        },
+        {
           path: 'settings',
           name: 'Settings',
           component: () => import('@/views/SubjectsRoomsView.vue'),

@@ -27,26 +27,46 @@
         </div>
       </div>
 
-      <!-- IDs (Placeholders for real dropdowns) -->
+      <!-- Relationships -->
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Teacher ID</label>
-        <input type="text" v-model="form.teacher_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
+        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Teacher</label>
+        <select v-model="form.teacher_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+          <option value="" disabled>Select a teacher</option>
+          <option v-for="teacher in teachersStore.teachers" :key="teacher.id" :value="teacher.id">
+            {{ teacher.name }}
+          </option>
+        </select>
       </div>
 
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Room ID</label>
-        <input type="text" v-model="form.room_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
+        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Room</label>
+        <select v-model="form.room_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+          <option value="" disabled>Select a room</option>
+          <option v-for="room in roomsStore.rooms" :key="room.id" :value="room.id">
+            {{ room.name }} (Capacity: {{ room.capacity }})
+          </option>
+        </select>
       </div>
 
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Subject ID</label>
-        <input type="text" v-model="form.subject_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
+        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Subject</label>
+        <select v-model="form.subject_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+          <option value="" disabled>Select a subject</option>
+          <option v-for="subject in subjectsStore.subjects" :key="subject.id" :value="subject.id">
+            {{ subject.name }}
+          </option>
+        </select>
       </div>
 
       <!-- Student(s) -->
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Student ID</label>
-        <input type="text" v-model="form.students[0].student_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
+        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Student</label>
+        <select v-model="form.students[0].student_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+          <option value="" disabled>Select a student</option>
+          <option v-for="student in studentsStore.students" :key="student.id" :value="student.id">
+            {{ student.first_name }} {{ student.last_name }}
+          </option>
+        </select>
       </div>
 
       <div class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
@@ -62,13 +82,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import SlideOver from '@/components/ui/SlideOver.vue'
 import { useLessonsStore } from '@/stores/lessonsStore'
+import { useTeachersStore } from '@/stores/teachersStore'
+import { useRoomsStore } from '@/stores/roomsStore'
+import { useSubjectsStore } from '@/stores/subjectsStore'
+import { useStudentsStore } from '@/stores/studentsStore'
 
 const isOpen = ref(false)
 const store = useLessonsStore()
+const teachersStore = useTeachersStore()
+const roomsStore = useRoomsStore()
+const subjectsStore = useSubjectsStore()
+const studentsStore = useStudentsStore()
 const isSubmitting = ref(false)
+
+onMounted(() => {
+  teachersStore.fetchTeachers()
+  roomsStore.fetchRooms()
+  subjectsStore.fetchSubjects()
+  studentsStore.fetchStudents()
+})
 
 const form = ref({
   type: 'individual',

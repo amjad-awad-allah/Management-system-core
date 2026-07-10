@@ -23,6 +23,10 @@ class ConflictCheckerService
      */
     public function checkConflicts(string $teacherId, string $roomId, string $date, string $startTime, string $endTime, ?string $excludeLessonId = null): void
     {
+        // Format to H:i:s for consistent SQL string comparison
+        $startTime = Carbon::parse($startTime)->format('H:i:s');
+        $endTime = Carbon::parse($endTime)->format('H:i:s');
+
         $this->checkTeacherConflict($teacherId, $date, $startTime, $endTime, $excludeLessonId);
         $this->checkRoomConflict($roomId, $date, $startTime, $endTime, $excludeLessonId);
     }

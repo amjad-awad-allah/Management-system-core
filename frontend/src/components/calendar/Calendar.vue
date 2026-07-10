@@ -24,14 +24,16 @@
     </div>
 
     <!-- Days of week -->
-    <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
-      <div v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day" class="py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-        {{ day }}
-      </div>
-    </div>
+    <div class="overflow-x-auto rounded-b-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div class="min-w-[700px]">
+        <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <div v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day" class="py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            {{ day }}
+          </div>
+        </div>
 
-    <!-- Calendar Grid -->
-    <div class="flex-1 grid grid-cols-7 grid-rows-5 gap-px bg-gray-200 dark:bg-gray-700 rounded-b-xl overflow-hidden shadow-sm">
+        <!-- Calendar Grid -->
+        <div class="flex-1 grid grid-cols-7 grid-rows-5 gap-px bg-gray-200 dark:bg-gray-700">
       <div
         v-for="(day, dayIdx) in calendarDays"
         :key="dayIdx"
@@ -65,11 +67,13 @@
               <span class="truncate opacity-75 group-hover:opacity-100 font-bold ml-1 text-[10px]">{{ lesson.students?.length || 0 }} 🎓</span>
             </div>
             <div class="truncate text-[10px] mt-0.5 opacity-80">{{ lesson.teacher?.name || 'TBD' }}</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <script setup lang="ts">

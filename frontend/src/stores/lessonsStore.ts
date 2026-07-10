@@ -42,7 +42,12 @@ export const useLessonsStore = defineStore('lessons', () => {
       lessons.value.push(response.data.data)
       toast.success('Lesson booked successfully')
       return true
-    } catch (e) {
+    } catch (e: any) {
+      if (e.response?.status === 409) {
+        toast.error(e.response.data.message || 'Scheduling conflict detected')
+      } else {
+        toast.error('Failed to schedule lesson')
+      }
       return false
     }
   }

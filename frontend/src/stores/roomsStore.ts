@@ -32,7 +32,9 @@ export const useRoomsStore = defineStore('rooms', () => {
       rooms.value.unshift(response.data.data)
       toast.success('Room created successfully')
       return true
-    } catch (e) {
+    } catch (e: any) {
+      console.error(e.response?.data)
+      toast.error('Validation Error', e.response?.data?.message || 'Failed to create room')
       return false
     }
   }
@@ -46,7 +48,9 @@ export const useRoomsStore = defineStore('rooms', () => {
       }
       toast.success('Room updated successfully')
       return true
-    } catch (e) {
+    } catch (e: any) {
+      console.error(e.response?.data)
+      toast.error('Validation Error', e.response?.data?.message || 'Failed to update room')
       return false
     }
   }

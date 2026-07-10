@@ -10,7 +10,7 @@
         enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
         leave-active-class="transition ease-in duration-100"
         leave-from-class="opacity-100"
-        leave-to="opacity-0"
+        leave-to-class="opacity-0"
       >
         <div
           v-for="toast in toastStore.toasts"

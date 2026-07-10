@@ -8,5 +8,7 @@ Route::prefix('api/v1/billing')
     ->group(function () {
         
         Route::get('/invoices', [InvoiceController::class, 'index']);
+        Route::post('/invoices/{id}/pay', [InvoiceController::class, 'pay']);
+        Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'pdf']);
         
     });

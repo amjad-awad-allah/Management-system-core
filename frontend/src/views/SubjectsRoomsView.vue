@@ -106,7 +106,8 @@ function openCreateRoom() {
   const name = prompt('Enter room name:')
   if (name) {
     const capacityStr = prompt('Enter capacity (e.g. 10):')
-    const capacity = parseInt(capacityStr || '10')
+    const parsedCapacity = parseInt(capacityStr || '10')
+    const capacity = isNaN(parsedCapacity) || parsedCapacity < 1 ? 10 : parsedCapacity
     roomsStore.createRoom({ name, capacity })
   }
 }

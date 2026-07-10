@@ -54,6 +54,18 @@ export const usePackagesStore = defineStore('packages', () => {
     }
   }
 
+  async function deletePackage(id: string) {
+    try {
+      await api.delete(`/nachhilfe/packages/${id}`)
+      packages.value = packages.value.filter(p => p.id !== id)
+      toast.success('Package deleted successfully')
+      return true
+    } catch (e) {
+      toast.error('Failed to delete package')
+      return false
+    }
+  }
+
   async function assignPackageToStudent(studentId: string, data: any) {
     try {
       const response = await api.post('/nachhilfe/student-packages', {
@@ -73,6 +85,7 @@ export const usePackagesStore = defineStore('packages', () => {
     fetchPackages,
     createPackage,
     updatePackage,
+    deletePackage,
     assignPackageToStudent
   }
 })

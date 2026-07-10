@@ -16,9 +16,7 @@ class TeacherController
         
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('qualification', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                  ->orWhere('qualification', 'like', "%{$search}%");
         }
 
         $teachers = $query->paginate();

@@ -30,6 +30,7 @@ class LessonResource extends JsonResource
                 return $this->students->map(function ($student) {
                     return [
                         'id' => $student->id,
+                        'pivot_id' => $student->pivot->id,
                         'name' => $student->first_name . ' ' . $student->last_name,
                         'package_id' => $student->pivot->package_id,
                         'hours_consumed' => $student->pivot->hours_consumed,

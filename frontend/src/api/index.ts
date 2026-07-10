@@ -25,15 +25,15 @@ api.interceptors.response.use(
     const toast = useToastStore()
     
     if (error.response?.status === 401) {
-      toast.error('تسجيل الدخول', 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مجدداً.')
+      toast.error('Session Expired', 'Your session has expired. Please log in again.')
       localStorage.removeItem('auth_token')
       window.location.href = '/login'
     } else if (error.response?.status === 500) {
-      toast.error('خطأ', 'حدث خطأ في الخادم (500)')
+      toast.error('Error', 'Internal Server Error (500)')
     } else if (error.response?.data?.message) {
-      toast.error('تنبيه', error.response.data.message)
+      toast.error('Alert', error.response.data.message)
     } else {
-      toast.error('خطأ', 'حدث خطأ غير متوقع')
+      toast.error('Error', 'An unexpected error occurred')
     }
     
     return Promise.reject(error)
