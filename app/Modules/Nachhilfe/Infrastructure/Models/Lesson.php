@@ -20,4 +20,6 @@ class Lesson extends Model
     public function scheduleTemplate() { return $this->belongsTo(ScheduleTemplate::class); }
     public function students() { return $this->belongsToMany(Student::class, 'lesson_students')->withPivot('id', 'package_id', 'hours_consumed', 'notes')->withTimestamps()->using(LessonStudent::class); }
     public function lessonStudents() { return $this->hasMany(LessonStudent::class); }
+    public function usages() { return $this->hasMany(SubscriptionUsage::class); }
+    public function payrollItems() { return $this->hasMany(TeacherPayrollItem::class); }
 }

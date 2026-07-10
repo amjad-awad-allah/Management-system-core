@@ -18,9 +18,6 @@
         <button @click="openEditSlideOver" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors">
           Edit Profile
         </button>
-        <button @click="openAddPackageSlideOver" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors">
-          Add Package
-        </button>
         <button @click="confirmDeleteStudent" class="bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 dark:border-red-900 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors">
           Delete
         </button>
@@ -51,48 +48,26 @@
         </dl>
       </div>
 
-      <!-- Packages & Balances -->
+      <!-- Invoices -->
       <div class="glass-panel rounded-2xl p-6 lg:col-span-2 space-y-6">
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Packages</h3>
-          <div v-if="!store.currentStudent.packages?.length" class="text-center text-gray-500 py-8">
-            No active packages found.
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Invoices</h3>
+          <div v-if="!invoices.length" class="text-center text-gray-500 py-8">
+            No invoices found.
           </div>
           <ul v-else class="divide-y divide-gray-100 dark:divide-gray-800">
-            <li v-for="pkg in store.currentStudent.packages" :key="pkg.id" class="flex justify-between gap-x-6 py-4">
+            <li v-for="invoice in invoices" :key="invoice.id" class="flex justify-between gap-x-6 py-4">
               <div class="flex min-w-0 gap-x-4">
                 <div class="min-w-0 flex-auto">
-                  <p class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">{{ pkg.package?.name }}</p>
-                  <p class="mt-1 truncate text-xs leading-5 text-gray-500">{{ pkg.status }}</p>
+                  <p class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">{{ invoice.month }}</p>
+                  <p class="mt-1 truncate text-xs leading-5 text-gray-500">Status: {{ invoice.status }}</p>
                 </div>
               </div>
               <div class="hidden sm:flex sm:flex-col sm:items-end">
-                <p class="text-sm leading-6 text-gray-900 dark:text-white">{{ pkg.remaining_hours }} hours remaining</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Statement Section -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-t border-gray-100 dark:border-gray-800 pt-6">Lesson Statement</h3>
-          <div v-if="!statement.length" class="text-center text-gray-500 py-8">
-            No lesson history found.
-          </div>
-          <ul v-else class="divide-y divide-gray-100 dark:divide-gray-800">
-            <li v-for="item in statement" :key="item.id" class="flex justify-between gap-x-6 py-4">
-              <div class="flex min-w-0 gap-x-4">
-                <div class="min-w-0 flex-auto">
-                  <p class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
-                    {{ item.lesson?.subject?.name || 'Unknown Subject' }} w/ {{ item.lesson?.teacher?.name || 'Unknown Teacher' }}
-                  </p>
-                  <p class="mt-1 truncate text-xs leading-5 text-gray-500">
-                    {{ new Date(item.created_at).toLocaleString() }}
-                  </p>
-                </div>
-              </div>
-              <div class="hidden sm:flex sm:flex-col sm:items-end text-red-600 dark:text-red-400 font-medium">
-                -{{ item.hours_deducted }} hr
+                <p class="text-sm leading-6 text-gray-900 dark:text-white font-medium">€{{ invoice.total_amount }}</p>
+                <button v-if="invoice.status === 'draft' || invoice.status === 'unpaid'" @click="markAsPaid(invoice)" class="mt-1 inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10 hover:bg-purple-100 transition-colors">
+                  Mark Paid
+                </button>
               </div>
             </li>
           </ul>
@@ -137,8 +112,24 @@
       </div>
     </div>
 
+    <!-- Calendar View for Student's Lessons -->
+    <div class="glass-panel p-6 rounded-2xl flex-1 min-h-[500px] flex flex-col relative mt-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Student Schedule</h2>
+      </div>
+      
+      <div v-if="lessonsStore.isLoading" class="absolute inset-0 z-10 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+      
+      <Calendar 
+        :lessons="lessonsStore.lessons"
+        @lesson-click="handleLessonClick"
+      />
+    </div>
+
+    <LessonDetailSlideOver ref="lessonDetailSlideOver" />
     <EditStudentSlideOver ref="editSlideOver" />
-    <AddPackageSlideOver ref="addPackageSlideOver" />
     <ConfirmModal ref="confirmModal" />
   </div>
   
@@ -152,19 +143,23 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStudentsStore } from '@/stores/studentsStore'
+import { useLessonsStore, type Lesson } from '@/stores/lessonsStore'
 import EditStudentSlideOver from '@/components/students/EditStudentSlideOver.vue'
-import AddPackageSlideOver from '@/components/students/AddPackageSlideOver.vue'
+import LessonDetailSlideOver from '@/components/lessons/LessonDetailSlideOver.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
+import Calendar from '@/components/calendar/Calendar.vue'
 import api from '@/api'
 
 const route = useRoute()
 const router = useRouter()
 const store = useStudentsStore()
+const lessonsStore = useLessonsStore()
 const editSlideOver = ref<InstanceType<typeof EditStudentSlideOver> | null>(null)
-const addPackageSlideOver = ref<InstanceType<typeof AddPackageSlideOver> | null>(null)
+const lessonDetailSlideOver = ref<InstanceType<typeof LessonDetailSlideOver> | null>(null)
 const confirmModal = ref<InstanceType<typeof ConfirmModal> | null>(null)
 
 const statement = ref<any[]>([])
+const invoices = ref<any[]>([])
 
 async function fetchStatement(id: string) {
   try {
@@ -175,10 +170,32 @@ async function fetchStatement(id: string) {
   }
 }
 
+async function fetchInvoices(id: string) {
+  try {
+    const res = await api.get(`/nachhilfe/invoices?student_id=${id}`)
+    invoices.value = res.data.data || res.data // depending on pagination
+  } catch (err) {
+    console.error('Failed to load invoices', err)
+  }
+}
+
+async function markAsPaid(invoice: any) {
+  try {
+    await api.patch(`/nachhilfe/invoices/${invoice.id}/status`, { status: 'paid' })
+    if (store.currentStudent) {
+      fetchInvoices(store.currentStudent.id)
+    }
+  } catch (err) {
+    console.error('Failed to mark as paid', err)
+  }
+}
+
 onMounted(() => {
   if (route.params.id) {
     store.fetchStudent(route.params.id as string)
     fetchStatement(route.params.id as string)
+    fetchInvoices(route.params.id as string)
+    lessonsStore.fetchLessons({ student_id: route.params.id })
   }
 })
 
@@ -186,18 +203,18 @@ watch(() => route.params.id, (newId) => {
   if (newId) {
     store.fetchStudent(newId as string)
     fetchStatement(newId as string)
+    fetchInvoices(newId as string)
+    lessonsStore.fetchLessons({ student_id: newId as string })
   }
 })
+
+function handleLessonClick(lesson: Lesson) {
+  lessonDetailSlideOver.value?.open(lesson)
+}
 
 function openEditSlideOver() {
   if (store.currentStudent) {
     editSlideOver.value?.open(store.currentStudent)
-  }
-}
-
-function openAddPackageSlideOver() {
-  if (store.currentStudent) {
-    addPackageSlideOver.value?.open(store.currentStudent)
   }
 }
 

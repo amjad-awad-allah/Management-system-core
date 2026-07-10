@@ -22,6 +22,17 @@ Route::prefix('api/v1/nachhilfe')
 
         Route::get('/lessons', [LessonController::class, 'index']);
         Route::post('/lessons', [LessonController::class, 'store']);
+        Route::patch('/lessons/{lesson}/status', [LessonController::class, 'updateStatus']);
+        
+        Route::get('/payrolls', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'index']);
+        Route::post('/payrolls', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'generate']);
+        Route::get('/payrolls/{payroll}', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'show']);
+        Route::patch('/payrolls/{payroll}/status', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'updateStatus']);
+        
+        Route::get('/invoices', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'index']);
+        Route::post('/invoices', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'generate']);
+        Route::get('/invoices/{invoice}', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'show']);
+        Route::patch('/invoices/{invoice}/status', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'updateStatus']);
         
         Route::post('/lesson-students/{lessonStudentId}/attendance', [\App\Modules\Nachhilfe\Presentation\Controllers\AttendanceController::class, 'store']);
 

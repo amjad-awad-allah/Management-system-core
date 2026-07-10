@@ -4,9 +4,11 @@ namespace App\Modules\Nachhilfe\Infrastructure\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class StudentPackage extends Model
 {
+    use HasUlids;
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -23,12 +25,16 @@ class StudentPackage extends Model
         'remaining_hours',
         'status',
         'expires_at',
+        'start_date',
+        'end_date',
     ];
 
     protected $casts = [
-        'total_hours' => 'integer',
-        'remaining_hours' => 'integer',
+        'total_hours' => 'decimal:2',
+        'remaining_hours' => 'decimal:2',
         'expires_at' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function student(): BelongsTo
@@ -44,5 +50,10 @@ class StudentPackage extends Model
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function usages()
+    {
+        return $this->hasMany(SubscriptionUsage::class, 'subscription_id');
     }
 }

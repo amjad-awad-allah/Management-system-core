@@ -18,9 +18,28 @@ class LessonController extends Controller
         private readonly ConflictCheckerService $conflictChecker
     ) {}
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $lessons = Lesson::with(['teacher', 'room', 'subject', 'students'])->latest('date')->paginate();
+        $query = Lesson::with([
+            'teacher' => fn($q) => $q->withTrashed(),
+            'room', 
+            'subject', 
+            'students' => fn($q) => $q->withTrashed(), 
+            'lessonStudents.attendance'
+        ])->latest('date');
+
+        if ($request->has('teacher_id')) {
+            $query->where('teacher_id', $request->query('teacher_id'));
+        }
+
+        if ($request->has('student_id')) {
+            $studentId = $request->query('student_id');
+            $query->whereHas('students', function($q) use ($studentId) {
+                $q->where('student_id', $studentId);
+            });
+        }
+
+        $lessons = $query->paginate();
         return LessonResource::collection($lessons);
     }
 
@@ -73,7 +92,7 @@ class LessonController extends Controller
                 return $lesson;
             });
 
-            $lesson->load(['teacher', 'room', 'subject', 'students']);
+            $lesson->load(['teacher', 'room', 'subject', 'students', 'lessonStudents.attendance']);
 
             return (new LessonResource($lesson))->response()->setStatusCode(201);
 
@@ -82,5 +101,22 @@ class LessonController extends Controller
                 'message' => 'Conflict detected: ' . $e->getMessage()
             ], 409);
         }
+    }
+
+    public function updateStatus(Request $request, Lesson $lesson): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:scheduled,confirmed,started,completed,cancelled,no-show,rescheduled,Scheduled,Confirmed,Started,Completed,Cancelled,NoShow,Rescheduled'
+        ]);
+
+        $oldStatus = strtolower($lesson->status);
+        $lesson->status = $validated['status'];
+        $lesson->save();
+
+        if ($oldStatus !== 'completed' && strtolower($lesson->status) === 'completed') {
+            \App\Modules\Nachhilfe\Domain\Events\LessonCompleted::dispatch($lesson);
+        }
+
+        return response()->json(['message' => 'Status updated successfully', 'lesson' => new LessonResource($lesson->fresh(['teacher', 'room', 'subject', 'students']))]);
     }
 }

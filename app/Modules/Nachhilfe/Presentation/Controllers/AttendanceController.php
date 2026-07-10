@@ -20,19 +20,15 @@ class AttendanceController extends Controller
 
         $lessonStudent = LessonStudent::findOrFail($lessonStudentId);
 
-        // Check if attendance already exists
-        if (Attendance::where('lesson_student_id', $lessonStudentId)->exists()) {
-            return response()->json(['message' => 'Attendance already marked for this student in this lesson.'], 422);
-        }
-
-        $attendance = Attendance::create([
-            'id' => (string) Str::ulid(),
-            'lesson_student_id' => $lessonStudentId,
-            'status' => $validated['status'],
-            'note' => $validated['note'] ?? null,
-            'marked_by' => $request->user()?->id,
-            'marked_at' => now(),
-        ]);
+        $attendance = Attendance::updateOrCreate(
+            ['lesson_student_id' => $lessonStudentId],
+            [
+                'status' => $validated['status'],
+                'note' => $validated['note'] ?? null,
+                'marked_by' => $request->user()?->id,
+                'marked_at' => now(),
+            ]
+        );
 
         // Dispatch Event
         AttendanceMarkedEvent::dispatch($attendance);

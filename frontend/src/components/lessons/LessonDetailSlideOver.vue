@@ -44,11 +44,11 @@
             </div>
             
             <!-- Attendance Controls -->
-            <div class="flex gap-2 justify-end">
-              <button @click="markAttendance(student.pivot_id, 'present')" class="text-xs px-2 py-1 rounded bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400">Present</button>
-              <button @click="markAttendance(student.pivot_id, 'late')" class="text-xs px-2 py-1 rounded bg-yellow-50 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400">Late</button>
-              <button @click="markAttendance(student.pivot_id, 'absent_excused')" class="text-xs px-2 py-1 rounded bg-gray-50 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">Excused</button>
-              <button @click="markAttendance(student.pivot_id, 'absent_unexcused')" class="text-xs px-2 py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400">Absent</button>
+            <div class="flex gap-2 justify-end transition-all duration-200">
+              <button @click="markAttendance(student, 'present')" :class="[student.attendance === 'present' ? 'ring-2 ring-green-500 bg-green-100 dark:bg-green-900/60 font-semibold' : 'bg-green-50 hover:bg-green-100 dark:bg-green-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-green-700 dark:text-green-400 transition-all">Present</button>
+              <button @click="markAttendance(student, 'late')" :class="[student.attendance === 'late' ? 'ring-2 ring-yellow-500 bg-yellow-100 dark:bg-yellow-900/60 font-semibold' : 'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-yellow-700 dark:text-yellow-400 transition-all">Late</button>
+              <button @click="markAttendance(student, 'absent_excused')" :class="[student.attendance === 'absent_excused' ? 'ring-2 ring-gray-500 bg-gray-200 dark:bg-gray-700 font-semibold' : 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-gray-700 dark:text-gray-300 transition-all">Excused</button>
+              <button @click="markAttendance(student, 'absent_unexcused')" :class="[student.attendance === 'absent_unexcused' ? 'ring-2 ring-red-500 bg-red-100 dark:bg-red-900/60 font-semibold' : 'bg-red-50 hover:bg-red-100 dark:bg-red-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-red-700 dark:text-red-400 transition-all">Absent</button>
             </div>
           </li>
         </ul>
@@ -83,9 +83,12 @@ function close() {
   isOpen.value = false
 }
 
-async function markAttendance(pivotId: string, status: string) {
-  if (!pivotId) return
-  await lessonsStore.markAttendance(pivotId, { status })
+async function markAttendance(student: any, status: string) {
+  if (!student.pivot_id) return
+  const success = await lessonsStore.markAttendance(student.pivot_id, { status })
+  if (success) {
+    student.attendance = status
+  }
 }
 
 defineExpose({ open, close })

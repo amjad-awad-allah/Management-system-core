@@ -25,7 +25,7 @@ class TeacherController
 
     public function show(string $id): TeacherResource
     {
-        $teacher = Teacher::with(['subjects', 'students'])->findOrFail($id);
+        $teacher = Teacher::withTrashed()->with(['subjects', 'students'])->findOrFail($id);
         return new TeacherResource($teacher);
     }
 
@@ -33,10 +33,11 @@ class TeacherController
     {
         $validated = $request->validated();
         $teacher = $action->execute(
-            userId: $validated['user_id'],
             name: $validated['name'],
             qualification: $validated['qualification'],
             hourlyRate: (float) $validated['hourly_rate'],
+            email: $validated['email'] ?? null,
+            phone: $validated['phone'] ?? null,
             subjectIds: $validated['subject_ids'] ?? []
         );
 
@@ -60,6 +61,30 @@ class TeacherController
 
         $updateData = \Illuminate\Support\Arr::except($validated, ['subject_ids']);
         $teacher->update($updateData);
+
+        if (isset($validated['email'])) {
+            if ($teacher->user_id) {
+                $user = \App\Core\Models\User::find($teacher->user_id);
+                if ($user && $user->email !== $validated['email']) {
+                    $user->update(['email' => $validated['email']]);
+                }
+            } else {
+                $user = \App\Core\Models\User::firstOrCreate(
+                    ['email' => $validated['email']],
+                    [
+                        'name' => $validated['name'] ?? $teacher->name,
+                        'password' => \Illuminate\Support\Facades\Hash::make('password123')
+                    ]
+                );
+                
+                if (!$user->hasRole('Teacher')) {
+                    $role = \App\Core\Models\Role::firstOrCreate(['name' => 'Teacher']);
+                    $user->assignRole($role);
+                }
+                
+                $teacher->update(['user_id' => $user->id]);
+            }
+        }
 
         if ($request->has('subject_ids')) {
             $teacher->subjects()->sync($validated['subject_ids']);

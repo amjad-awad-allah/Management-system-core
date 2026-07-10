@@ -108,8 +108,26 @@
       </div>
       
     </div>
+
+    <!-- Calendar View for Teacher's Lessons -->
+    <div class="glass-panel p-6 rounded-2xl flex-1 min-h-[500px] flex flex-col relative">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Teacher Schedule</h2>
+      </div>
+      
+      <div v-if="lessonsStore.isLoading" class="absolute inset-0 z-10 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+      
+      <Calendar 
+        :lessons="lessonsStore.lessons"
+        @lesson-click="handleLessonClick"
+      />
+    </div>
+
   </div>
   
+
   <div v-else class="flex flex-col items-center justify-center h-full text-center py-12">
     <div class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-full mb-4">
       <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -123,6 +141,7 @@
   </div>
   
   <EditTeacherSlideOver ref="editSlideOver" @teacher-updated="fetchTeacher" />
+  <LessonDetailSlideOver ref="lessonDetailSlideOver" />
 </div>
 </template>
 
@@ -130,6 +149,9 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import EditTeacherSlideOver from '@/components/teachers/EditTeacherSlideOver.vue'
+import LessonDetailSlideOver from '@/components/lessons/LessonDetailSlideOver.vue'
+import Calendar from '@/components/calendar/Calendar.vue'
+import { useLessonsStore, type Lesson } from '@/stores/lessonsStore'
 import api from '@/api'
 
 const route = useRoute()
@@ -137,6 +159,8 @@ const router = useRouter()
 const isLoading = ref(true)
 const teacher = ref<any>(null)
 const editSlideOver = ref<InstanceType<typeof EditTeacherSlideOver> | null>(null)
+const lessonDetailSlideOver = ref<InstanceType<typeof LessonDetailSlideOver> | null>(null)
+const lessonsStore = useLessonsStore()
 
 function openEditSlideOver() {
   if (teacher.value) {
@@ -158,5 +182,10 @@ async function fetchTeacher() {
 
 onMounted(() => {
   fetchTeacher()
+  lessonsStore.fetchLessons({ teacher_id: route.params.id })
 })
+
+function handleLessonClick(lesson: Lesson) {
+  lessonDetailSlideOver.value?.open(lesson)
+}
 </script>

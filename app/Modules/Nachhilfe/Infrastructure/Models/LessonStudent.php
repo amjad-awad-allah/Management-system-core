@@ -13,13 +13,13 @@ class LessonStudent extends Pivot
 
     protected $table = 'lesson_students';
 
+    protected $primaryKey = 'id';
     protected $fillable = ['lesson_id', 'student_id', 'package_id', 'hours_consumed', 'notes'];
-
     public $incrementing = false;
     protected $keyType = 'string';
 
     public function lesson() { return $this->belongsTo(Lesson::class); }
     public function student() { return $this->belongsTo(Student::class); }
     public function package() { return $this->belongsTo(Package::class); }
-    public function attendance() { return $this->hasOne(Attendance::class); }
+    public function attendance() { return $this->hasOne(Attendance::class, 'lesson_student_id'); }
 }

@@ -53,3 +53,22 @@ test('can list teachers', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.name', 'Mrs. Robinson');
 });
+
+test('can view a soft-deleted teacher', function () {
+    $user = User::forceCreate(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'T', 'email' => 'tr3@t.com', 'password' => 'p']);
+    
+    $teacher = new Teacher();
+    $teacher->id = (string) Str::ulid();
+    $teacher->user_id = (string) Str::ulid();
+    $teacher->name = 'Deleted Teacher';
+    $teacher->qualification = 'B.A. English';
+    $teacher->hourly_rate = 30.00;
+    $teacher->save();
+
+    $teacher->delete(); // Soft delete
+
+    $response = $this->actingAs($user, 'sanctum')->getJson('/api/v1/nachhilfe/teachers/' . $teacher->id);
+
+    $response->assertStatus(200)
+        ->assertJsonPath('data.name', 'Deleted Teacher');
+});

@@ -3,6 +3,7 @@
 namespace App\Modules\Nachhilfe\Domain\Services;
 
 use App\Modules\Nachhilfe\Infrastructure\Models\Lesson;
+use App\Modules\Nachhilfe\Infrastructure\Models\TeacherAvailability;
 use Carbon\Carbon;
 use Exception;
 
@@ -27,8 +28,25 @@ class ConflictCheckerService
         $startTime = Carbon::parse($startTime)->format('H:i:s');
         $endTime = Carbon::parse($endTime)->format('H:i:s');
 
+        $this->checkTeacherAvailability($teacherId, $date, $startTime, $endTime);
         $this->checkTeacherConflict($teacherId, $date, $startTime, $endTime, $excludeLessonId);
         $this->checkRoomConflict($roomId, $date, $startTime, $endTime, $excludeLessonId);
+    }
+
+    private function checkTeacherAvailability(string $teacherId, string $date, string $startTime, string $endTime): void
+    {
+        $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+
+        // Find if there is any availability record that covers the entire lesson duration
+        $isAvailable = TeacherAvailability::where('teacher_id', $teacherId)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('start_time', '<=', $startTime)
+            ->where('end_time', '>=', $endTime)
+            ->exists();
+
+        if (!$isAvailable) {
+            throw new Exception("Teacher is not available during this time on this day.");
+        }
     }
 
     private function checkTeacherConflict(string $teacherId, string $date, string $startTime, string $endTime, ?string $excludeLessonId): void
@@ -40,7 +58,7 @@ class ConflictCheckerService
                 $q->where(function ($subQ) use ($startTime, $endTime) {
                     // Overlaps logic: (start < new_end) AND (end > new_start)
                     $subQ->where('start_time', '<', $endTime)
-                         ->where('end_time', '>', $startTime);
+                        ->where('end_time', '>', $startTime);
                 });
             });
 
@@ -61,7 +79,7 @@ class ConflictCheckerService
             ->where(function ($q) use ($startTime, $endTime) {
                 $q->where(function ($subQ) use ($startTime, $endTime) {
                     $subQ->where('start_time', '<', $endTime)
-                         ->where('end_time', '>', $startTime);
+                        ->where('end_time', '>', $startTime);
                 });
             });
 

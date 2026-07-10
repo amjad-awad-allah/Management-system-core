@@ -28,7 +28,7 @@ class StudentController
 
     public function show(string $id): StudentResource
     {
-        $student = Student::with(['subjects', 'teachers'])->findOrFail($id);
+        $student = Student::withTrashed()->with(['subjects', 'teachers'])->findOrFail($id);
         return new StudentResource($student);
     }
 
@@ -43,6 +43,8 @@ class StudentController
             grade: (int) $validated['grade'],
             parentPhone1: $validated['parent_phone_1'],
             parentPhone2: $validated['parent_phone_2'] ?? null,
+            parentName: $validated['parent_name'] ?? null,
+            parentEmail: $validated['parent_email'] ?? null,
             subjectIds: $validated['subject_ids'] ?? []
         );
 
@@ -60,6 +62,8 @@ class StudentController
             'birth_date' => 'sometimes|required|date_format:Y-m-d',
             'school' => 'sometimes|required|string|max:255',
             'grade' => 'sometimes|required|integer|min:1|max:13',
+            'parent_name' => 'sometimes|nullable|string|max:255',
+            'parent_email' => 'sometimes|nullable|string|email|max:255',
             'parent_phone_1' => 'sometimes|required|string|max:20',
             'parent_phone_2' => 'nullable|string|max:20',
             'subject_ids' => 'sometimes|array',
@@ -68,6 +72,24 @@ class StudentController
 
         $updateData = \Illuminate\Support\Arr::except($validated, ['subject_ids']);
         $student->update($updateData);
+
+        if (isset($validated['parent_email'])) {
+            $user = \App\Core\Models\User::firstOrCreate(
+                ['email' => $validated['parent_email']],
+                [
+                    'name' => $validated['parent_name'] ?? ($student->first_name . ' Parent'),
+                    'password' => \Illuminate\Support\Facades\Hash::make('password123') // Default password
+                ]
+            );
+            
+            if (!$user->hasRole('Student')) {
+                // Ensure Student role exists or create it
+                $role = \App\Core\Models\Role::firstOrCreate(['name' => 'Student']);
+                $user->assignRole($role);
+            }
+
+            $student->update(['user_id' => $user->id]);
+        }
 
         if ($request->has('subject_ids')) {
             $student->subjects()->sync($validated['subject_ids']);

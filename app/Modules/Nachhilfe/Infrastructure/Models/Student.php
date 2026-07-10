@@ -18,11 +18,14 @@ class Student extends Model
 
     protected $fillable = [
         'id',
+        'user_id',
         'first_name',
         'last_name',
         'birth_date',
         'school',
         'grade',
+        'parent_name',
+        'parent_email',
         'parent_phone_1',
         'parent_phone_2',
     ];
@@ -32,6 +35,16 @@ class Student extends Model
         return [
             'birth_date' => 'encrypted',
         ];
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function contracts()
+    {
+        return $this->hasMany(StudentContract::class);
     }
 
     public function lessons()

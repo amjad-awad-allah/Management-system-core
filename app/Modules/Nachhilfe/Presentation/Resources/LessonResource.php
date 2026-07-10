@@ -28,12 +28,19 @@ class LessonResource extends JsonResource
             'notes' => $this->notes,
             'students' => $this->whenLoaded('students', function () {
                 return $this->students->map(function ($student) {
+                    $attendanceStatus = null;
+                    if ($this->relationLoaded('lessonStudents')) {
+                        $ls = $this->lessonStudents->firstWhere('student_id', $student->id);
+                        $attendanceStatus = $ls?->attendance?->status;
+                    }
+
                     return [
                         'id' => $student->id,
                         'pivot_id' => $student->pivot->id,
                         'name' => $student->first_name . ' ' . $student->last_name,
                         'package_id' => $student->pivot->package_id,
                         'hours_consumed' => $student->pivot->hours_consumed,
+                        'attendance' => $attendanceStatus,
                     ];
                 });
             }),

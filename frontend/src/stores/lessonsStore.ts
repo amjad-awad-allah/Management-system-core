@@ -22,10 +22,10 @@ export const useLessonsStore = defineStore('lessons', () => {
   const isLoading = ref(false)
   const toast = useToastStore()
 
-  async function fetchLessons() {
+  async function fetchLessons(params: Record<string, any> = {}) {
     isLoading.value = true
     try {
-      const response = await api.get('/nachhilfe/lessons')
+      const response = await api.get('/nachhilfe/lessons', { params })
       lessons.value = response.data.data
     } catch (e) {
       console.error(e)

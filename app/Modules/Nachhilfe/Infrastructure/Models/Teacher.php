@@ -42,6 +42,16 @@ class Teacher extends Model
         return $this->hasMany(ScheduleTemplate::class);
     }
 
+    public function availabilities()
+    {
+        return $this->hasMany(TeacherAvailability::class);
+    }
+
+    public function payrolls()
+    {
+        return $this->hasMany(TeacherPayroll::class);
+    }
+
     protected function casts(): array
     {
         return [

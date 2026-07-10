@@ -12,7 +12,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->foreignUlid('lesson_id')->constrained('lessons')->cascadeOnDelete();
             $table->foreignUlid('student_id')->constrained('students')->cascadeOnDelete();
-            $table->foreignUlid('package_id')->nullable()->constrained('packages')->nullOnDelete();
+            $table->foreignUlid('package_id')->nullable()->constrained('student_packages')->nullOnDelete();
             
             $table->decimal('hours_consumed', 5, 2)->default(0);
             $table->text('notes')->nullable();

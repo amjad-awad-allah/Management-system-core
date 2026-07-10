@@ -17,6 +17,15 @@ class ConflictCheckerServiceTest extends TestCase
     public function test_conflict_checker_prevents_overlaps()
     {
         $teacher = Teacher::create(['id' => (string) Str::ulid(), 'name' => 'John Doe']);
+        
+        \App\Modules\Nachhilfe\Infrastructure\Models\TeacherAvailability::create([
+            'id' => (string) Str::ulid(),
+            'teacher_id' => $teacher->id,
+            'day_of_week' => \Carbon\Carbon::parse('2026-07-10')->dayOfWeek,
+            'start_time' => '08:00:00',
+            'end_time' => '17:00:00'
+        ]);
+
         $room = Room::create(['id' => (string) Str::ulid(), 'name' => 'Room 1', 'capacity' => 10]);
         $subject = SubjectModel::create(['id' => (string) Str::ulid(), 'name' => 'Math']);
 
