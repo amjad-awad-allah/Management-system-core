@@ -88,7 +88,7 @@ const router = createRouter({
 })
 
 // Navigation Guard for Authentication
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = !!authStore.token
   

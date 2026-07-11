@@ -100,11 +100,11 @@ const submitForm = async () => {
   
   try {
     await api.post(`/billing/invoices/${props.invoice.id}/pay`, form.value)
-    toast.showToast('Payment recorded successfully', 'success')
+    toast.success('Payment recorded successfully')
     emit('payment-recorded')
     close()
   } catch (error: any) {
-    toast.showToast(error.response?.data?.message || 'Failed to record payment', 'error')
+    toast.error(error.response?.data?.message || 'Failed to record payment')
   } finally {
     isSubmitting.value = false
   }

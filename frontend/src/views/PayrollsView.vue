@@ -109,7 +109,7 @@ const fetchPayrolls = async (page = 1) => {
     totalPages.value = response.data.last_page
   } catch (error: any) {
     console.error(error)
-    toast.showToast('Failed to load payrolls', 'error')
+    toast.error('Failed to load payrolls')
   } finally {
     isLoading.value = false
   }
@@ -117,12 +117,12 @@ const fetchPayrolls = async (page = 1) => {
 
 const markAsPaid = async (payroll: Payroll) => {
   try {
-    const res = await api.patch(`/nachhilfe/payrolls/${payroll.id}/status`, { status: 'Paid' })
-    toast.showToast('Payroll marked as paid', 'success')
+    await api.patch(`/nachhilfe/payrolls/${payroll.id}/status`, { status: 'Paid' })
+    toast.success('Payroll marked as paid')
     fetchPayrolls(currentPage.value)
   } catch (error: any) {
     console.error(error)
-    toast.showToast('Failed to update payroll status', 'error')
+    toast.error('Failed to update payroll status')
   }
 }
 

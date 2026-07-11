@@ -128,7 +128,8 @@
       />
     </div>
 
-    <LessonDetailSlideOver ref="lessonDetailSlideOver" />
+    <LessonDetailSlideOver ref="lessonDetailSlideOver" @edit-lesson="handleEditLesson" />
+    <ScheduleLessonSlideOver ref="scheduleLessonSlideOver" />
     <EditStudentSlideOver ref="editSlideOver" />
     <ConfirmModal ref="confirmModal" />
   </div>
@@ -146,6 +147,7 @@ import { useStudentsStore } from '@/stores/studentsStore'
 import { useLessonsStore, type Lesson } from '@/stores/lessonsStore'
 import EditStudentSlideOver from '@/components/students/EditStudentSlideOver.vue'
 import LessonDetailSlideOver from '@/components/lessons/LessonDetailSlideOver.vue'
+import ScheduleLessonSlideOver from '@/components/lessons/ScheduleLessonSlideOver.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import Calendar from '@/components/calendar/Calendar.vue'
 import api from '@/api'
@@ -156,6 +158,7 @@ const store = useStudentsStore()
 const lessonsStore = useLessonsStore()
 const editSlideOver = ref<InstanceType<typeof EditStudentSlideOver> | null>(null)
 const lessonDetailSlideOver = ref<InstanceType<typeof LessonDetailSlideOver> | null>(null)
+const scheduleLessonSlideOver = ref<InstanceType<typeof ScheduleLessonSlideOver> | null>(null)
 const confirmModal = ref<InstanceType<typeof ConfirmModal> | null>(null)
 
 const statement = ref<any[]>([])
@@ -210,6 +213,10 @@ watch(() => route.params.id, (newId) => {
 
 function handleLessonClick(lesson: Lesson) {
   lessonDetailSlideOver.value?.open(lesson)
+}
+
+function handleEditLesson(lesson: Lesson) {
+  scheduleLessonSlideOver.value?.open(lesson)
 }
 
 function openEditSlideOver() {

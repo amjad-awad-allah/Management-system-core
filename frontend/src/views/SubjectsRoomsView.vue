@@ -98,7 +98,9 @@ function deleteSubject(subject: Subject) {
     `Are you sure you want to delete ${subject.name}?`,
     'Delete',
     'Cancel',
-    () => subjectsStore.deleteSubject(subject.id)
+    async () => {
+      await subjectsStore.deleteSubject(subject.id)
+    }
   )
 }
 
@@ -118,7 +120,9 @@ function deleteRoom(room: Room) {
     `Are you sure you want to delete ${room.name}?`,
     'Delete',
     'Cancel',
-    () => roomsStore.deleteRoom(room.id)
+    async () => {
+      await roomsStore.deleteRoom(room.id)
+    }
   )
 }
 </script>

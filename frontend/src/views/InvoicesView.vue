@@ -117,7 +117,7 @@ const fetchInvoices = async (page = 1) => {
     totalPages.value = response.data.last_page
   } catch (error: any) {
     console.error(error)
-    toast.showToast('Failed to load invoices', 'error')
+    toast.error('Failed to load invoices')
   } finally {
     isLoading.value = false
   }
@@ -125,12 +125,12 @@ const fetchInvoices = async (page = 1) => {
 
 const markAsPaid = async (invoice: Invoice) => {
   try {
-    const res = await api.patch(`/nachhilfe/invoices/${invoice.id}/status`, { status: 'paid' })
-    toast.showToast('Invoice marked as paid', 'success')
+    await api.patch(`/nachhilfe/invoices/${invoice.id}/status`, { status: 'paid' })
+    toast.success('Invoice marked as paid')
     fetchInvoices(currentPage.value)
   } catch (error: any) {
     console.error(error)
-    toast.showToast('Failed to update invoice status', 'error')
+    toast.error('Failed to update invoice status')
   }
 }
 

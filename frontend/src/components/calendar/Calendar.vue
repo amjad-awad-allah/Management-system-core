@@ -88,8 +88,7 @@ import {
   endOfWeek,
   eachDayOfInterval,
   isSameMonth,
-  isToday,
-  parseISO
+  isToday
 } from 'date-fns'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
 import type { Lesson } from '@/stores/lessonsStore'

@@ -7,8 +7,11 @@ export interface Student {
   id: string
   first_name: string
   last_name: string
-  date_of_birth: string
+  date_of_birth?: string
+  birth_date?: string
   gender: string
+  school?: string
+  grade?: number
   parent_name: string
   parent_email?: string
   parent_phone_1?: string

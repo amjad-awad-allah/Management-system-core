@@ -141,25 +141,27 @@
   </div>
   
   <EditTeacherSlideOver ref="editSlideOver" @teacher-updated="fetchTeacher" />
-  <LessonDetailSlideOver ref="lessonDetailSlideOver" />
+  <LessonDetailSlideOver ref="lessonDetailSlideOver" @edit-lesson="handleEditLesson" />
+  <ScheduleLessonSlideOver ref="scheduleLessonSlideOver" />
 </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import EditTeacherSlideOver from '@/components/teachers/EditTeacherSlideOver.vue'
 import LessonDetailSlideOver from '@/components/lessons/LessonDetailSlideOver.vue'
+import ScheduleLessonSlideOver from '@/components/lessons/ScheduleLessonSlideOver.vue'
 import Calendar from '@/components/calendar/Calendar.vue'
 import { useLessonsStore, type Lesson } from '@/stores/lessonsStore'
 import api from '@/api'
 
 const route = useRoute()
-const router = useRouter()
 const isLoading = ref(true)
 const teacher = ref<any>(null)
 const editSlideOver = ref<InstanceType<typeof EditTeacherSlideOver> | null>(null)
 const lessonDetailSlideOver = ref<InstanceType<typeof LessonDetailSlideOver> | null>(null)
+const scheduleLessonSlideOver = ref<InstanceType<typeof ScheduleLessonSlideOver> | null>(null)
 const lessonsStore = useLessonsStore()
 
 function openEditSlideOver() {
@@ -187,5 +189,9 @@ onMounted(() => {
 
 function handleLessonClick(lesson: Lesson) {
   lessonDetailSlideOver.value?.open(lesson)
+}
+
+function handleEditLesson(lesson: Lesson) {
+  scheduleLessonSlideOver.value?.open(lesson)
 }
 </script>

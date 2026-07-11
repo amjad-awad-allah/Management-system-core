@@ -168,4 +168,55 @@ test('can mark attendance and update it', function () {
     $this->assertDatabaseHas('attendances', ['lesson_student_id' => $pivotId, 'status' => 'late']);
 });
 
+test('can edit a lesson', function () {
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't_edit@t.com', 'password' => 'p']);
+    $student = Student::create(['id' => Str::ulid()->toString(), 'first_name' => 'S', 'last_name' => 'L', 'birth_date' => '2010-01-01', 'level' => 'Grade 10']);
+    $teacher = Teacher::create(['id' => Str::ulid()->toString(), 'user_id' => $user->id, 'name' => 'Teacher Edit']);
+    $subject = SubjectModel::create(['id' => Str::ulid()->toString(), 'name' => 'Math']);
+    $room = \App\Modules\Nachhilfe\Infrastructure\Models\Room::create(['id' => Str::ulid()->toString(), 'name' => 'Room 1', 'capacity' => 10]);
+
+    $date = now()->addDays(1);
+    \App\Modules\Nachhilfe\Infrastructure\Models\TeacherAvailability::create([
+        'teacher_id' => $teacher->id,
+        'day_of_week' => $date->dayOfWeek,
+        'start_time' => '08:00',
+        'end_time' => '18:00'
+    ]);
+
+    $lesson = \App\Modules\Nachhilfe\Infrastructure\Models\Lesson::create([
+        'id' => Str::ulid()->toString(),
+        'teacher_id' => $teacher->id,
+        'room_id' => $room->id,
+        'subject_id' => $subject->id,
+        'type' => 'individual',
+        'date' => $date->format('Y-m-d'),
+        'start_time' => '10:00',
+        'end_time' => '11:00',
+        'duration_minutes' => 60,
+        'status' => 'scheduled'
+    ]);
+
+    $lesson->students()->attach($student->id, ['id' => Str::ulid()->toString()]);
+
+    $response = $this->actingAs($user, 'sanctum')->putJson("/api/v1/nachhilfe/lessons/{$lesson->id}", [
+        'teacher_id' => $teacher->id,
+        'subject_id' => $subject->id,
+        'room_id' => $room->id,
+        'type' => 'individual',
+        'date' => $date->format('Y-m-d'),
+        'start_time' => '11:00',
+        'end_time' => '12:00',
+        'students' => [
+            ['student_id' => $student->id]
+        ]
+    ]);
+
+    $response->assertStatus(200);
+    $this->assertDatabaseHas('lessons', [
+        'id' => $lesson->id,
+        'start_time' => '11:00',
+        'end_time' => '12:00'
+    ]);
+});
+
 

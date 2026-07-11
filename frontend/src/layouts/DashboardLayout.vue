@@ -139,15 +139,12 @@
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import {
   HomeIcon,
-  CalendarIcon,
   UsersIcon,
   AcademicCapIcon,
   Bars3Icon,
   SunIcon,
   MoonIcon,
-  UserGroupIcon,
   CurrencyEuroIcon,
-  BriefcaseIcon,
   CurrencyDollarIcon,
   BookOpenIcon,
   ArrowRightOnRectangleIcon,

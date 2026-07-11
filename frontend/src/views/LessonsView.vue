@@ -23,7 +23,7 @@
 
     <ScheduleLessonSlideOver ref="slideOver" />
     <AttendanceSlideOver ref="attendanceSlideOver" />
-    <LessonDetailSlideOver ref="lessonDetailSlideOver" />
+    <LessonDetailSlideOver ref="lessonDetailSlideOver" @edit-lesson="handleEditLesson" />
   </div>
 </template>
 
@@ -57,5 +57,9 @@ function handleLessonClick(lesson: Lesson) {
 
 function handleDayClick(date: string) {
   openSlideOver(date)
+}
+
+function handleEditLesson(lesson: Lesson) {
+  slideOver.value?.open(lesson)
 }
 </script>

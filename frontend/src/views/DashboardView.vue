@@ -177,7 +177,6 @@ import RevenueChart from '@/components/dashboard/RevenueChart.vue'
 import { 
   CalendarIcon, 
   BanknotesIcon,
-  ExclamationTriangleIcon,
   ClockIcon,
   CheckCircleIcon,
   MapPinIcon,

@@ -57,9 +57,14 @@
     </div>
     
     <template #footer>
-      <button @click="close" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors w-full">
-        Close
-      </button>
+      <div class="flex gap-3 w-full">
+        <button @click="editLesson" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors text-center">
+          Edit Lesson
+        </button>
+        <button @click="close" class="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors text-center">
+          Close
+        </button>
+      </div>
     </template>
   </SlideOver>
 </template>
@@ -69,6 +74,10 @@ import { ref } from 'vue'
 import SlideOver from '@/components/ui/SlideOver.vue'
 import { useLessonsStore } from '@/stores/lessonsStore'
 import type { Lesson } from '@/stores/lessonsStore'
+
+const emit = defineEmits<{
+  (e: 'edit-lesson', lesson: Lesson): void
+}>()
 
 const isOpen = ref(false)
 const lesson = ref<Lesson | null>(null)
@@ -81,6 +90,13 @@ function open(l: Lesson) {
 
 function close() {
   isOpen.value = false
+}
+
+function editLesson() {
+  isOpen.value = false
+  if (lesson.value) {
+    emit('edit-lesson', lesson.value)
+  }
 }
 
 async function markAttendance(student: any, status: string) {

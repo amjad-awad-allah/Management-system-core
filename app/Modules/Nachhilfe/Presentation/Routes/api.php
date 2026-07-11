@@ -22,6 +22,7 @@ Route::prefix('api/v1/nachhilfe')
 
         Route::get('/lessons', [LessonController::class, 'index']);
         Route::post('/lessons', [LessonController::class, 'store']);
+        Route::put('/lessons/{lesson}', [LessonController::class, 'update']);
         Route::patch('/lessons/{lesson}/status', [LessonController::class, 'updateStatus']);
         
         Route::get('/payrolls', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'index']);

@@ -15,6 +15,9 @@ export interface Lesson {
   status: string
   notes?: string
   students: any[]
+  teacher?: { id: string; name: string }
+  room?: { id: string; name: string }
+  subject?: { id: string; name: string }
 }
 
 export const useLessonsStore = defineStore('lessons', () => {
@@ -51,6 +54,26 @@ export const useLessonsStore = defineStore('lessons', () => {
       return false
     }
   }
+
+  async function updateLesson(id: string, data: any) {
+    try {
+      const response = await api.put(`/nachhilfe/lessons/${id}`, data)
+      const updatedLesson = response.data.data
+      const index = lessons.value.findIndex(l => l.id === id)
+      if (index !== -1) {
+        lessons.value[index] = updatedLesson
+      }
+      toast.success('Lesson updated successfully')
+      return true
+    } catch (e: any) {
+      if (e.response?.status === 409) {
+        toast.error(e.response.data.message || 'Scheduling conflict detected')
+      } else {
+        toast.error('Failed to update lesson')
+      }
+      return false
+    }
+  }
   
   async function markAttendance(lessonStudentId: string, data: { status: string, note?: string }) {
     try {
@@ -67,6 +90,7 @@ export const useLessonsStore = defineStore('lessons', () => {
     isLoading,
     fetchLessons,
     bookLesson,
+    updateLesson,
     markAttendance
   }
 })
