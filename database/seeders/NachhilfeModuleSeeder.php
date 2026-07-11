@@ -67,16 +67,21 @@ class NachhilfeModuleSeeder extends Seeder
         // Create 5 teachers
         $teachers = Teacher::factory()->count(5)->create();
 
-        // Assign random packages to students
+        // Get some subjects and rooms
+        $subjects = \Illuminate\Support\Facades\DB::table('subjects')->pluck('id')->toArray();
+        $rooms = \Illuminate\Support\Facades\DB::table('rooms')->pluck('id')->toArray();
+
+        // Assign active contracts to students
         foreach ($students as $student) {
-            if (rand(0, 1) === 1) { // 50% chance
-                \Illuminate\Support\Facades\DB::table('student_packages')->insert([
+            $assignedSubjects = (array) array_rand(array_flip($subjects), rand(1, 2));
+            foreach ($assignedSubjects as $subjId) {
+                \Illuminate\Support\Facades\DB::table('student_contracts')->insert([
                     'id' => (string) \Illuminate\Support\Str::ulid(),
                     'student_id' => $student->id,
-                    'package_id' => $createdPackages[array_rand($createdPackages)],
-                    'total_hours' => 20,
-                    'remaining_hours' => rand(5, 20),
-                    'funding_source' => rand(0, 1) === 1 ? 'private' : 'jobcenter',
+                    'subject_id' => $subjId,
+                    'hours_per_week' => rand(1, 4),
+                    'hourly_rate' => fake()->randomElement([20.00, 25.00, 30.00, 35.00]),
+                    'start_date' => now()->startOfMonth()->toDateString(),
                     'status' => 'active',
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -84,9 +89,7 @@ class NachhilfeModuleSeeder extends Seeder
             }
         }
 
-        // Get some subjects and rooms
-        $subjects = \Illuminate\Support\Facades\DB::table('subjects')->pluck('id')->toArray();
-        $rooms = \Illuminate\Support\Facades\DB::table('rooms')->pluck('id')->toArray();
+        // (Subjects and rooms variables already moved up)
 
         if (!empty($subjects) && !empty($rooms)) {
             // Create some lessons in the current week (past and future)
@@ -114,13 +117,26 @@ class NachhilfeModuleSeeder extends Seeder
                 // Enroll 1-3 random students in each lesson
                 $enrolledStudents = $students->random(rand(1, 3));
                 foreach ($enrolledStudents as $enrolledStudent) {
+                    $pivotId = (string) \Illuminate\Support\Str::ulid();
                     \Illuminate\Support\Facades\DB::table('lesson_students')->insert([
-                        'id' => (string) \Illuminate\Support\Str::ulid(),
+                        'id' => $pivotId,
                         'lesson_id' => $lessonId,
                         'student_id' => $enrolledStudent->id,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
+
+                    // If completed, add attendance
+                    if ($i < 0) {
+                        \Illuminate\Support\Facades\DB::table('attendances')->insert([
+                            'id' => (string) \Illuminate\Support\Str::ulid(),
+                            'lesson_student_id' => $pivotId,
+                            'status' => fake()->randomElement(['present', 'present', 'present', 'absent_excused', 'absent_unexcused']),
+                            'note' => fake()->optional()->sentence(),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
                 }
             }
         }

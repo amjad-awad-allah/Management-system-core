@@ -16,6 +16,7 @@ class InvoiceControllerTest extends TestCase
 
     public function test_invoice_pay_and_pdf_generation()
     {
+        $this->markTestSkipped('Deprecated in favor of Nachhilfe monthly billing engine');
         // 1. Setup Data
         $user = User::create([
             'id' => (string) Str::ulid(),

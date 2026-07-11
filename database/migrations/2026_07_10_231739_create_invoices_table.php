@@ -11,7 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('invoices');
+        Schema::enableForeignKeyConstraints();
         Schema::create('invoices', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('invoice_number')->unique();
