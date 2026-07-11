@@ -46,50 +46,105 @@ class LessonController extends Controller
     public function store(BookLessonRequest $request): \Illuminate\Http\JsonResponse
     {
         $data = $request->validated();
+        $pattern = $data['recurrence_pattern'] ?? 'none';
+        
+        $dates = [];
+        $startDate = Carbon::parse($data['date']);
+        
+        if ($pattern === 'none') {
+            $dates[] = $data['date'];
+        } else {
+            $endDate = Carbon::parse($data['recurrence_end_date']);
+            $currentDate = $startDate->copy();
+            
+            // Limit occurrences to 100 to prevent infinite loop or memory exhaustion
+            $limit = 100;
+            while ($currentDate->lessThanOrEqualTo($endDate) && $limit > 0) {
+                $dates[] = $currentDate->toDateString();
+                
+                if ($pattern === 'daily') {
+                    $currentDate->addDay();
+                } elseif ($pattern === 'weekly') {
+                    $currentDate->addWeek();
+                } elseif ($pattern === 'monthly') {
+                    $currentDate->addMonth();
+                }
+                $limit--;
+            }
+        }
 
         try {
-            // 1. Triple-lock Conflict Prevention
-            $this->conflictChecker->checkConflicts(
-                $data['teacher_id'],
-                $data['room_id'],
-                $data['date'],
-                $data['start_time'],
-                $data['end_time']
-            );
+            // 1. Triple-lock Conflict Prevention for each date
+            foreach ($dates as $date) {
+                $this->conflictChecker->checkConflicts(
+                    $data['teacher_id'],
+                    $data['room_id'],
+                    $date,
+                    $data['start_time'],
+                    $data['end_time']
+                );
+            }
 
             // 2. Transaction for atomic save
-            $lesson = DB::transaction(function () use ($data) {
+            $lesson = DB::transaction(function () use ($data, $dates, $pattern) {
                 // Calculate duration
                 $start = Carbon::parse($data['date'] . ' ' . $data['start_time']);
                 $end = Carbon::parse($data['date'] . ' ' . $data['end_time']);
                 $durationMinutes = $start->diffInMinutes($end);
 
-                $lesson = Lesson::create([
-                    'teacher_id' => $data['teacher_id'],
-                    'room_id' => $data['room_id'],
-                    'subject_id' => $data['subject_id'],
-                    'type' => $data['type'],
-                    'date' => $data['date'],
-                    'start_time' => $data['start_time'],
-                    'end_time' => $data['end_time'],
-                    'duration_minutes' => $durationMinutes,
-                    'status' => 'scheduled',
-                    'notes' => $data['notes'] ?? null,
-                ]);
-
-                // Attach students
-                $studentsToAttach = [];
-                foreach ($data['students'] as $student) {
-                    $studentsToAttach[$student['student_id']] = [
-                        'id' => (string) \Illuminate\Support\Str::ulid(),
-                        'package_id' => $student['package_id'] ?? null,
-                        'hours_consumed' => 0,
-                    ];
+                $scheduleTemplateId = null;
+                if ($pattern !== 'none') {
+                    // Create a schedule template
+                    $startDayOfWeekName = strtolower(Carbon::parse($data['date'])->englishDayOfWeek);
+                    $template = \App\Modules\Nachhilfe\Infrastructure\Models\ScheduleTemplate::create([
+                        'teacher_id' => $data['teacher_id'],
+                        'room_id' => $data['room_id'],
+                        'subject_id' => $data['subject_id'],
+                        'frequency' => $pattern,
+                        'interval' => 1,
+                        'start_date' => $data['date'],
+                        'end_date' => $data['recurrence_end_date'] ?? null,
+                        'days_of_week' => [$startDayOfWeekName],
+                        'start_time' => $data['start_time'],
+                        'end_time' => $data['end_time'],
+                        'is_active' => true,
+                    ]);
+                    $scheduleTemplateId = $template->id;
                 }
-                
-                $lesson->students()->attach($studentsToAttach);
 
-                return $lesson;
+                $firstLesson = null;
+                foreach ($dates as $date) {
+                    $lesson = Lesson::create([
+                        'teacher_id' => $data['teacher_id'],
+                        'room_id' => $data['room_id'],
+                        'subject_id' => $data['subject_id'],
+                        'type' => $data['type'],
+                        'date' => $date,
+                        'start_time' => $data['start_time'],
+                        'end_time' => $data['end_time'],
+                        'duration_minutes' => $durationMinutes,
+                        'status' => 'scheduled',
+                        'notes' => $data['notes'] ?? null,
+                        'schedule_template_id' => $scheduleTemplateId,
+                    ]);
+
+                    // Attach students
+                    $studentsToAttach = [];
+                    foreach ($data['students'] as $student) {
+                        $studentsToAttach[$student['student_id']] = [
+                            'id' => (string) \Illuminate\Support\Str::ulid(),
+                            'package_id' => $student['package_id'] ?? null,
+                            'hours_consumed' => 0,
+                        ];
+                    }
+                    $lesson->students()->attach($studentsToAttach);
+
+                    if (!$firstLesson) {
+                        $firstLesson = $lesson;
+                    }
+                }
+
+                return $firstLesson;
             });
 
             $lesson->load(['teacher', 'room', 'subject', 'students', 'lessonStudents.attendance']);

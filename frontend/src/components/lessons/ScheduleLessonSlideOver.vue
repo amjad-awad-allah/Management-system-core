@@ -82,6 +82,24 @@
         </button>
       </div>
 
+      <!-- Recurrence Settings (Only in Create Mode) -->
+      <div v-if="!isEditing" class="bg-purple-50/50 dark:bg-purple-950/20 p-4 rounded-xl border border-purple-100 dark:border-purple-900/50 space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-purple-950 dark:text-purple-300">Repeat Pattern</label>
+          <select v-model="form.recurrence_pattern" class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-purple-300 dark:ring-purple-900 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+            <option value="none">Does not repeat</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        
+        <div v-if="form.recurrence_pattern && form.recurrence_pattern !== 'none'">
+          <label class="block text-sm font-semibold text-purple-950 dark:text-purple-300">Repeat Until</label>
+          <input type="date" v-model="form.recurrence_end_date" :min="form.date" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-purple-300 dark:ring-purple-900 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
+        </div>
+      </div>
+
       <!-- Notes -->
       <div>
         <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Notes (Optional)</label>
@@ -137,7 +155,9 @@ const form = ref({
   start_time: '',
   end_time: '',
   notes: '',
-  students: [{ student_id: '', package_id: null }]
+  students: [{ student_id: '', package_id: null }],
+  recurrence_pattern: 'none',
+  recurrence_end_date: ''
 })
 
 watch(() => form.value.type, (newType) => {
@@ -162,7 +182,9 @@ function open(lessonOrDate?: any) {
       students: lessonOrDate.students.map((s: any) => ({
         student_id: s.id,
         package_id: s.pivot?.package_id || null
-      }))
+      })),
+      recurrence_pattern: 'none',
+      recurrence_end_date: ''
     }
   } else {
     // Create mode
@@ -176,7 +198,9 @@ function open(lessonOrDate?: any) {
       start_time: '',
       end_time: '',
       notes: '',
-      students: [{ student_id: '', package_id: null }]
+      students: [{ student_id: '', package_id: null }],
+      recurrence_pattern: 'none',
+      recurrence_end_date: ''
     }
   }
   isOpen.value = true

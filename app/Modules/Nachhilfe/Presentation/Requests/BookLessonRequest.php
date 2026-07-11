@@ -25,6 +25,8 @@ class BookLessonRequest extends FormRequest
             'students' => ['required', 'array', 'min:1'],
             'students.*.student_id' => ['required', 'string', 'ulid', 'exists:students,id'],
             'students.*.package_id' => ['nullable', 'string', 'ulid', 'exists:packages,id'],
+            'recurrence_pattern' => ['nullable', 'string', 'in:none,daily,weekly,monthly'],
+            'recurrence_end_date' => ['required_if:recurrence_pattern,daily,weekly,monthly', 'nullable', 'date_format:Y-m-d', 'after:date'],
         ];
     }
 }
