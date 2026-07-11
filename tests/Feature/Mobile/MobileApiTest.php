@@ -79,11 +79,14 @@ class MobileApiTest extends TestCase
         ]);
 
         $lesson->students()->attach($student->id, ['id' => (string) Str::ulid()]);
+        $ls = $lesson->students()->first()->pivot;
+        $ls->attendance()->create(['id' => (string) Str::ulid(), 'status' => 'present']);
 
         $response = $this->actingAs($user)->getJson('/api/v1/mobile/student/lessons');
 
         $response->assertStatus(200);
         $response->assertJsonPath('data.0.id', $lesson->id);
+        $response->assertJsonPath('data.0.lesson_students.0.attendance.status', 'present');
     }
 
     public function test_teacher_can_fetch_their_lessons()
@@ -125,10 +128,22 @@ class MobileApiTest extends TestCase
             'status' => 'scheduled'
         ]);
 
+        $student = Student::create([
+            'id' => (string) Str::ulid(),
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'birth_date' => '2010-01-01',
+            'level' => 'G10'
+        ]);
+        $lesson->students()->attach($student->id, ['id' => (string) Str::ulid()]);
+        $ls = $lesson->students()->first()->pivot;
+        $ls->attendance()->create(['id' => (string) Str::ulid(), 'status' => 'absent_excused']);
+
         $response = $this->actingAs($teacherUser)->getJson('/api/v1/mobile/teacher/lessons');
 
         $response->assertStatus(200);
         $response->assertJsonPath('data.0.id', $lesson->id);
+        $response->assertJsonPath('data.0.lesson_students.0.attendance.status', 'absent_excused');
     }
 
     public function test_teacher_can_mark_attendance()

@@ -25,7 +25,7 @@ class StudentMobileController
             return response()->json(['data' => []]);
         }
 
-        $query = Lesson::with(['room', 'subject', 'teacher'])
+        $query = Lesson::with(['room', 'subject', 'teacher', 'lessonStudents.attendance'])
             ->whereHas('students', function ($q) use ($studentIds) {
                 $q->whereIn('student_id', $studentIds);
             })

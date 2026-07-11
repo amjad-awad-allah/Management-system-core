@@ -18,7 +18,7 @@ class TeacherMobileController
 
         $teacher = Teacher::where('user_id', $user->id)->firstOrFail();
 
-        $query = Lesson::with(['room', 'subject', 'students'])
+        $query = Lesson::with(['room', 'subject', 'students', 'lessonStudents.attendance'])
             ->where('teacher_id', $teacher->id)
             ->orderBy('date', 'asc')
             ->orderBy('start_time', 'asc');
