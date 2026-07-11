@@ -4,7 +4,8 @@ namespace App\Modules\Nachhilfe\Presentation\Controllers;
 
 use App\Modules\Nachhilfe\Infrastructure\Models\Lesson;
 use App\Modules\Nachhilfe\Infrastructure\Models\Student;
-use App\Modules\Nachhilfe\Infrastructure\Models\StudentPackage;
+use App\Modules\Nachhilfe\Infrastructure\Models\StudentContract;
+use App\Modules\Nachhilfe\Infrastructure\Models\Invoice;
 use Illuminate\Http\Request;
 
 class StudentMobileController
@@ -55,7 +56,7 @@ class StudentMobileController
             return response()->json(['data' => []]);
         }
 
-        $subscriptions = StudentPackage::with(['package'])
+        $subscriptions = StudentContract::with(['subject'])
             ->whereIn('student_id', $studentIds)
             ->orderBy('created_at', 'desc')
             ->paginate();
@@ -78,7 +79,7 @@ class StudentMobileController
             return response()->json(['data' => []]);
         }
 
-        $invoices = \App\Modules\Billing\Infrastructure\Models\InvoiceModel::whereIn('student_id', $studentIds)
+        $invoices = Invoice::whereIn('student_id', $studentIds)
             ->orderBy('created_at', 'desc')
             ->paginate();
 

@@ -85,22 +85,7 @@
       <!-- Left Column -->
       <div class="lg:col-span-2 space-y-6">
         <!-- Actionable Alerts (Premium Feature) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Depleted Packages Alert -->
-          <div v-if="(store.depletedPackages || []).length > 0" class="group relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/10 border border-red-100 dark:border-red-900/30 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-red-500/10 group-hover:scale-150 transition-transform duration-500"></div>
-            <div class="flex items-center mb-3 relative z-10">
-              <ExclamationTriangleIcon class="h-5 w-5 text-red-500 mr-2" />
-              <h3 class="text-base font-bold text-red-900 dark:text-red-200">Renewals Needed</h3>
-            </div>
-            <p class="text-xs text-red-600 dark:text-red-400 mb-3 relative z-10">{{ store.depletedPackages.length }} students have 0 remaining hours.</p>
-            <div class="flex -space-x-2 overflow-hidden relative z-10">
-              <div v-for="sp in store.depletedPackages.slice(0, 4)" :key="sp.id" class="inline-flex h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-900 bg-red-200 text-red-700 items-center justify-center text-xs font-bold" :title="sp.student?.first_name">
-                {{ sp.student?.first_name?.[0] }}
-              </div>
-            </div>
-            <button @click="$router.push('/students')" class="mt-4 text-xs font-semibold text-red-700 hover:text-red-800 dark:text-red-400 relative z-10">View All &rarr;</button>
-          </div>
+        <div class="grid grid-cols-1 gap-4">
           
           <!-- Overdue Invoices Alert -->
           <div v-if="(store.recentInvoices || []).length > 0" class="group relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border border-yellow-100 dark:border-yellow-900/30 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">

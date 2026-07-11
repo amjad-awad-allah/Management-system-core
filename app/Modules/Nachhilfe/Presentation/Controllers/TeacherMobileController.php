@@ -47,7 +47,7 @@ class TeacherMobileController
 
         $validated = $request->validate([
             'student_id' => 'required|string|exists:students,id',
-            'status' => 'required|in:present,absent,excused',
+            'status' => 'required|in:present,absent_excused,absent_unexcused',
             'notes' => 'nullable|string'
         ]);
 

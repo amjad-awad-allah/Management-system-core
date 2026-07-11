@@ -5,9 +5,9 @@ namespace App\Modules\Nachhilfe\Presentation\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Nachhilfe\Infrastructure\Models\Lesson;
 use App\Modules\Nachhilfe\Infrastructure\Models\Student;
-use App\Modules\Nachhilfe\Infrastructure\Models\StudentPackage;
+use App\Modules\Nachhilfe\Infrastructure\Models\StudentContract;
 use App\Modules\Nachhilfe\Infrastructure\Models\Teacher;
-use App\Modules\Billing\Infrastructure\Models\Invoice;
+use App\Modules\Nachhilfe\Infrastructure\Models\Invoice;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 
@@ -20,15 +20,13 @@ class DashboardController extends Controller
         $totalStudents = Student::count();
         $totalTeachers = Teacher::count();
         
-        $activePackages = StudentPackage::where('status', 'active')
-            ->where('remaining_hours', '>', 0)
+        $activeContracts = StudentContract::where('status', 'active')
             ->count();
-
+ 
         $lessonsTodayCount = Lesson::whereDate('date', $today)->count();
         
-        $depletedPackages = StudentPackage::with(['student', 'package'])
-            ->where('remaining_hours', '<=', 0)
-            ->where('status', 'active')
+        $unpaidInvoices = Invoice::with(['student'])
+            ->whereIn('status', ['draft', 'unpaid'])
             ->limit(5)
             ->get();
 
@@ -62,26 +60,24 @@ class DashboardController extends Controller
         $totalRevenueThisMonth = Invoice::where('status', 'paid')
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
-            ->sum('amount');
+            ->sum('total_amount');
             
-        $pendingBalances = Invoice::whereIn('status', ['unpaid', 'partially_paid'])
-            ->get()
-            ->sum(function($invoice) {
-                return $invoice->balance ?? $invoice->amount;
-            });
+        $pendingBalances = Invoice::where('status', 'unpaid')
+            ->sum('total_amount');
             
-        $recentUnpaidInvoices = Invoice::whereIn('status', ['unpaid', 'partially_paid'])
+        $recentUnpaidInvoices = Invoice::with(['student'])
+            ->where('status', 'unpaid')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
-
+ 
         $revenueChart = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
             $sum = Invoice::where('status', 'paid')
                 ->whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
-                ->sum('amount');
+                ->sum('total_amount');
             $revenueChart[] = [
                 'month' => $month->format('M Y'),
                 'revenue' => (float) $sum
@@ -93,13 +89,13 @@ class DashboardController extends Controller
                 'stats' => [
                     'total_students' => $totalStudents,
                     'total_teachers' => $totalTeachers,
-                    'active_packages' => $activePackages,
+                    'active_packages' => $activeContracts,
                     'lessons_today' => $lessonsTodayCount,
                     'revenue_this_month' => (float) $totalRevenueThisMonth,
                     'pending_balances' => (float) $pendingBalances,
                 ],
                 'upcoming_lessons' => $upcomingLessons,
-                'depleted_packages' => $depletedPackages,
+                'depleted_packages' => $unpaidInvoices,
                 'recent_invoices' => $recentUnpaidInvoices,
                 'revenue_chart' => $revenueChart,
                 'live_status' => [
