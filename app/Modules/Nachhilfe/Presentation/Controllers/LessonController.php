@@ -161,55 +161,115 @@ class LessonController extends Controller
     public function update(BookLessonRequest $request, Lesson $lesson): \Illuminate\Http\JsonResponse
     {
         $data = $request->validated();
+        $updateSeries = filter_var($request->input('update_series'), FILTER_VALIDATE_BOOLEAN);
 
         try {
-            // 1. Triple-lock Conflict Prevention, excluding this lesson
-            $this->conflictChecker->checkConflicts(
-                $data['teacher_id'],
-                $data['room_id'],
-                $data['date'],
-                $data['start_time'],
-                $data['end_time'],
-                $lesson->id
-            );
+            if ($updateSeries && $lesson->schedule_template_id) {
+                // Fetch all future lessons in the series
+                $futureLessons = Lesson::where('schedule_template_id', $lesson->schedule_template_id)
+                    ->where('date', '>=', $lesson->date)
+                    ->get();
 
-            // 2. Transaction for atomic save
-            $lesson = DB::transaction(function () use ($data, $lesson) {
-                // Calculate duration
-                $start = Carbon::parse($data['date'] . ' ' . $data['start_time']);
-                $end = Carbon::parse($data['date'] . ' ' . $data['end_time']);
-                $durationMinutes = $start->diffInMinutes($end);
-
-                $lesson->update([
-                    'teacher_id' => $data['teacher_id'],
-                    'room_id' => $data['room_id'],
-                    'subject_id' => $data['subject_id'],
-                    'type' => $data['type'],
-                    'date' => $data['date'],
-                    'start_time' => $data['start_time'],
-                    'end_time' => $data['end_time'],
-                    'duration_minutes' => $durationMinutes,
-                    'notes' => $data['notes'] ?? null,
-                ]);
-
-                // Sync students
-                $studentsToSync = [];
-                foreach ($data['students'] as $student) {
-                    // Check if pivot already exists to keep its ULID, otherwise generate new
-                    $existingPivot = $lesson->students()->where('student_id', $student['student_id'])->first();
-                    $pivotId = $existingPivot ? $existingPivot->pivot->id : (string) \Illuminate\Support\Str::ulid();
-                    
-                    $studentsToSync[$student['student_id']] = [
-                        'id' => $pivotId,
-                        'package_id' => $student['package_id'] ?? null,
-                        'hours_consumed' => $existingPivot ? $existingPivot->pivot->hours_consumed : 0,
-                    ];
+                // 1. Triple-lock Conflict Prevention for each future date (excluding the lessons themselves)
+                foreach ($futureLessons as $fl) {
+                    $this->conflictChecker->checkConflicts(
+                        $data['teacher_id'],
+                        $data['room_id'],
+                        $fl->date,
+                        $data['start_time'],
+                        $data['end_time'],
+                        $fl->id
+                    );
                 }
-                
-                $lesson->students()->sync($studentsToSync);
 
-                return $lesson;
-            });
+                // 2. Transaction for atomic save
+                DB::transaction(function () use ($data, $futureLessons, $lesson) {
+                    $start = Carbon::parse($lesson->date . ' ' . $data['start_time']);
+                    $end = Carbon::parse($lesson->date . ' ' . $data['end_time']);
+                    $durationMinutes = $start->diffInMinutes($end);
+
+                    // Update schedule template
+                    $template = \App\Modules\Nachhilfe\Infrastructure\Models\ScheduleTemplate::find($lesson->schedule_template_id);
+                    if ($template) {
+                        $template->update([
+                            'teacher_id' => $data['teacher_id'],
+                            'room_id' => $data['room_id'],
+                            'subject_id' => $data['subject_id'],
+                            'start_time' => $data['start_time'],
+                            'end_time' => $data['end_time'],
+                        ]);
+                    }
+
+                    foreach ($futureLessons as $fl) {
+                        $fl->update([
+                            'teacher_id' => $data['teacher_id'],
+                            'room_id' => $data['room_id'],
+                            'subject_id' => $data['subject_id'],
+                            'type' => $data['type'],
+                            'start_time' => $data['start_time'],
+                            'end_time' => $data['end_time'],
+                            'duration_minutes' => $durationMinutes,
+                            'notes' => $data['notes'] ?? null,
+                        ]);
+
+                        // Sync students
+                        $studentsToSync = [];
+                        foreach ($data['students'] as $student) {
+                            $existingPivot = $fl->students()->where('student_id', $student['student_id'])->first();
+                            $pivotId = $existingPivot ? $existingPivot->pivot->id : (string) \Illuminate\Support\Str::ulid();
+                            
+                            $studentsToSync[$student['student_id']] = [
+                                'id' => $pivotId,
+                                'package_id' => $student['package_id'] ?? null,
+                                'hours_consumed' => $existingPivot ? $existingPivot->pivot->hours_consumed : 0,
+                            ];
+                        }
+                        $fl->students()->sync($studentsToSync);
+                    }
+                });
+            } else {
+                // Update this single instance only
+                $this->conflictChecker->checkConflicts(
+                    $data['teacher_id'],
+                    $data['room_id'],
+                    $data['date'],
+                    $data['start_time'],
+                    $data['end_time'],
+                    $lesson->id
+                );
+
+                DB::transaction(function () use ($data, $lesson) {
+                    $start = Carbon::parse($data['date'] . ' ' . $data['start_time']);
+                    $end = Carbon::parse($data['date'] . ' ' . $data['end_time']);
+                    $durationMinutes = $start->diffInMinutes($end);
+
+                    $lesson->update([
+                        'teacher_id' => $data['teacher_id'],
+                        'room_id' => $data['room_id'],
+                        'subject_id' => $data['subject_id'],
+                        'type' => $data['type'],
+                        'date' => $data['date'],
+                        'start_time' => $data['start_time'],
+                        'end_time' => $data['end_time'],
+                        'duration_minutes' => $durationMinutes,
+                        'notes' => $data['notes'] ?? null,
+                    ]);
+
+                    // Sync students
+                    $studentsToSync = [];
+                    foreach ($data['students'] as $student) {
+                        $existingPivot = $lesson->students()->where('student_id', $student['student_id'])->first();
+                        $pivotId = $existingPivot ? $existingPivot->pivot->id : (string) \Illuminate\Support\Str::ulid();
+                        
+                        $studentsToSync[$student['student_id']] = [
+                            'id' => $pivotId,
+                            'package_id' => $student['package_id'] ?? null,
+                            'hours_consumed' => $existingPivot ? $existingPivot->pivot->hours_consumed : 0,
+                        ];
+                    }
+                    $lesson->students()->sync($studentsToSync);
+                });
+            }
 
             $lesson->load(['teacher', 'room', 'subject', 'students', 'lessonStudents.attendance']);
 

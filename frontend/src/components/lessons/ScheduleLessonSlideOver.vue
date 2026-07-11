@@ -15,7 +15,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Date</label>
-          <input type="date" v-model="form.date" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
+          <input type="date" v-model="form.date" :disabled="isEditing && editSeriesOption === 'series'" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6 disabled:opacity-50" />
         </div>
         <div>
           <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Start Time</label>
@@ -82,6 +82,21 @@
         </button>
       </div>
 
+      <!-- Edit Recurrence Series Option (Only in Edit Mode & Part of a series) -->
+      <div v-if="isEditing && form.schedule_template_id" class="bg-blue-50/50 dark:bg-blue-950/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 space-y-3">
+        <label class="block text-sm font-semibold text-blue-950 dark:text-blue-300">This lesson is part of a recurring series. How would you like to apply the changes?</label>
+        <div class="mt-2 space-y-2">
+          <div class="flex items-center">
+            <input id="edit-instance" v-model="editSeriesOption" type="radio" value="instance" class="h-4 w-4 border-gray-300 text-purple-600 focus:ring-purple-600" />
+            <label for="edit-instance" class="ml-3 block text-sm font-medium text-gray-900 dark:text-gray-100">Only this lesson</label>
+          </div>
+          <div class="flex items-center">
+            <input id="edit-series" v-model="editSeriesOption" type="radio" value="series" class="h-4 w-4 border-gray-300 text-purple-600 focus:ring-purple-600" />
+            <label for="edit-series" class="ml-3 block text-sm font-medium text-gray-900 dark:text-gray-100">All future lessons in this series</label>
+          </div>
+        </div>
+      </div>
+
       <!-- Recurrence Settings (Only in Create Mode) -->
       <div v-if="!isEditing" class="bg-purple-50/50 dark:bg-purple-950/20 p-4 rounded-xl border border-purple-100 dark:border-purple-900/50 space-y-4">
         <div>
@@ -138,6 +153,7 @@ const isSubmitting = ref(false)
 
 const lessonId = ref<string | null>(null)
 const isEditing = computed(() => !!lessonId.value)
+const editSeriesOption = ref('instance') // 'instance' or 'series'
 
 onMounted(() => {
   teachersStore.fetchTeachers()
@@ -157,7 +173,8 @@ const form = ref({
   notes: '',
   students: [{ student_id: '', package_id: null }],
   recurrence_pattern: 'none',
-  recurrence_end_date: ''
+  recurrence_end_date: '',
+  schedule_template_id: null as string | null
 })
 
 watch(() => form.value.type, (newType) => {
@@ -167,6 +184,8 @@ watch(() => form.value.type, (newType) => {
 })
 
 function open(lessonOrDate?: any) {
+  editSeriesOption.value = 'instance'
+  
   if (lessonOrDate && typeof lessonOrDate === 'object' && lessonOrDate.id) {
     // Edit mode
     lessonId.value = lessonOrDate.id
@@ -184,7 +203,8 @@ function open(lessonOrDate?: any) {
         package_id: s.pivot?.package_id || null
       })),
       recurrence_pattern: 'none',
-      recurrence_end_date: ''
+      recurrence_end_date: '',
+      schedule_template_id: lessonOrDate.schedule_template_id || null
     }
   } else {
     // Create mode
@@ -200,7 +220,8 @@ function open(lessonOrDate?: any) {
       notes: '',
       students: [{ student_id: '', package_id: null }],
       recurrence_pattern: 'none',
-      recurrence_end_date: ''
+      recurrence_end_date: '',
+      schedule_template_id: null
     }
   }
   isOpen.value = true
@@ -219,7 +240,8 @@ async function submitForm() {
   let success = false
   
   if (isEditing.value && lessonId.value) {
-    success = await store.updateLesson(lessonId.value, form.value)
+    const updateSeries = editSeriesOption.value === 'series'
+    success = await store.updateLesson(lessonId.value, form.value, updateSeries)
   } else {
     success = await store.bookLesson(form.value)
   }

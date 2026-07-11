@@ -18,6 +18,7 @@ export interface Lesson {
   teacher?: { id: string; name: string }
   room?: { id: string; name: string }
   subject?: { id: string; name: string }
+  schedule_template_id?: string | null
 }
 
 export const useLessonsStore = defineStore('lessons', () => {
@@ -55,13 +56,19 @@ export const useLessonsStore = defineStore('lessons', () => {
     }
   }
 
-  async function updateLesson(id: string, data: any) {
+  async function updateLesson(id: string, data: any, updateSeries = false) {
     try {
-      const response = await api.put(`/nachhilfe/lessons/${id}`, data)
+      const response = await api.put(`/nachhilfe/lessons/${id}`, { ...data, update_series: updateSeries })
       const updatedLesson = response.data.data
-      const index = lessons.value.findIndex(l => l.id === id)
-      if (index !== -1) {
-        lessons.value[index] = updatedLesson
+      
+      if (updateSeries) {
+        // Since multiple lessons are updated, refetch them all to update calendar
+        await fetchLessons()
+      } else {
+        const index = lessons.value.findIndex(l => l.id === id)
+        if (index !== -1) {
+          lessons.value[index] = updatedLesson
+        }
       }
       toast.success('Lesson updated successfully')
       return true

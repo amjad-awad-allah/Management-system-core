@@ -262,4 +262,75 @@ test('can book recurring lessons', function () {
     $this->assertDatabaseCount('schedule_templates', 1);
 });
 
+test('can edit recurring lessons series', function () {
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't_recur_edit@t.com', 'password' => 'p']);
+    $student = Student::create(['id' => Str::ulid()->toString(), 'first_name' => 'S', 'last_name' => 'L', 'birth_date' => '2010-01-01', 'level' => 'Grade 10']);
+    $teacher = Teacher::create(['id' => Str::ulid()->toString(), 'user_id' => $user->id, 'name' => 'Teacher Recur Edit']);
+    $subject = SubjectModel::create(['id' => Str::ulid()->toString(), 'name' => 'Math']);
+    $room = \App\Modules\Nachhilfe\Infrastructure\Models\Room::create(['id' => Str::ulid()->toString(), 'name' => 'Room 1', 'capacity' => 10]);
+
+    $date = now()->addDays(1);
+    
+    // Create availability for the next 4 weeks
+    for ($i = 0; $i < 4; $i++) {
+        \App\Modules\Nachhilfe\Infrastructure\Models\TeacherAvailability::updateOrCreate([
+            'teacher_id' => $teacher->id,
+            'day_of_week' => $date->copy()->addWeeks($i)->dayOfWeek,
+        ], [
+            'id' => (string) Str::ulid(),
+            'start_time' => '08:00',
+            'end_time' => '18:00'
+        ]);
+    }
+
+    // Schedule 4 weekly lessons
+    $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/nachhilfe/lessons', [
+        'teacher_id' => $teacher->id,
+        'subject_id' => $subject->id,
+        'room_id' => $room->id,
+        'type' => 'individual',
+        'date' => $date->format('Y-m-d'),
+        'start_time' => '10:00',
+        'end_time' => '11:00',
+        'students' => [
+            ['student_id' => $student->id]
+        ],
+        'recurrence_pattern' => 'weekly',
+        'recurrence_end_date' => $date->copy()->addWeeks(3)->format('Y-m-d')
+    ]);
+
+    $response->assertStatus(201);
+    $firstLessonId = $response->json('data.id');
+
+    // Update the series (shift time to 11:00-12:00)
+    $responseUpdate = $this->actingAs($user, 'sanctum')->putJson("/api/v1/nachhilfe/lessons/{$firstLessonId}", [
+        'teacher_id' => $teacher->id,
+        'subject_id' => $subject->id,
+        'room_id' => $room->id,
+        'type' => 'individual',
+        'date' => $date->format('Y-m-d'),
+        'start_time' => '11:00',
+        'end_time' => '12:00',
+        'students' => [
+            ['student_id' => $student->id]
+        ],
+        'update_series' => true
+    ]);
+
+    $responseUpdate->assertStatus(200);
+
+    // All 4 lessons should now have start_time 11:00 and end_time 12:00
+    $this->assertDatabaseHas('lessons', [
+        'id' => $firstLessonId,
+        'start_time' => '11:00',
+        'end_time' => '12:00'
+    ]);
+    
+    $lessons = \App\Modules\Nachhilfe\Infrastructure\Models\Lesson::all();
+    foreach ($lessons as $l) {
+        $this->assertEquals('11:00', $l->start_time);
+        $this->assertEquals('12:00', $l->end_time);
+    }
+});
+
 

@@ -17,6 +17,7 @@ class LessonResource extends JsonResource
             'teacher_id' => $this->teacher_id,
             'room_id' => $this->room_id,
             'subject_id' => $this->subject_id,
+            'schedule_template_id' => $this->schedule_template_id,
             'teacher' => $this->whenLoaded('teacher', fn() => ['id' => $this->teacher->id, 'name' => $this->teacher->name]),
             'subject' => $this->whenLoaded('subject', fn() => ['id' => $this->subject->id, 'name' => $this->subject->name]),
             'type' => $this->type,
