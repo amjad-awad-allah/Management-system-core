@@ -41,7 +41,7 @@
         :class="[
           !isSameMonth(day, currentMonth) ? 'bg-gray-50/50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100',
           isToday(day) ? 'font-semibold' : '',
-          'relative px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors cursor-pointer min-h-[120px]'
+          'relative px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer min-h-[120px]'
         ]"
       >
         <time
