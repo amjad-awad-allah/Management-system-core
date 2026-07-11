@@ -15,10 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Core\Models\User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@admin.com',
-            'password' => bcrypt('password'),
+        $this->call([
+            RolesAndPermissionsSeeder::class,
         ]);
 
         \Illuminate\Support\Facades\DB::table('module_settings')->insert([

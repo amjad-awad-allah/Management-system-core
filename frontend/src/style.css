@@ -26,6 +26,19 @@
   body {
     @apply font-sans;
   }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="date"],
+  input[type="time"],
+  input[type="tel"],
+  select[multiple],
+  textarea {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
 }
 
 /* Glassmorphism Utilities */
