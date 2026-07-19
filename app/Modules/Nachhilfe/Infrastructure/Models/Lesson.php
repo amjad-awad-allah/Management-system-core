@@ -10,6 +10,25 @@ class Lesson extends Model
 {
     use HasUlids, SoftDeletes;
 
+    protected static function booted()
+    {
+        static::saved(function ($lesson) {
+            // Check if relationship is loaded/available to prevent loop issues during migrations or seeding
+            if ($lesson->relationLoaded('students') || $lesson->students()->exists()) {
+                foreach ($lesson->students as $student) {
+                    \Illuminate\Support\Facades\Cache::forever("student:{$student->id}:timeline_version", time());
+                }
+            }
+        });
+        static::deleted(function ($lesson) {
+            if ($lesson->relationLoaded('students') || $lesson->students()->exists()) {
+                foreach ($lesson->students as $student) {
+                    \Illuminate\Support\Facades\Cache::forever("student:{$student->id}:timeline_version", time());
+                }
+            }
+        });
+    }
+
     protected $table = 'lessons';
 
     protected $fillable = ['teacher_id', 'room_id', 'subject_id', 'schedule_template_id', 'type', 'date', 'start_time', 'end_time', 'duration_minutes', 'status', 'notes'];

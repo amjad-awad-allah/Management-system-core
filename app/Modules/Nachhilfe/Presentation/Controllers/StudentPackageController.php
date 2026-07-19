@@ -24,11 +24,12 @@ class StudentPackageController
             'voucher_reference' => 'nullable|string|max:255',
             'total_hours' => 'required|integer|min:1',
             'expires_at' => 'nullable|date',
+            'status' => 'sometimes|string|in:active,pending_approval,rejected,expired,exhausted',
         ]);
 
         $validated['id'] = (string) Str::ulid();
         $validated['remaining_hours'] = $validated['total_hours'];
-        $validated['status'] = 'active';
+        $validated['status'] = $request->input('status', 'active');
 
         $package = StudentPackage::create($validated);
 

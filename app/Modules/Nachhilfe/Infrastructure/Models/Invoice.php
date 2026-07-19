@@ -11,6 +11,12 @@ class Invoice extends Model
 {
     use HasUlids, SoftDeletes;
 
+    protected static function booted()
+    {
+        static::saved(fn($model) => \Illuminate\Support\Facades\Cache::forever("student:{$model->student_id}:timeline_version", time()));
+        static::deleted(fn($model) => \Illuminate\Support\Facades\Cache::forever("student:{$model->student_id}:timeline_version", time()));
+    }
+
     protected $fillable = [
         'invoice_number',
         'student_id',

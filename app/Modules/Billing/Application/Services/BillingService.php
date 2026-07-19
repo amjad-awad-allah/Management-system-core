@@ -52,4 +52,16 @@ class BillingService implements BillingContract
 
         return $payment->toArray();
     }
+
+    public function getTransactionsByReferences(string $referenceType, array $referenceIds): array
+    {
+        if (empty($referenceIds)) {
+            return [];
+        }
+
+        return Payment::whereHas('invoice', function ($q) use ($referenceType, $referenceIds) {
+            $q->where('reference_type', $referenceType)
+              ->whereIn('reference_id', $referenceIds);
+        })->with('invoice')->get()->toArray();
+    }
 }

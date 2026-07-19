@@ -8,7 +8,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class StudentPackage extends Model
 {
-    use HasUlids;
+    use HasUlids, \App\Core\Models\Traits\Auditable;
+
+    protected static function booted()
+    {
+        static::saved(fn($model) => \Illuminate\Support\Facades\Cache::forever("student:{$model->student_id}:timeline_version", time()));
+        static::deleted(fn($model) => \Illuminate\Support\Facades\Cache::forever("student:{$model->student_id}:timeline_version", time()));
+    }
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -49,7 +55,7 @@ class StudentPackage extends Model
 
     public function subject(): BelongsTo
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(SubjectModel::class);
     }
 
     public function usages()

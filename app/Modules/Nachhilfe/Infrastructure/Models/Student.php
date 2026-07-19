@@ -9,7 +9,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Student extends Model
 {
-    use SoftDeletes, HasFactory;
+    use SoftDeletes, HasFactory, \App\Core\Models\Traits\Auditable;
+
+    protected static function booted()
+    {
+        static::saved(fn($model) => \Illuminate\Support\Facades\Cache::forever("student:{$model->id}:timeline_version", time()));
+        static::deleted(fn($model) => \Illuminate\Support\Facades\Cache::forever("student:{$model->id}:timeline_version", time()));
+    }
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -71,5 +77,10 @@ class Student extends Model
     public function lessonStudents()
     {
         return $this->hasMany(LessonStudent::class);
+    }
+
+    public function packages()
+    {
+        return $this->hasMany(StudentPackage::class);
     }
 }

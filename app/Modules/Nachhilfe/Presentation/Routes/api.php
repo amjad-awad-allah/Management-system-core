@@ -57,5 +57,15 @@ Route::prefix('api/v1/nachhilfe')
 
         Route::get('/students/{id}/packages', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentPackageController::class, 'index']);
         Route::get('/students/{id}/statement', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentController::class, 'statement']);
+        Route::get('/students/{id}/timeline', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentController::class, 'timeline']);
         Route::post('/student-packages', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentPackageController::class, 'store']);
+
+        // Student Document Management
+        Route::get('/students/{studentId}/documents', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentDocumentController::class, 'index']);
+        Route::post('/students/{studentId}/documents', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentDocumentController::class, 'store']);
+        Route::get('/documents/{id}/download', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentDocumentController::class, 'download']);
+        Route::delete('/documents/{id}', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentDocumentController::class, 'destroy']);
+
+        // Stundennachweis PDF Export
+        Route::get('/students/{studentId}/stundennachweis', [\App\Modules\Nachhilfe\Presentation\Controllers\StundennachweisController::class, 'generate']);
     });

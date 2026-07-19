@@ -8,7 +8,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Attendance extends Model
 {
-    use HasUlids;
+    use HasUlids, \App\Core\Models\Traits\Auditable;
+
+    protected static function booted()
+    {
+        static::saved(function ($model) {
+            $studentId = $model->lessonStudent?->student_id;
+            if ($studentId) {
+                \Illuminate\Support\Facades\Cache::forever("student:{$studentId}:timeline_version", time());
+            }
+        });
+        static::deleted(function ($model) {
+            $studentId = $model->lessonStudent?->student_id;
+            if ($studentId) {
+                \Illuminate\Support\Facades\Cache::forever("student:{$studentId}:timeline_version", time());
+            }
+        });
+    }
 
     protected $table = 'attendances';
 

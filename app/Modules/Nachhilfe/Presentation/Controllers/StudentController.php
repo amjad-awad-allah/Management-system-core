@@ -12,7 +12,7 @@ class StudentController
 {
     public function index(\Illuminate\Http\Request $request): AnonymousResourceCollection
     {
-        $query = Student::with(['subjects', 'teachers']);
+        $query = Student::with(['subjects', 'teachers', 'packages']);
         
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
@@ -28,7 +28,7 @@ class StudentController
 
     public function show(string $id): StudentResource
     {
-        $student = Student::withTrashed()->with(['subjects', 'teachers'])->findOrFail($id);
+        $student = Student::withTrashed()->with(['subjects', 'teachers', 'packages'])->findOrFail($id);
         return new StudentResource($student);
     }
 
@@ -48,7 +48,7 @@ class StudentController
             subjectIds: $validated['subject_ids'] ?? []
         );
 
-        $student->load(['subjects', 'teachers']);
+        $student->load(['subjects', 'teachers', 'packages']);
         return (new StudentResource($student))->response()->setStatusCode(201);
     }
 
@@ -95,7 +95,7 @@ class StudentController
             $student->subjects()->sync($validated['subject_ids']);
         }
 
-        return new StudentResource($student->load(['subjects', 'teachers']));
+        return new StudentResource($student->load(['subjects', 'teachers', 'packages']));
     }
 
     public function destroy(string $id): \Illuminate\Http\Response
@@ -119,5 +119,13 @@ class StudentController
             ->get();
 
         return response()->json($consumptions);
+    }
+
+    public function timeline(string $id, \App\Modules\Nachhilfe\Application\Queries\GetStudentTimelineQuery $query, \Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $student = Student::findOrFail($id);
+        $page = (int) $request->input('page', 1);
+        $type = $request->query('type');
+        return response()->json($query->execute($student, $request->user(), $page, 15, $type));
     }
 }

@@ -9,7 +9,13 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class LessonStudent extends Pivot
 {
-    use HasUlids;
+    use HasUlids, \App\Core\Models\Traits\Auditable;
+
+    protected static function booted()
+    {
+        static::saved(fn($model) => \Illuminate\Support\Facades\Cache::forever("student:{$model->student_id}:timeline_version", time()));
+        static::deleted(fn($model) => \Illuminate\Support\Facades\Cache::forever("student:{$model->student_id}:timeline_version", time()));
+    }
 
     protected $table = 'lesson_students';
 

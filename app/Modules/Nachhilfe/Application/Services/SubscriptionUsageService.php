@@ -34,10 +34,12 @@ class SubscriptionUsageService
                 $subscriptionId = $lessonStudent->package_id; // References student_packages.id
                 
                 if (!$subscriptionId) {
-                    // Find an active subscription
+                    // Find the best available package to deduct hours from (Active first, then Pending Approval; ordered by Expiration date soonest first)
                     $activePackage = StudentPackage::where('student_id', $student->id)
-                        ->whereIn('status', ['active', 'Active'])
+                        ->whereIn('status', ['active', 'Active', 'pending_approval'])
                         ->where('remaining_hours', '>=', ($lesson->duration_minutes / 60))
+                        ->orderByRaw("CASE WHEN status IN ('active', 'Active') THEN 0 ELSE 1 END ASC")
+                        ->orderByRaw("expires_at IS NULL, expires_at ASC")
                         ->first();
                     
                     if (!$activePackage) {

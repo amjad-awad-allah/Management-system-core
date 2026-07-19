@@ -85,4 +85,22 @@ class StudentMobileController
 
         return response()->json($invoices);
     }
+
+    public function timeline(Request $request, \App\Modules\Nachhilfe\Application\Queries\GetStudentTimelineQuery $query)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('Student')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $studentId = $request->query('student_id');
+        
+        $student = Student::where('user_id', $user->id)
+            ->when($studentId, fn($q) => $q->where('id', $studentId))
+            ->firstOrFail();
+
+        $page = (int) $request->input('page', 1);
+        $type = $request->query('type');
+        return response()->json($query->execute($student, $user, $page, 15, $type));
+    }
 }

@@ -30,6 +30,18 @@ class StudentResource extends JsonResource
                     'name' => $t->name,
                 ]);
             }),
+            'packages' => $this->whenLoaded('packages', function() {
+                return $this->resource->packages->map(fn($p) => [
+                    'id' => $p->id,
+                    'subject' => $p->subject?->name ?? 'All subjects',
+                    'funding_source' => $p->funding_source,
+                    'voucher_reference' => $p->voucher_reference,
+                    'total_hours' => (float) $p->total_hours,
+                    'remaining_hours' => (float) $p->remaining_hours,
+                    'status' => $p->status,
+                    'expires_at' => $p->expires_at?->format('Y-m-d'),
+                ]);
+            }),
         ];
     }
 }

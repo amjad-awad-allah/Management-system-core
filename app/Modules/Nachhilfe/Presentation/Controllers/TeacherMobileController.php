@@ -83,4 +83,22 @@ class TeacherMobileController
 
         return response()->json($payrolls);
     }
+
+    public function studentTimeline(Request $request, string $studentId, \App\Modules\Nachhilfe\Application\Queries\GetStudentTimelineQuery $query)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('Teacher')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $teacher = Teacher::where('user_id', $user->id)->firstOrFail();
+        
+        $student = \App\Modules\Nachhilfe\Infrastructure\Models\Student::whereHas('lessons', function ($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->findOrFail($studentId);
+
+        $page = (int) $request->input('page', 1);
+        $type = $request->query('type');
+        return response()->json($query->execute($student, $user, $page, 15, $type));
+    }
 }

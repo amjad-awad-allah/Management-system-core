@@ -33,6 +33,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('/lessons', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherMobileController::class, 'lessons']);
                 Route::post('/lessons/{id}/attendance', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherMobileController::class, 'markAttendance']);
                 Route::get('/payrolls', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherMobileController::class, 'payrolls']);
+                Route::get('/students/{id}/timeline', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherMobileController::class, 'studentTimeline']);
             });
 
             // Student Mobile API
@@ -40,6 +41,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('/lessons', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'lessons']);
                 Route::get('/subscriptions', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'subscriptions']);
                 Route::get('/invoices', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'invoices']);
+                Route::get('/timeline', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'timeline']);
             });
         });
     });
