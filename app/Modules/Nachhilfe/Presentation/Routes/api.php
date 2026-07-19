@@ -28,12 +28,16 @@ Route::prefix('api/v1/nachhilfe')
         Route::get('/payrolls', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'index']);
         Route::post('/payrolls', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'generate']);
         Route::get('/payrolls/{payroll}', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'show']);
+        Route::put('/payrolls/{payroll}', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'update']);
         Route::patch('/payrolls/{payroll}/status', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'updateStatus']);
+        Route::delete('/payrolls/{payroll}', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'destroy']);
         
         Route::get('/invoices', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'index']);
         Route::post('/invoices', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'generate']);
         Route::get('/invoices/{invoice}', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'show']);
+        Route::put('/invoices/{invoice}', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'update']);
         Route::patch('/invoices/{invoice}/status', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'updateStatus']);
+        Route::delete('/invoices/{invoice}', [\App\Modules\Nachhilfe\Presentation\Controllers\InvoiceController::class, 'destroy']);
         
         Route::post('/lesson-students/{lessonStudentId}/attendance', [\App\Modules\Nachhilfe\Presentation\Controllers\AttendanceController::class, 'store']);
 

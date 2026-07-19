@@ -64,6 +64,15 @@
           Statement of Account
         </button>
         <button 
+          @click="activeTab = 'mobile_access'" 
+          :class="[activeTab === 'mobile_access' ? 'border-purple-500 text-purple-600 dark:text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 cursor-pointer transition-colors']"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          App Access
+        </button>
+        <button 
           @click="activeTab = 'documents'" 
           :class="[activeTab === 'documents' ? 'border-purple-500 text-purple-600 dark:text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 cursor-pointer transition-colors']"
         >
@@ -659,6 +668,174 @@
       </div>
     </div>
 
+    <!-- App Access Tab -->
+    <div v-else-if="activeTab === 'mobile_access'" class="space-y-6 mt-6 print:block print:p-4">
+      <div v-if="isMobileAccessLoading" class="flex justify-center items-center h-48 print:hidden">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+      
+      <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- QR Code Login Card (Printable) -->
+        <div class="lg:col-span-1 glass-panel rounded-2xl p-6 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 flex flex-col items-center text-center relative print:border-0 print:p-0 print:shadow-none">
+          <Teleport to="body">
+            <div class="print:block hidden print-card-container">
+              <div class="border-4 border-purple-600 rounded-[2.5rem] p-10 w-[440px] mx-auto text-center bg-white text-gray-900 shadow-2xl border-double flex flex-col items-center justify-between min-h-[500px] pb-12 my-8">
+                <!-- Header with premium line decoration -->
+                <div class="w-full">
+                  <div class="text-[11px] uppercase tracking-[0.25em] text-purple-600 font-extrabold mb-1">Access Pass</div>
+                  <h2 class="text-2xl font-black tracking-tight text-gray-900">{{ store.currentStudent.first_name }} {{ store.currentStudent.last_name }}</h2>
+                  <div class="text-xs text-gray-500 font-medium mt-1">Student Profile</div>
+                </div>
+
+                <div class="w-full my-6 flex flex-col items-center">
+                  <!-- Decorative dashed divider -->
+                  <div class="w-full border-t border-dashed border-gray-300 my-4"></div>
+                  
+                  <!-- QR Code with white padding border -->
+                  <div class="p-4 bg-white border border-gray-200 rounded-3xl shadow-md my-2">
+                    <img 
+                      v-if="loginCode" 
+                      :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=nachhilfe://login?code=${loginCode.code}`"
+                      alt="QR Code Login Link"
+                      class="w-36 h-36"
+                    />
+                  </div>
+
+                  <div class="w-full border-t border-dashed border-gray-300 my-4"></div>
+                </div>
+
+                <!-- Access Code -->
+                <div class="w-full">
+                  <span class="text-[9px] uppercase tracking-[0.2em] text-gray-400 font-bold block mb-1">Access Code</span>
+                  <div class="text-2xl font-black tracking-[0.15em] bg-purple-50 text-purple-700 py-3 rounded-2xl font-mono border border-purple-100 shadow-inner">
+                    {{ loginCode?.code }}
+                  </div>
+                  <p class="text-[10px] text-gray-400 mt-4 leading-relaxed max-w-[280px] mx-auto">
+                    Scan QR code using the Nachhilfe App camera, or enter the code manually to access your profile.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Teleport>
+
+          <div class="print:hidden w-full flex flex-col items-center">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Mobile App QR Code</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 mb-6">Scan using the mobile app to log in instantly.</p>
+            
+            <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 mb-4">
+              <img 
+                v-if="loginCode" 
+                :src="`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=nachhilfe://login?code=${loginCode.code}`"
+                alt="QR Code Login Link"
+                class="w-44 h-44"
+              />
+            </div>
+
+            <div class="text-center space-y-1 mb-6">
+              <span class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Manual Code</span>
+              <div class="text-2xl font-black tracking-widest text-purple-600 dark:text-purple-400 font-mono">
+                {{ loginCode?.code }}
+              </div>
+            </div>
+
+            <div class="flex gap-2 w-full">
+              <button 
+                @click="printStatement"
+                class="flex-1 rounded-xl border border-gray-300 dark:border-gray-700 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer flex justify-center items-center gap-1.5"
+              >
+                Print Access Card
+              </button>
+              <button 
+                @click="showRegenPasswordModal = true"
+                class="flex-1 rounded-xl bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+              >
+                Regenerate Code
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Devices Session Management -->
+        <div class="lg:col-span-2 glass-panel rounded-2xl p-6 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 space-y-4 print:hidden">
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Authorized Devices</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">List of active devices logged into this student account.</p>
+          </div>
+
+          <div v-if="activeDevices.length === 0" class="text-center py-10 bg-gray-50/50 dark:bg-gray-800/10 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+            <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <span class="text-sm text-gray-500 dark:text-gray-400">No active mobile sessions.</span>
+          </div>
+
+          <ul v-else class="divide-y divide-gray-100 dark:divide-gray-800">
+            <li v-for="device in activeDevices" :key="device.id" class="py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 rounded-xl">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ device.device_name }}</div>
+                  <div class="text-xs text-gray-500">Session Registered: {{ formatDate(device.created_at) }}</div>
+                </div>
+              </div>
+              <button 
+                @click="revokeDevice(device.id)"
+                class="rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer transition-colors"
+              >
+                Log Out Device
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Regenerate Password Confirmation Modal -->
+    <div v-if="showRegenPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 print:hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-gray-100 dark:border-gray-700">
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Regenerate Login Code</h3>
+          <p class="text-xs text-gray-500 mt-1">This will invalidate the current QR/short code and immediately log out all active mobile devices for security.</p>
+        </div>
+        <form @submit.prevent="handleRegenerateCode" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Confirm Administrator Password</label>
+            <input 
+              type="password" 
+              required 
+              v-model="adminPasswordForRegen" 
+              placeholder="••••••••••••••"
+              class="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-950 dark:text-white focus:border-purple-500 focus:ring-purple-500"
+            />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button 
+              type="button" 
+              @click="showRegenPasswordModal = false; adminPasswordForRegen = ''"
+              class="rounded-xl border border-gray-300 dark:border-gray-700 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              :disabled="isRegeneratingCode"
+              class="rounded-xl bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-xs font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <svg v-if="isRegeneratingCode" class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Regenerate Code
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Notifications Tab -->
     <div v-else-if="activeTab === 'notifications'" class="glass-panel rounded-2xl p-6 mt-6 space-y-6">
       <div class="flex items-center justify-between">
@@ -850,6 +1027,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStudentsStore } from '@/stores/studentsStore'
 import { useLessonsStore, type Lesson } from '@/stores/lessonsStore'
 import { useAuthStore } from '@/stores/authStore'
+import { useToastStore } from '@/stores/toastStore'
 import EditStudentSlideOver from '@/components/students/EditStudentSlideOver.vue'
 import LessonDetailSlideOver from '@/components/lessons/LessonDetailSlideOver.vue'
 import ScheduleLessonSlideOver from '@/components/lessons/ScheduleLessonSlideOver.vue'
@@ -863,6 +1041,7 @@ const router = useRouter()
 const store = useStudentsStore()
 const lessonsStore = useLessonsStore()
 const authStore = useAuthStore()
+const toastStore = useToastStore()
 
 const editSlideOver = ref<InstanceType<typeof EditStudentSlideOver> | null>(null)
 const lessonDetailSlideOver = ref<InstanceType<typeof LessonDetailSlideOver> | null>(null)
@@ -1254,9 +1433,70 @@ async function markAsPaid(invoice: any) {
   }
 }
 
+// Mobile QR Code Access Logic
+const loginCode = ref<any>(null)
+const activeDevices = ref<any[]>([])
+const isMobileAccessLoading = ref(false)
+const showRegenPasswordModal = ref(false)
+const adminPasswordForRegen = ref('')
+const isRegeneratingCode = ref(false)
+
+async function fetchMobileAccess(studentId: string) {
+  isMobileAccessLoading.value = true
+  try {
+    const res = await api.get(`/nachhilfe/students/${studentId}/login-code`)
+    loginCode.value = res.data.login_code
+    activeDevices.value = res.data.devices || []
+  } catch (err) {
+    console.error('Failed to load mobile access code', err)
+  } finally {
+    isMobileAccessLoading.value = false
+  }
+}
+
+async function handleRegenerateCode() {
+  const userId = loginCode.value?.user_id
+  if (!userId) {
+    toastStore.error('No user account linked to this student profile')
+    return
+  }
+  if (!adminPasswordForRegen.value) return
+  isRegeneratingCode.value = true
+  try {
+    const res = await api.post(`/users/${userId}/login-code/regenerate`, {
+      admin_password: adminPasswordForRegen.value
+    })
+    loginCode.value = res.data.login_code
+    activeDevices.value = []
+    showRegenPasswordModal.value = false
+    adminPasswordForRegen.value = ''
+    toastStore.success('Code regenerated and all mobile sessions revoked successfully')
+  } catch (err: any) {
+    console.error('Failed to regenerate login code', err)
+    toastStore.error(err.response?.data?.message || 'Failed to regenerate code')
+  } finally {
+    isRegeneratingCode.value = false
+  }
+}
+
+async function revokeDevice(deviceId: string) {
+  try {
+    await api.delete(`/mobile/devices/${deviceId}`)
+    activeDevices.value = activeDevices.value.filter(d => d.id !== deviceId)
+    toastStore.success('Device revoked successfully')
+  } catch (err) {
+    console.error('Failed to revoke device', err)
+    toastStore.error('Failed to revoke device')
+  }
+}
+
 onMounted(() => {
   if (route.params.id) {
-    store.fetchStudent(route.params.id as string)
+    store.fetchStudent(route.params.id as string).then(() => {
+      if (activeTab.value === 'mobile_access') {
+        fetchMobileAccess(route.params.id as string)
+      }
+    })
     fetchInvoices(route.params.id as string)
     lessonsStore.fetchLessons({ student_id: route.params.id })
     if (activeTab.value === 'timeline') {
@@ -1273,7 +1513,11 @@ onMounted(() => {
 
 watch(() => route.params.id, (newId) => {
   if (newId) {
-    store.fetchStudent(newId as string)
+    store.fetchStudent(newId as string).then(() => {
+      if (activeTab.value === 'mobile_access') {
+        fetchMobileAccess(newId as string)
+      }
+    })
     fetchInvoices(newId as string)
     lessonsStore.fetchLessons({ student_id: newId as string })
     if (activeTab.value === 'timeline') {
@@ -1297,6 +1541,8 @@ watch(activeTab, (newTab) => {
     fetchNotifications(route.params.id as string)
   } else if (newTab === 'statement' && route.params.id) {
     fetchStatement(route.params.id as string)
+  } else if (newTab === 'mobile_access' && route.params.id) {
+    fetchMobileAccess(route.params.id as string)
   }
 })
 
@@ -1332,3 +1578,34 @@ function confirmDeleteStudent() {
   )
 }
 </script>
+
+<style>
+@media print {
+  /* Hide the main application view entirely to prevent margins and viewport scrolling bugs */
+  #app {
+    display: none !important;
+  }
+  
+  /* Reset body and make it clear background and margins */
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Display card container centered on the print layout page */
+  .print-card-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+  }
+}
+</style>

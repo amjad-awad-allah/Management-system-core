@@ -9,6 +9,36 @@
       </button>
     </div>
 
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 dark:border-gray-800">
+      <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+        <button
+          @click="activeTab = 'staff'"
+          type="button"
+          :class="[
+            activeTab === 'staff'
+              ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+              : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
+            'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-semibold cursor-pointer transition-all'
+          ]"
+        >
+          Staff & Administrators
+        </button>
+        <button
+          @click="activeTab = 'students'"
+          type="button"
+          :class="[
+            activeTab === 'students'
+              ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+              : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
+            'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-semibold cursor-pointer transition-all'
+          ]"
+        >
+          Students
+        </button>
+      </nav>
+    </div>
+
     <!-- Users Table -->
     <div class="glass-panel rounded-2xl overflow-hidden ring-1 ring-gray-200 dark:ring-gray-800">
       <div v-if="store.isLoading" class="p-12 flex justify-center">
@@ -25,7 +55,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-800 bg-transparent">
-          <tr v-for="user in store.users" :key="user.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+          <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">{{ user.name }}</td>
             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{{ user.email }}</td>
             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
@@ -38,7 +68,7 @@
               <button @click="deleteUser(user)" class="text-red-600 hover:text-red-900 dark:text-red-400">Delete</button>
             </td>
           </tr>
-          <tr v-if="store.users.length === 0">
+          <tr v-if="filteredUsers.length === 0">
             <td colspan="4" class="py-8 text-center text-sm text-gray-500">No users found.</td>
           </tr>
         </tbody>
@@ -100,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useUsersStore } from '@/stores/usersStore'
 import { useRolesStore } from '@/stores/rolesStore'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
@@ -113,6 +143,8 @@ const isModalOpen = ref(false)
 const isEditing = ref(false)
 const editId = ref('')
 
+const activeTab = ref<'staff' | 'students'>('staff')
+
 const formData = ref({
   name: '',
   email: '',
@@ -123,6 +155,17 @@ const formData = ref({
 onMounted(() => {
   store.fetchUsers()
   rolesStore.fetchRoles()
+})
+
+const filteredUsers = computed(() => {
+  return store.users.filter(user => {
+    const isStudent = user.roles && user.roles.some((role: any) => role.name === 'Student')
+    if (activeTab.value === 'students') {
+      return isStudent
+    } else {
+      return !isStudent
+    }
+  })
 })
 
 function openCreateModal() {

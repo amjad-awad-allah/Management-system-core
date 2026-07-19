@@ -25,12 +25,20 @@ Route::prefix('v1')->group(function () {
         Route::post('/notifications/read-all', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'markAllAsRead']);
         Route::get('/notifications/preferences', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'getPreferences']);
         Route::post('/notifications/preferences', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'updatePreferences']);
+
+        // Mobile Login Codes & Session Management
+        Route::get('/users/{id}/login-code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'show']);
+        Route::get('/nachhilfe/students/{id}/login-code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'showStudentCode']);
+        Route::get('/nachhilfe/teachers/{id}/login-code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'showTeacherCode']);
+        Route::post('/users/{id}/login-code/regenerate', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'regenerate']);
+        Route::delete('/mobile/devices/{id}', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'revokeDevice']);
     });
 
     // Mobile API endpoints
     Route::prefix('mobile')->group(function () {
         // Mobile Auth (public)
         Route::post('/login', [\App\Core\Http\Controllers\MobileAuthController::class, 'login']);
+        Route::post('/auth/code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'loginByCode']);
 
         Route::middleware('auth:sanctum')->group(function () {
             // Mobile Auth (protected)

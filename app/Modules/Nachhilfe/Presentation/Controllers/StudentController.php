@@ -22,7 +22,7 @@ class StudentController
             });
         }
 
-        $students = $query->paginate();
+        $students = $query->paginate($request->input('per_page', 15));
         return StudentResource::collection($students);
     }
 

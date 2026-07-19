@@ -48,7 +48,11 @@ class MobileAuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+        if ($token) {
+            \App\Core\Models\UserMobileDevice::where('token_id', $token->id)->delete();
+            $token->delete();
+        }
 
         return response()->json([
             'message' => 'تم تسجيل الخروج بنجاح.'

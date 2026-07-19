@@ -19,7 +19,7 @@ class TeacherController
                   ->orWhere('qualification', 'like', "%{$search}%");
         }
 
-        $teachers = $query->paginate();
+        $teachers = $query->paginate($request->input('per_page', 15));
         return TeacherResource::collection($teachers);
     }
 
