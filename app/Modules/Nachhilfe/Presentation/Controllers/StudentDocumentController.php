@@ -105,9 +105,12 @@ class StudentDocumentController
         $document = StudentDocument::findOrFail($id);
         $studentId = $document->student_id;
 
+        $extension = pathinfo($document->file_path, PATHINFO_EXTENSION) ?: $this->getExtension($document->mime_type);
+        $downloadName = $document->title . '.' . $extension;
+
         // 1. Admin/Super Admin check
         if ($user->hasRole(['Admin', 'Super Admin'])) {
-            return Storage::download($document->file_path, $document->title . '.' . $this->getExtension($document->mime_type));
+            return Storage::download($document->file_path, $downloadName);
         }
 
         // 2. Parent check
@@ -116,7 +119,7 @@ class StudentDocumentController
             if (!$student) {
                 return response()->json(['message' => 'Unauthorized.'], 403);
             }
-            return Storage::download($document->file_path, $document->title . '.' . $this->getExtension($document->mime_type));
+            return Storage::download($document->file_path, $downloadName);
         }
 
         // 3. Teacher check
@@ -140,7 +143,7 @@ class StudentDocumentController
                 return response()->json(['message' => 'Forbidden: Teachers cannot download financial or contract documents.'], 403);
             }
 
-            return Storage::download($document->file_path, $document->title . '.' . $this->getExtension($document->mime_type));
+            return Storage::download($document->file_path, $downloadName);
         }
 
         return response()->json(['message' => 'Forbidden.'], 403);

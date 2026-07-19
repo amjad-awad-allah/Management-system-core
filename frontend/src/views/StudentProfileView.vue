@@ -531,7 +531,7 @@
               class="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white focus:border-purple-500 focus:ring-purple-500"
             >
               <option value="">All Subjects</option>
-              <option v-for="sub in store.currentStudent.subjects" :key="sub.id" :value="sub.id">
+              <option v-for="sub in subjectsStore.subjects" :key="sub.id" :value="sub.id">
                 {{ sub.name }}
               </option>
             </select>
@@ -966,20 +966,30 @@
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select File (PDF, PNG, JPG, Max 10MB)</label>
-                <div class="mt-1 flex justify-center rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 px-6 pt-5 pb-6">
+                <label 
+                  @dragover.prevent="isDragOver = true"
+                  @dragleave.prevent="isDragOver = false"
+                  @drop.prevent="handleFileDrop"
+                  :class="[
+                    'mt-1 flex justify-center rounded-xl border-2 border-dashed px-6 pt-5 pb-6 cursor-pointer transition-colors duration-200 block',
+                    isDragOver 
+                      ? 'border-purple-500 bg-purple-50/30 dark:bg-purple-950/10' 
+                      : 'border-gray-300 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-500'
+                  ]"
+                >
                   <div class="space-y-1 text-center">
                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                       <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     <div class="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
-                      <label class="relative cursor-pointer rounded-md bg-white dark:bg-gray-900 font-semibold text-purple-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-purple-600 focus-within:ring-offset-2 hover:text-purple-500">
-                        <span>Upload a file</span>
-                        <input type="file" ref="fileInput" @change="handleFileChange" required class="sr-only" />
-                      </label>
+                      <span class="font-semibold text-purple-600 hover:text-purple-500">
+                        Drag and drop a file, or click to browse
+                      </span>
+                      <input type="file" ref="fileInput" @change="handleFileChange" required class="sr-only" />
                     </div>
                     <p class="text-xs text-gray-500">{{ selectedFileName || 'No file selected' }}</p>
                   </div>
-                </div>
+                </label>
               </div>
 
               <div class="flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 pt-3">
@@ -1028,6 +1038,7 @@ import { useStudentsStore } from '@/stores/studentsStore'
 import { useLessonsStore, type Lesson } from '@/stores/lessonsStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
+import { useSubjectsStore } from '@/stores/subjectsStore'
 import EditStudentSlideOver from '@/components/students/EditStudentSlideOver.vue'
 import LessonDetailSlideOver from '@/components/lessons/LessonDetailSlideOver.vue'
 import ScheduleLessonSlideOver from '@/components/lessons/ScheduleLessonSlideOver.vue'
@@ -1042,6 +1053,7 @@ const store = useStudentsStore()
 const lessonsStore = useLessonsStore()
 const authStore = useAuthStore()
 const toastStore = useToastStore()
+const subjectsStore = useSubjectsStore()
 
 const editSlideOver = ref<InstanceType<typeof EditStudentSlideOver> | null>(null)
 const lessonDetailSlideOver = ref<InstanceType<typeof LessonDetailSlideOver> | null>(null)
@@ -1104,6 +1116,7 @@ async function fetchDocuments(studentId: string) {
 // Upload Modal & Form
 const isUploadModalOpen = ref(false)
 const isUploading = ref(false)
+const isDragOver = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const selectedFile = ref<File | null>(null)
 const selectedFileName = ref('')
@@ -1133,6 +1146,15 @@ function closeUploadModal() {
 
 function handleFileChange(event: any) {
   const files = event.target.files
+  if (files && files.length > 0) {
+    selectedFile.value = files[0]
+    selectedFileName.value = files[0].name
+  }
+}
+
+function handleFileDrop(event: DragEvent) {
+  isDragOver.value = false
+  const files = event.dataTransfer?.files
   if (files && files.length > 0) {
     selectedFile.value = files[0]
     selectedFileName.value = files[0].name
@@ -1175,7 +1197,8 @@ async function downloadDoc(doc: any) {
     const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', doc.title + '.' + getFileExtension(doc.mime_type))
+    const fileExt = doc.file_path ? doc.file_path.split('.').pop() : getFileExtension(doc.mime_type)
+    link.setAttribute('download', doc.title + '.' + fileExt)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -1491,6 +1514,7 @@ async function revokeDevice(deviceId: string) {
 }
 
 onMounted(() => {
+  subjectsStore.fetchSubjects()
   if (route.params.id) {
     store.fetchStudent(route.params.id as string).then(() => {
       if (activeTab.value === 'mobile_access') {
