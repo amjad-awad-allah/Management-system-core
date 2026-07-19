@@ -8,6 +8,7 @@ use App\Modules\Nachhilfe\Infrastructure\Models\StudentContract;
 use App\Modules\Nachhilfe\Infrastructure\Models\StudentPackage;
 use App\Modules\Nachhilfe\Infrastructure\Models\LessonStudent;
 use App\Modules\Nachhilfe\Infrastructure\Models\Attendance;
+use App\Modules\Nachhilfe\Infrastructure\Models\StudentDocument;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -22,9 +23,9 @@ class AuditTimelineProvider implements TimelineProviderInterface
         $packageIds = StudentPackage::where('student_id', $studentId)->pluck('id')->toArray();
         $lessonStudentIds = LessonStudent::where('student_id', $studentId)->pluck('id')->toArray();
         $attendanceIds = Attendance::whereIn('lesson_student_id', $lessonStudentIds)->pluck('id')->toArray();
-        $activeDocIds = \App\Modules\Nachhilfe\Infrastructure\Models\StudentDocument::where('student_id', $studentId)->pluck('id')->toArray();
+        $activeDocIds = StudentDocument::where('student_id', $studentId)->pluck('id')->toArray();
         $deletedDocIds = DB::table('audit_logs')
-            ->where('auditable_type', \App\Modules\Nachhilfe\Infrastructure\Models\StudentDocument::class)
+            ->where('auditable_type', StudentDocument::class)
             ->where(function($q) use ($studentId) {
                 $q->where('new_values', 'like', "%{$studentId}%")
                   ->orWhere('old_values', 'like', "%{$studentId}%");
@@ -39,14 +40,14 @@ class AuditTimelineProvider implements TimelineProviderInterface
             ->where(function ($q) use ($studentId, $contractIds, $packageIds, $lessonStudentIds, $attendanceIds, $documentIds) {
                 // Student logs
                 $q->where(function ($sq) use ($studentId) {
-                    $sq->where('auditable_type', \App\Modules\Nachhilfe\Infrastructure\Models\Student::class)
+                    $sq->where('auditable_type', Student::class)
                        ->where('auditable_id', $studentId);
                 });
                 
                 // Contract logs
                 if (!empty($contractIds)) {
                     $q->orWhere(function ($cq) use ($contractIds) {
-                        $cq->where('auditable_type', \App\Modules\Nachhilfe\Infrastructure\Models\StudentContract::class)
+                        $cq->where('auditable_type', StudentContract::class)
                            ->whereIn('auditable_id', $contractIds);
                     });
                 }
@@ -54,7 +55,7 @@ class AuditTimelineProvider implements TimelineProviderInterface
                 // Package logs
                 if (!empty($packageIds)) {
                     $q->orWhere(function ($pq) use ($packageIds) {
-                        $pq->where('auditable_type', \App\Modules\Nachhilfe\Infrastructure\Models\StudentPackage::class)
+                        $pq->where('auditable_type', StudentPackage::class)
                            ->whereIn('auditable_id', $packageIds);
                     });
                 }
@@ -62,7 +63,7 @@ class AuditTimelineProvider implements TimelineProviderInterface
                 // LessonStudent logs
                 if (!empty($lessonStudentIds)) {
                     $q->orWhere(function ($lsq) use ($lessonStudentIds) {
-                        $lsq->where('auditable_type', \App\Modules\Nachhilfe\Infrastructure\Models\LessonStudent::class)
+                        $lsq->where('auditable_type', LessonStudent::class)
                              ->whereIn('auditable_id', $lessonStudentIds);
                     });
                 }
@@ -70,7 +71,7 @@ class AuditTimelineProvider implements TimelineProviderInterface
                 // Attendance logs
                 if (!empty($attendanceIds)) {
                     $q->orWhere(function ($aq) use ($attendanceIds) {
-                        $aq->where('auditable_type', \App\Modules\Nachhilfe\Infrastructure\Models\Attendance::class)
+                        $aq->where('auditable_type', Attendance::class)
                             ->whereIn('auditable_id', $attendanceIds);
                     });
                 }
@@ -78,7 +79,7 @@ class AuditTimelineProvider implements TimelineProviderInterface
                 // Document logs
                 if (!empty($documentIds)) {
                     $q->orWhere(function ($dq) use ($documentIds) {
-                        $dq->where('auditable_type', \App\Modules\Nachhilfe\Infrastructure\Models\StudentDocument::class)
+                        $dq->where('auditable_type', StudentDocument::class)
                             ->whereIn('auditable_id', $documentIds);
                     });
                 }
@@ -92,15 +93,15 @@ class AuditTimelineProvider implements TimelineProviderInterface
             
             // Map auditable class name to friendly English name
             $typeName = 'Profile';
-            if ($log->auditable_type === \App\Modules\Nachhilfe\Infrastructure\Models\StudentContract::class) {
+            if ($log->auditable_type === StudentContract::class) {
                 $typeName = 'Contract';
-            } elseif ($log->auditable_type === \App\Modules\Nachhilfe\Infrastructure\Models\StudentPackage::class) {
+            } elseif ($log->auditable_type === StudentPackage::class) {
                 $typeName = 'Package';
-            } elseif ($log->auditable_type === \App\Modules\Nachhilfe\Infrastructure\Models\LessonStudent::class) {
+            } elseif ($log->auditable_type === LessonStudent::class) {
                 $typeName = 'Lesson enrollment';
-            } elseif ($log->auditable_type === \App\Modules\Nachhilfe\Infrastructure\Models\Attendance::class) {
+            } elseif ($log->auditable_type === Attendance::class) {
                 $typeName = 'Attendance';
-            } elseif ($log->auditable_type === \App\Modules\Nachhilfe\Infrastructure\Models\StudentDocument::class) {
+            } elseif ($log->auditable_type === StudentDocument::class) {
                 $typeName = 'Document';
             }
 

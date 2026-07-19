@@ -48,6 +48,12 @@
                           >
                             <component :is="item.icon" class="h-6 w-6 shrink-0" aria-hidden="true" />
                             {{ item.name }}
+                            <span
+                              v-if="item.name === 'Messages' && messagingStore.totalUnread > 0"
+                              class="ml-auto bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
+                            >
+                              {{ messagingStore.totalUnread }}
+                            </span>
                           </router-link>
                         </li>
                       </ul>
@@ -83,6 +89,12 @@
                   >
                     <component :is="item.icon" class="h-6 w-6 shrink-0" aria-hidden="true" />
                     {{ item.name }}
+                    <span
+                      v-if="item.name === 'Messages' && messagingStore.totalUnread > 0"
+                      class="ml-auto bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    >
+                      {{ messagingStore.totalUnread }}
+                    </span>
                   </router-link>
                 </li>
               </ul>
@@ -245,15 +257,18 @@ import {
   ArrowRightOnRectangleIcon,
   ShieldCheckIcon,
   ClipboardDocumentListIcon,
-  BellIcon
+  BellIcon,
+  ChatBubbleOvalLeftEllipsisIcon
 } from '@heroicons/vue/24/outline'
 import { useUiStore } from '@/stores/uiStore'
+import { useMessagingStore } from '@/stores/messagingStore'
 import { useRouter } from 'vue-router'
 import api from '@/api'
 import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const uiStore = useUiStore()
+const messagingStore = useMessagingStore()
 const router = useRouter()
 
 // ─── Notification Bell ─────────────────────────────────────────────────────────
@@ -314,6 +329,9 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   // Prefetch notifications count on load
   fetchGlobalNotifications()
+  // Prefetch messaging channels on load
+  messagingStore.fetchMyChannels()
+  messagingStore.fetchAllChannels()
 })
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
@@ -332,6 +350,7 @@ async function handleLogout() {
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Messages', href: '/messaging', icon: ChatBubbleOvalLeftEllipsisIcon },
   { name: 'Students', href: '/students', icon: UsersIcon },
   { name: 'Teachers', href: '/teachers', icon: AcademicCapIcon },
   { name: 'Invoices', href: '/invoices', icon: CurrencyDollarIcon },
