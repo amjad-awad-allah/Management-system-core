@@ -33,9 +33,4 @@ class Package extends Model
     {
         return $this->hasMany(LessonStudent::class);
     }
-
-    public function lessonConsumptions()
-    {
-        return $this->hasMany(LessonConsumption::class);
-    }
 }

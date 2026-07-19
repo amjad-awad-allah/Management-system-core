@@ -45,7 +45,7 @@ class Student extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\App\Core\Models\User::class);
     }
 
     public function contracts()

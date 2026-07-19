@@ -6,6 +6,7 @@ use App\Modules\Nachhilfe\Infrastructure\Models\Lesson;
 use App\Modules\Nachhilfe\Infrastructure\Models\Student;
 use App\Modules\Nachhilfe\Infrastructure\Models\StudentContract;
 use App\Modules\Nachhilfe\Infrastructure\Models\Invoice;
+use App\Modules\Nachhilfe\Infrastructure\Models\StudentPackage;
 use Illuminate\Http\Request;
 
 class StudentMobileController
@@ -102,5 +103,26 @@ class StudentMobileController
         $page = (int) $request->input('page', 1);
         $type = $request->query('type');
         return response()->json($query->execute($student, $user, $page, 15, $type));
+    }
+
+    public function packages(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('Student')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $studentIds = Student::where('user_id', $user->id)->pluck('id');
+
+        if ($studentIds->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $packages = StudentPackage::with(['package', 'subject'])
+            ->whereIn('student_id', $studentIds)
+            ->orderBy('created_at', 'desc')
+            ->paginate();
+
+        return response()->json($packages);
     }
 }

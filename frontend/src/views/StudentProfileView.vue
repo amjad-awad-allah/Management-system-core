@@ -55,6 +55,15 @@
           Invoices
         </button>
         <button 
+          @click="activeTab = 'statement'" 
+          :class="[activeTab === 'statement' ? 'border-purple-500 text-purple-600 dark:text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 cursor-pointer transition-colors']"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          Statement of Account
+        </button>
+        <button 
           @click="activeTab = 'documents'" 
           :class="[activeTab === 'documents' ? 'border-purple-500 text-purple-600 dark:text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 cursor-pointer transition-colors']"
         >
@@ -62,6 +71,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
           </svg>
           Documents & Reports
+        </button>
+        <button 
+          @click="activeTab = 'notifications'" 
+          :class="[activeTab === 'notifications' ? 'border-purple-500 text-purple-600 dark:text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 cursor-pointer transition-colors']"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          Notifications
         </button>
       </nav>
     </div>
@@ -528,6 +546,187 @@
       </div>
     </div>
 
+    <!-- Statement Tab -->
+    <div v-else-if="activeTab === 'statement'" class="space-y-6 mt-6 print:block print:p-4">
+      <!-- Dashboard Summary Cards (hidden on print) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4 print:mb-6">
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
+          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">Total Purchased Hours</span>
+          <span class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ totalPurchasedHours.toFixed(2) }} hrs</span>
+        </div>
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
+          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">Total Consumed Hours</span>
+          <span class="text-3xl font-bold text-red-600 dark:text-red-400 mt-2">{{ totalConsumedHours.toFixed(2) }} hrs</span>
+        </div>
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
+          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">Remaining Balance</span>
+          <span class="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{{ totalRemainingHours.toFixed(2) }} hrs</span>
+        </div>
+      </div>
+
+      <!-- Ledger Table -->
+      <div class="glass-panel rounded-2xl p-6 space-y-6 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
+        <div class="flex items-center justify-between print:hidden">
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Account Ledger</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Detailed history of voucher transactions and lesson deductions.</p>
+          </div>
+          <div class="flex gap-3">
+            <select 
+              v-model="ledgerFilter" 
+              class="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs text-gray-950 dark:text-white focus:border-purple-500 focus:ring-purple-500"
+            >
+              <option value="all">All Transactions</option>
+              <option value="Deduction">Deductions</option>
+              <option value="Refund">Refunds</option>
+              <option value="Adjustment">Adjustments</option>
+            </select>
+            <button 
+              @click="printStatement"
+              class="rounded-xl border border-gray-300 dark:border-gray-700 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-1.5"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print Statement
+            </button>
+          </div>
+        </div>
+
+        <!-- Print-only header -->
+        <div class="hidden print:block border-b pb-4 mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Statement of Account</h2>
+          <p class="text-sm text-gray-600">Student: {{ store.currentStudent.first_name }} {{ store.currentStudent.last_name }}</p>
+          <p class="text-sm text-gray-600">Parent: {{ store.currentStudent.parent_name }} | Phone: {{ store.currentStudent.parent_phone_1 }}</p>
+          <p class="text-xs text-gray-500 mt-2">Generated on: {{ new Date().toLocaleDateString('de-DE') }}</p>
+        </div>
+
+        <div v-if="isStatementLoading" class="flex justify-center items-center h-48 print:hidden">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        </div>
+        <div v-else-if="filteredLedger.length === 0" class="text-center py-12 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+          <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+          </svg>
+          <span class="text-sm text-gray-500 dark:text-gray-400">No transactions recorded yet.</span>
+        </div>
+        <div v-else class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+            <thead>
+              <tr class="text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th class="pb-3">Date</th>
+                <th class="pb-3">Type</th>
+                <th class="pb-3">Package Reference</th>
+                <th class="pb-3">Details</th>
+                <th class="pb-3 text-right">Amount (Hrs)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50 text-sm">
+              <tr v-for="tx in filteredLedger" :key="tx.id" class="text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/10">
+                <td class="py-3.5">{{ formatDate(tx.created_at) }}</td>
+                <td class="py-3.5">
+                  <span 
+                    class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset"
+                    :class="[
+                      tx.type === 'Deduction' ? 'bg-red-50 text-red-700 ring-red-600/10 dark:bg-red-950/40 dark:text-red-400' : 
+                      tx.type === 'Refund' ? 'bg-green-50 text-green-700 ring-green-600/10 dark:bg-green-950/40 dark:text-green-400' :
+                      'bg-gray-50 text-gray-700 ring-gray-600/10 dark:bg-gray-900/40 dark:text-gray-400'
+                    ]"
+                  >
+                    {{ tx.type }}
+                  </span>
+                </td>
+                <td class="py-3.5">
+                  <div class="font-medium text-gray-900 dark:text-white">{{ tx.subscription?.package?.name ?? 'Standard Package' }}</div>
+                  <div class="text-xs text-gray-500">{{ tx.subscription?.voucher_reference ?? 'Private Funding' }}</div>
+                </td>
+                <td class="py-3.5">
+                  <div v-if="tx.lesson">
+                    Lesson: {{ tx.lesson.subject?.name }} with {{ tx.lesson.teacher?.name }}
+                    <span class="text-xs text-gray-500">({{ tx.lesson.date }})</span>
+                  </div>
+                  <div v-else class="text-xs text-gray-500">
+                    {{ tx.notes || 'Manual Adjustment' }}
+                  </div>
+                </td>
+                <td class="py-3.5 text-right font-semibold" :class="tx.type === 'Deduction' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
+                  {{ tx.type === 'Deduction' ? '-' : '+' }}{{ parseFloat(tx.hours).toFixed(2) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications Tab -->
+    <div v-else-if="activeTab === 'notifications'" class="glass-panel rounded-2xl p-6 mt-6 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">System Notifications</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Logs and channel deliveries for the parent's account.</p>
+        </div>
+        <button 
+          @click="markAllNotificationsRead"
+          class="rounded-xl border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+        >
+          Mark all read
+        </button>
+      </div>
+
+      <div v-if="isNotificationsLoading" class="flex justify-center items-center h-48">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+      <div v-else-if="groupedNotifications.length === 0" class="text-center py-12 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+        <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <span class="text-sm text-gray-500 dark:text-gray-400">No notifications found.</span>
+      </div>
+      <div v-else class="space-y-4">
+        <div v-for="group in groupedNotifications" :key="group.group_id" class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/40 space-y-3">
+          <div class="flex items-start justify-between">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center rounded-md bg-yellow-50 dark:bg-yellow-950/40 px-2 py-1 text-xs font-semibold text-yellow-700 dark:text-yellow-400 ring-1 ring-inset ring-yellow-600/20">
+                  {{ group.type }}
+                </span>
+                <span v-if="group.priority === 'high'" class="inline-flex items-center rounded-md bg-red-50 dark:bg-red-950/40 px-2 py-1 text-xs font-semibold text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-600/20">
+                  Priority High
+                </span>
+                <h4 class="text-sm font-bold text-gray-900 dark:text-white">{{ group.title }}</h4>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-300">{{ group.message }}</p>
+              <div v-if="group.metadata" class="text-xs bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700 font-mono text-gray-500 dark:text-gray-400 mt-2">
+                <div>Student: {{ group.metadata.student_name }}</div>
+                <div>Subject: {{ group.metadata.subject_name }}</div>
+                <div v-if="group.metadata.hours_remaining !== undefined">Hours Remaining: {{ group.metadata.hours_remaining }}</div>
+                <div v-if="group.metadata.expires_at">Expires At: {{ group.metadata.expires_at }}</div>
+                <div>Voucher Ref: {{ group.metadata.voucher_reference }}</div>
+              </div>
+            </div>
+            <span class="text-xs text-gray-500 whitespace-nowrap">{{ formatDate(group.created_at) }}</span>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-800/80">
+            <span class="text-xs font-medium text-gray-500">Delivery Status:</span>
+            <div class="flex gap-2">
+              <span v-for="channel in group.deliveries" :key="channel.channel" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset"
+                :class="[
+                  channel.status === 'sent' 
+                    ? 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-950/30 dark:text-green-400' 
+                    : 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-950/30 dark:text-red-400'
+                ]"
+              >
+                <span>{{ channel.channel === 'in_app' ? 'In-App' : channel.channel === 'chat' ? 'Chat' : 'WhatsApp' }}</span>
+                <span>({{ channel.status }})</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Upload Document Modal -->
     <div v-if="isUploadModalOpen" class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm dark:bg-black dark:bg-opacity-80"></div>
@@ -954,6 +1153,87 @@ function formatValue(value: any): string {
   return String(value)
 }
 
+// Notifications logic
+const groupedNotifications = ref<any[]>([])
+const isNotificationsLoading = ref(false)
+
+async function fetchNotifications(studentId: string) {
+  isNotificationsLoading.value = true
+  try {
+    const res = await api.get(`/nachhilfe/students/${studentId}/timeline`)
+    // Filter the timeline events that are notifications
+    const notificationEvents = res.data.filter((e: any) => e.type === 'notification')
+    
+    groupedNotifications.value = notificationEvents.map((e: any) => ({
+      group_id: e.metadata.notification_group_id,
+      type: e.metadata.type,
+      title: e.title,
+      message: e.description.split(' (Status:')[0],
+      priority: e.priority || 'normal',
+      created_at: e.date + ' ' + e.time,
+      metadata: e.metadata,
+      deliveries: e.metadata.deliveries || []
+    }))
+  } catch (err) {
+    console.error('Failed to load notifications', err)
+  } finally {
+    isNotificationsLoading.value = false
+  }
+}
+
+async function markAllNotificationsRead() {
+  try {
+    await api.post('/notifications/read-all')
+    if (route.params.id) {
+      await fetchNotifications(route.params.id as string)
+    }
+  } catch (err) {
+    console.error('Failed to mark all as read', err)
+  }
+}
+
+// Statement Ledger Logic
+const ledgerData = ref<any[]>([])
+const ledgerFilter = ref('all')
+const isStatementLoading = ref(false)
+
+async function fetchStatement(studentId: string) {
+  isStatementLoading.value = true
+  try {
+    const res = await api.get(`/nachhilfe/students/${studentId}/statement`)
+    ledgerData.value = res.data
+  } catch (err) {
+    console.error('Failed to load statement ledger', err)
+  } finally {
+    isStatementLoading.value = false
+  }
+}
+
+const totalPurchasedHours = computed(() => {
+  if (!store.currentStudent?.packages) return 0
+  return store.currentStudent.packages.reduce((sum, p) => sum + (parseFloat(p.total_hours) || 0), 0)
+})
+
+const totalRemainingHours = computed(() => {
+  if (!store.currentStudent?.packages) return 0
+  return store.currentStudent.packages.reduce((sum, p) => sum + (parseFloat(p.remaining_hours) || 0), 0)
+})
+
+const totalConsumedHours = computed(() => {
+  return ledgerData.value
+    .filter(tx => tx.type === 'Deduction')
+    .reduce((sum, tx) => sum + (parseFloat(tx.hours) || 0), 0)
+})
+
+const filteredLedger = computed(() => {
+  if (ledgerFilter.value === 'all') return ledgerData.value
+  return ledgerData.value.filter(tx => tx.type === ledgerFilter.value)
+})
+
+function printStatement() {
+  window.print()
+}
+
 async function fetchInvoices(id: string) {
   try {
     const res = await api.get(`/nachhilfe/invoices?student_id=${id}`)
@@ -983,6 +1263,10 @@ onMounted(() => {
       fetchTimeline(1)
     } else if (activeTab.value === 'documents') {
       fetchDocuments(route.params.id as string)
+    } else if (activeTab.value === 'notifications') {
+      fetchNotifications(route.params.id as string)
+    } else if (activeTab.value === 'statement') {
+      fetchStatement(route.params.id as string)
     }
   }
 })
@@ -996,6 +1280,10 @@ watch(() => route.params.id, (newId) => {
       fetchTimeline(1)
     } else if (activeTab.value === 'documents') {
       fetchDocuments(newId as string)
+    } else if (activeTab.value === 'notifications') {
+      fetchNotifications(newId as string)
+    } else if (activeTab.value === 'statement') {
+      fetchStatement(newId as string)
     }
   }
 })
@@ -1005,6 +1293,10 @@ watch(activeTab, (newTab) => {
     fetchTimeline(1)
   } else if (newTab === 'documents' && route.params.id) {
     fetchDocuments(route.params.id as string)
+  } else if (newTab === 'notifications' && route.params.id) {
+    fetchNotifications(route.params.id as string)
+  } else if (newTab === 'statement' && route.params.id) {
+    fetchStatement(route.params.id as string)
   }
 })
 

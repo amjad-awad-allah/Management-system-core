@@ -16,6 +16,15 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/roles', \App\Core\Presentation\Controllers\RoleController::class);
         Route::get('/permissions', [\App\Core\Presentation\Controllers\RoleController::class, 'permissions']);
         Route::get('/audit-logs', [\App\Core\Presentation\Controllers\AuditLogController::class, 'index']);
+        Route::get('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'index']);
+        Route::post('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'update']);
+
+        // Core Notification Center
+        Route::get('/notifications', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'index']);
+        Route::post('/notifications/{id}/read', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'markAsRead']);
+        Route::post('/notifications/read-all', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'markAllAsRead']);
+        Route::get('/notifications/preferences', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'getPreferences']);
+        Route::post('/notifications/preferences', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'updatePreferences']);
     });
 
     // Mobile API endpoints
@@ -40,6 +49,7 @@ Route::prefix('v1')->group(function () {
             Route::prefix('student')->group(function () {
                 Route::get('/lessons', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'lessons']);
                 Route::get('/subscriptions', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'subscriptions']);
+                Route::get('/packages', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'packages']);
                 Route::get('/invoices', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'invoices']);
                 Route::get('/timeline', [\App\Modules\Nachhilfe\Presentation\Controllers\StudentMobileController::class, 'timeline']);
             });

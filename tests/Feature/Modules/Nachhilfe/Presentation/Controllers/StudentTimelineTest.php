@@ -482,7 +482,7 @@ test('consumption priority prefers active over pending_approval', function () {
     expect($packageA->remaining_hours)->toEqual(100.00);
 });
 
-test('nachhilfe:expire-packages transitions expired packages to expired status', function () {
+test('nachhilfe:check-package-alerts transitions expired packages to expired status', function () {
     $student = new Student();
     $student->id = (string) Str::ulid();
     $student->first_name = 'Expiring';
@@ -512,8 +512,7 @@ test('nachhilfe:expire-packages transitions expired packages to expired status',
     $package2->save();
 
     // Run artisan command
-    $this->artisan('nachhilfe:expire-packages')
-         ->expectsOutput('Expired 1 hour approvals.')
+    $this->artisan('nachhilfe:check-package-alerts')
          ->assertExitCode(0);
 
     $package1->refresh();

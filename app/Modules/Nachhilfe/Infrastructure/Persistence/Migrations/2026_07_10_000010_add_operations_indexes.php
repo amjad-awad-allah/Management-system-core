@@ -27,11 +27,6 @@ return new class extends Migration
             $table->index(['lesson_student_id', 'status']);
             $table->index('marked_at');
         });
-        
-        Schema::table('lesson_consumptions', function (Blueprint $table) {
-            $table->index(['package_id', 'created_at']);
-            $table->index('consumption_type');
-        });
     }
 
     public function down(): void

@@ -9,6 +9,7 @@ use App\Modules\Nachhilfe\Infrastructure\Timeline\BillingTimelineProvider;
 use App\Modules\Nachhilfe\Infrastructure\Timeline\PackageTimelineProvider;
 use App\Modules\Nachhilfe\Infrastructure\Timeline\NoteTimelineProvider;
 use App\Modules\Nachhilfe\Infrastructure\Timeline\AuditTimelineProvider;
+use App\Modules\Nachhilfe\Infrastructure\Timeline\NotificationTimelineProvider;
 
 class StudentTimelineBuilder
 {
@@ -20,7 +21,8 @@ class StudentTimelineBuilder
         BillingTimelineProvider $billing,
         PackageTimelineProvider $packages,
         NoteTimelineProvider $notes,
-        AuditTimelineProvider $audit
+        AuditTimelineProvider $audit,
+        NotificationTimelineProvider $notification
     ) {
         $this->providers = [
             'lesson' => $lessons,
@@ -29,6 +31,7 @@ class StudentTimelineBuilder
             'package' => $packages,
             'note' => $notes,
             'change' => $audit,
+            'notification' => $notification,
         ];
     }
 
@@ -39,10 +42,10 @@ class StudentTimelineBuilder
         // Determine allowed event types based on user roles
         $allowedTypes = ['lesson', 'attendance', 'package', 'note']; // Default minimum (Teacher)
         
-        if ($user->hasRole('Admin') || $user->hasRole('Super Admin')) {
-            $allowedTypes = ['lesson', 'attendance', 'payment', 'package', 'note', 'change'];
+        if ($user->hasRole('Admin') || $user->hasRole('Super Admin') || $user->hasRole('Owner')) {
+            $allowedTypes = ['lesson', 'attendance', 'payment', 'package', 'note', 'change', 'notification'];
         } elseif ($user->hasRole('Student')) {
-            $allowedTypes = ['lesson', 'attendance', 'payment', 'package', 'note'];
+            $allowedTypes = ['lesson', 'attendance', 'payment', 'package', 'note', 'notification'];
         }
 
         // Aggregate from providers

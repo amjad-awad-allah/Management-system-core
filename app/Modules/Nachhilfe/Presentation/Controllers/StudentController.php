@@ -110,15 +110,15 @@ class StudentController
     {
         $student = Student::findOrFail($id);
         
-        // Fetch lesson consumptions for this student
-        $consumptions = \App\Modules\Nachhilfe\Infrastructure\Models\LessonConsumption::with(['lesson.subject', 'lesson.teacher', 'package.package'])
-            ->whereHas('lessonStudent', function ($query) use ($id) {
+        // Fetch subscription usages for this student
+        $usages = \App\Modules\Nachhilfe\Infrastructure\Models\SubscriptionUsage::with(['lesson.subject', 'lesson.teacher', 'subscription.package'])
+            ->whereHas('subscription', function ($query) use ($id) {
                 $query->where('student_id', $id);
             })
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json($consumptions);
+        return response()->json($usages);
     }
 
     public function timeline(string $id, \App\Modules\Nachhilfe\Application\Queries\GetStudentTimelineQuery $query, \Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse

@@ -285,15 +285,53 @@ class LessonController extends Controller
     public function updateStatus(Request $request, Lesson $lesson): \Illuminate\Http\JsonResponse
     {
         $validated = $request->validate([
-            'status' => 'required|string|in:scheduled,confirmed,started,completed,cancelled,no-show,rescheduled,Scheduled,Confirmed,Started,Completed,Cancelled,NoShow,Rescheduled'
+            'status' => 'required|string|in:scheduled,confirmed,started,completed,cancelled,no-show,rescheduled,Scheduled,Confirmed,Started,Completed,Cancelled,NoShow,Rescheduled',
+            'charge_student' => 'nullable|boolean',
+            'cancellation_reason' => 'nullable|string|max:255',
         ]);
 
         $oldStatus = strtolower($lesson->status);
+        $newStatus = strtolower($validated['status']);
+        
         $lesson->status = $validated['status'];
         $lesson->save();
 
-        if ($oldStatus !== 'completed' && strtolower($lesson->status) === 'completed') {
+        if ($oldStatus !== 'completed' && $newStatus === 'completed') {
             \App\Modules\Nachhilfe\Domain\Events\LessonCompleted::dispatch($lesson);
+        }
+
+        if (($newStatus === 'cancelled' || $newStatus === 'no-show') && $oldStatus !== 'cancelled' && $oldStatus !== 'no-show') {
+            $chargeStudent = $validated['charge_student'] ?? null;
+            $reason = $validated['cancellation_reason'] ?? (($newStatus === 'no-show') ? 'No-show penalty' : 'Late cancellation penalty');
+
+            $shouldDeduct = false;
+            $deductPercentage = 100.00;
+
+            if ($chargeStudent === true) {
+                $shouldDeduct = true;
+            } elseif ($chargeStudent === false) {
+                $shouldDeduct = false;
+            } else {
+                // Determine based on cancellation policy
+                $policy = \App\Modules\Nachhilfe\Infrastructure\Models\CancellationPolicy::where('is_active', true)->first();
+                $hoursBefore = $policy ? $policy->hours_before : 24;
+                $deductPercentage = $policy ? (float) $policy->deduct_percentage : 100.00;
+
+                $lessonStart = Carbon::parse($lesson->date . ' ' . $lesson->start_time);
+                // Note: diffInHours with false return parameter returns negative/positive difference relative to start
+                $hoursDiff = now()->diffInHours($lessonStart, false);
+
+                if ($hoursDiff < $hoursBefore) {
+                    $shouldDeduct = true;
+                    if (!isset($validated['cancellation_reason'])) {
+                        $reason = "Late cancellation (< {$hoursBefore}h before start)";
+                    }
+                }
+            }
+
+            if ($shouldDeduct) {
+                app(\App\Modules\Nachhilfe\Application\Services\SubscriptionUsageService::class)->deductForCancellation($lesson, $deductPercentage, $reason);
+            }
         }
 
         return response()->json(['message' => 'Status updated successfully', 'lesson' => new LessonResource($lesson->fresh(['teacher', 'room', 'subject', 'students']))]);

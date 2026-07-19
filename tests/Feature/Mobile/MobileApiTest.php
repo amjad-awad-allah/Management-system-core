@@ -407,4 +407,58 @@ class MobileApiTest extends TestCase
         $response->assertStatus(422); // Validation failed
         $response->assertJsonValidationErrors(['status']);
     }
+
+    public function test_student_can_fetch_packages()
+    {
+        $user = User::create([
+            'name' => 'Student User',
+            'email' => 'student_packages@test.com',
+            'password' => bcrypt('password123')
+        ]);
+        $user->assignRole('Student');
+
+        $student = Student::create([
+            'id' => (string) Str::ulid(),
+            'user_id' => $user->id,
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'birth_date' => '2010-01-01',
+            'level' => 'G10'
+        ]);
+
+        $subject = \App\Modules\Nachhilfe\Infrastructure\Models\SubjectModel::create([
+            'id' => (string) Str::ulid(),
+            'name' => 'German'
+        ]);
+
+        $package = \App\Modules\Nachhilfe\Infrastructure\Models\Package::create([
+            'id' => (string) Str::ulid(),
+            'name' => 'Voucher 10h',
+            'hours' => 10.00,
+            'price' => 200.00
+        ]);
+
+        \App\Modules\Nachhilfe\Infrastructure\Models\StudentPackage::create([
+            'id' => (string) Str::ulid(),
+            'student_id' => $student->id,
+            'package_id' => $package->id,
+            'subject_id' => $subject->id,
+            'funding_source' => 'voucher',
+            'voucher_reference' => 'VOUCHER-999',
+            'total_hours' => 10.00,
+            'remaining_hours' => 8.50,
+            'status' => 'active',
+            'expires_at' => '2026-12-31',
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-12-31'
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/v1/mobile/student/packages');
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.0.student_id', $student->id);
+        $response->assertJsonPath('data.0.package.name', 'Voucher 10h');
+        $response->assertJsonPath('data.0.subject.name', 'German');
+        $response->assertJsonPath('data.0.remaining_hours', '8.50');
+    }
 }

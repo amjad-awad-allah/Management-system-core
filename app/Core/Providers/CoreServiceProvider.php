@@ -19,7 +19,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(AuthenticationContract::class, SessionAuthenticationProvider::class);
         $this->app->singleton(AuthorizationContract::class, SpatieAuthorizationProvider::class);
         $this->app->singleton(\App\Shared\Contracts\Events\DomainEventBus::class, \App\Core\Events\OutboxEventBus::class);
-        $this->app->singleton(\App\Core\Notification\Contracts\WhatsAppNotificationServiceInterface::class, \App\Core\Notification\Services\LogWhatsAppNotificationService::class);
+        $this->app->singleton(\App\Core\Notification\Contracts\WhatsAppNotificationServiceInterface::class, \App\Core\Notification\Services\TwilioWhatsAppNotificationService::class);
         // Register Commands
         if ($this->app->runningInConsole()) {
             $this->commands([

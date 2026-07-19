@@ -106,7 +106,102 @@
             <SunIcon v-if="uiStore.isDarkMode" class="w-6 h-6" />
             <MoonIcon v-else class="w-6 h-6" />
           </button>
-          
+
+          <!-- Notification Bell -->
+          <div class="relative" ref="notifDropdownRef">
+            <button
+              @click="toggleNotifications"
+              class="relative p-2 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="Notifications"
+            >
+              <BellIcon class="w-6 h-6" />
+              <span
+                v-if="unreadCount > 0"
+                class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-900"
+              >
+                {{ unreadCount > 9 ? '9+' : unreadCount }}
+              </span>
+            </button>
+
+            <!-- Dropdown -->
+            <Transition
+              enter-active-class="transition ease-out duration-150"
+              enter-from-class="opacity-0 translate-y-1"
+              enter-to-class="opacity-100 translate-y-0"
+              leave-active-class="transition ease-in duration-100"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <div
+                v-if="showNotifications"
+                class="absolute right-0 mt-2 w-96 rounded-2xl bg-white dark:bg-gray-900 shadow-2xl ring-1 ring-gray-900/5 dark:ring-gray-800 overflow-hidden z-50"
+              >
+                <!-- Header -->
+                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                  <span class="text-sm font-bold text-gray-900 dark:text-white">Notifications</span>
+                  <button
+                    v-if="unreadCount > 0"
+                    @click="markAllRead"
+                    class="text-xs text-purple-600 hover:text-purple-700 dark:text-purple-400 font-medium"
+                  >
+                    Mark all read
+                  </button>
+                </div>
+
+                <!-- List -->
+                <div class="max-h-96 overflow-y-auto">
+                  <div v-if="isLoadingNotifications" class="flex justify-center items-center py-10">
+                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                  </div>
+
+                  <div v-else-if="globalNotifications.length === 0" class="text-center py-10">
+                    <BellIcon class="w-8 h-8 text-gray-300 dark:text-gray-700 mx-auto mb-2" />
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No notifications yet</p>
+                  </div>
+
+                  <div v-else>
+                    <div
+                      v-for="notif in globalNotifications"
+                      :key="notif.id"
+                      class="flex items-start gap-3 px-4 py-3 border-b border-gray-50 dark:border-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                      :class="{ 'bg-purple-50/40 dark:bg-purple-900/10': !notif.read_at }"
+                    >
+                      <!-- Icon -->
+                      <div class="flex-shrink-0 mt-0.5">
+                        <div
+                          class="w-8 h-8 rounded-full flex items-center justify-center"
+                          :class="notif.priority === 'high' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30'"
+                        >
+                          <BellIcon
+                            class="w-4 h-4"
+                            :class="notif.priority === 'high' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'"
+                          />
+                        </div>
+                      </div>
+                      <!-- Content -->
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold text-gray-900 dark:text-white truncate">{{ notif.title }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{{ notif.message }}</p>
+                        <p class="text-[10px] text-gray-400 dark:text-gray-600 mt-1">{{ formatRelativeTime(notif.created_at) }}</p>
+                      </div>
+                      <!-- Unread dot -->
+                      <div v-if="!notif.read_at" class="flex-shrink-0 mt-2">
+                        <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
+                  <p class="text-[11px] text-gray-400 dark:text-gray-600 text-center">
+                    Showing latest {{ globalNotifications.length }} notifications
+                  </p>
+                </div>
+              </div>
+            </Transition>
+          </div>
+
           <!-- Logout -->
           <div class="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
           <button @click="handleLogout" class="flex items-center gap-2 p-2 text-sm font-semibold text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
@@ -149,15 +244,81 @@ import {
   BookOpenIcon,
   ArrowRightOnRectangleIcon,
   ShieldCheckIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  BellIcon
 } from '@heroicons/vue/24/outline'
 import { useUiStore } from '@/stores/uiStore'
 import { useRouter } from 'vue-router'
 import api from '@/api'
 import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const uiStore = useUiStore()
 const router = useRouter()
+
+// ─── Notification Bell ─────────────────────────────────────────────────────────
+const showNotifications = ref(false)
+const isLoadingNotifications = ref(false)
+const globalNotifications = ref<any[]>([])
+const notifDropdownRef = ref<HTMLElement | null>(null)
+
+const unreadCount = computed(() => globalNotifications.value.filter((n: any) => !n.read_at).length)
+
+async function fetchGlobalNotifications() {
+  isLoadingNotifications.value = true
+  try {
+    const res = await api.get('/notifications')
+    globalNotifications.value = res.data.data ?? res.data
+  } catch (e) {
+    // Silent – user may not be authenticated yet
+  } finally {
+    isLoadingNotifications.value = false
+  }
+}
+
+async function toggleNotifications() {
+  showNotifications.value = !showNotifications.value
+  if (showNotifications.value && globalNotifications.value.length === 0) {
+    await fetchGlobalNotifications()
+  }
+}
+
+async function markAllRead() {
+  try {
+    await api.post('/notifications/read-all')
+    globalNotifications.value = globalNotifications.value.map((n: any) => ({ ...n, read_at: new Date().toISOString() }))
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+function formatRelativeTime(dateStr: string): string {
+  if (!dateStr) return ''
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (notifDropdownRef.value && !notifDropdownRef.value.contains(event.target as Node)) {
+    showNotifications.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  // Prefetch notifications count on load
+  fetchGlobalNotifications()
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+// ─── End Notification Bell ──────────────────────────────────────────────────────
 
 async function handleLogout() {
   try {
