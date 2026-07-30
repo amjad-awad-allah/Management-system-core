@@ -175,7 +175,8 @@
                     <div
                       v-for="notif in globalNotifications"
                       :key="notif.id"
-                      class="flex items-start gap-3 px-4 py-3 border-b border-gray-50 dark:border-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                      @click="handleNotificationClick(notif)"
+                      class="flex items-start gap-3 px-4 py-3 border-b border-gray-50 dark:border-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors cursor-pointer"
                       :class="{ 'bg-purple-50/40 dark:bg-purple-900/10': !notif.read_at }"
                     >
                       <!-- Icon -->
@@ -304,6 +305,35 @@ async function markAllRead() {
     globalNotifications.value = globalNotifications.value.map((n: any) => ({ ...n, read_at: new Date().toISOString() }))
   } catch (e) {
     console.error(e)
+  }
+}
+
+async function handleNotificationClick(notif: any) {
+  if (!notif.read_at) {
+    try {
+      await api.post(`/notifications/${notif.id}/read`)
+      notif.read_at = new Date().toISOString()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  showNotifications.value = false
+
+  const channelId = notif.metadata?.channel_id
+  if (notif.type === 'new_chat_message' || notif.source_type === 'chat_message' || channelId) {
+    if (channelId) {
+      await messagingStore.selectChannel(channelId)
+    }
+    router.push('/messaging')
+  } else if (notif.source_type === 'invoice') {
+    router.push('/invoices')
+  } else if (notif.source_type === 'student') {
+    router.push('/students')
+  } else if (notif.source_type === 'teacher') {
+    router.push('/teachers')
+  } else {
+    router.push('/messaging')
   }
 }
 

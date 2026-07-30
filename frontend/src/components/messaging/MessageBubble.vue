@@ -38,13 +38,13 @@
           <div class="space-y-1.5">
             <button
               @click="showSurvey = true"
-              class="w-full py-1.5 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-colors text-center shadow-md hover:shadow-amber-600/20"
+              class="w-full py-1.5 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-colors text-center shadow-md hover:shadow-amber-600/20 cursor-pointer"
             >
               Fill Survey
             </button>
             <button
               @click="showResults = true"
-              class="w-full py-1.5 px-3 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/20 text-purple-300 text-xs font-semibold transition-colors text-center shadow-md"
+              class="w-full py-1.5 px-3 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/20 text-purple-300 text-xs font-semibold transition-colors text-center shadow-md cursor-pointer"
             >
               View Results
             </button>
@@ -52,30 +52,45 @@
         </div>
 
         <!-- File attachment -->
-        <a
+        <button
           v-if="message.type === 'file' && message.metadata?.file_name"
-          :href="attachmentUrl"
-          target="_blank"
-          class="flex items-center gap-2 mt-2 p-2 rounded-xl bg-black/20 hover:bg-black/30 transition-colors"
+          @click="downloadAttachment"
+          :disabled="isDownloading"
+          class="flex items-center gap-2 mt-2 p-2.5 rounded-xl bg-black/30 hover:bg-black/40 transition-colors text-left w-full cursor-pointer disabled:opacity-50 border border-white/10"
         >
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg v-if="isDownloading" class="w-5 h-5 animate-spin flex-shrink-0 text-purple-300" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <svg v-else class="w-5 h-5 flex-shrink-0 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
-          <span class="text-xs font-medium truncate max-w-[200px]">{{ message.metadata.file_name }}</span>
-          <span v-if="message.metadata.file_size" class="text-xs opacity-50 flex-shrink-0">
+          <span class="text-xs font-semibold truncate flex-1">{{ message.metadata.file_name }}</span>
+          <span v-if="message.metadata.file_size" class="text-[10px] opacity-60 flex-shrink-0 font-mono">
             {{ formatSize(message.metadata.file_size) }}
           </span>
-        </a>
+        </button>
 
         <!-- Image attachment -->
-        <div v-if="message.type === 'image' && message.metadata?.file_path" class="mt-2">
+        <div v-if="message.type === 'image'" class="mt-2 relative">
+          <div v-if="isImageLoading" class="w-[200px] h-[150px] bg-black/30 rounded-xl animate-pulse flex items-center justify-center border border-white/10">
+            <span class="text-xs opacity-50">Loading image...</span>
+          </div>
           <img
-            :src="attachmentUrl"
-            :alt="message.metadata.file_name ?? 'Image'"
-            class="rounded-xl max-w-[250px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition-opacity"
-            @click="openImage"
-            loading="lazy"
+            v-else-if="imageUrl"
+            :src="imageUrl"
+            :alt="message.metadata?.file_name ?? 'Image'"
+            class="rounded-xl max-w-[250px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition-opacity border border-white/10 shadow-md"
+            @click="downloadAttachment"
+            title="Click to download image"
           />
+          <button
+            v-else
+            @click="downloadAttachment"
+            class="text-xs underline opacity-80 hover:opacity-100 flex items-center gap-1 cursor-pointer"
+          >
+            🖼 {{ message.metadata?.file_name ?? 'Download Image' }}
+          </button>
         </div>
 
         <!-- Timestamp -->
@@ -101,7 +116,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
+import api from '@/api'
 import type { ChatMessage } from '@/stores/messagingStore'
 import FillSurveyModal from '@/components/messaging/FillSurveyModal.vue'
 import ViewSurveyResultsModal from '@/components/messaging/ViewSurveyResultsModal.vue'
@@ -113,10 +129,13 @@ const props = defineProps<{
 
 const showSurvey = ref(false)
 const showResults = ref(false)
+const isDownloading = ref(false)
+const isImageLoading = ref(false)
+const imageUrl = ref<string | null>(null)
 
 function onSurveySubmitted() {
   showSurvey.value = false
-  alert('تم تقديم الإجابات بنجاح! شكراً لك.')
+  alert('Survey submitted successfully! Thank you.')
 }
 
 const senderInitial = computed(() => {
@@ -132,17 +151,67 @@ const formattedTime = computed(() => {
   })
 })
 
-const attachmentUrl = computed(() => {
-  return `/api/v1/nachhilfe/chat/messages/${props.message.id}/attachment`
-})
-
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function openImage() {
-  window.open(attachmentUrl.value, '_blank')
+async function downloadAttachment() {
+  if (isDownloading.value) return
+  isDownloading.value = true
+  try {
+    const res = await api.get(`/nachhilfe/chat/messages/${props.message.id}/attachment`, {
+      responseType: 'blob',
+    })
+    const rawType = res.headers['content-type']
+    const mimeType = typeof rawType === 'string' ? rawType : 'application/octet-stream'
+    const blob = new Blob([res.data], { type: mimeType })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = props.message.metadata?.file_name ?? 'attachment'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('Failed to download attachment', e)
+  } finally {
+    isDownloading.value = false
+  }
 }
+
+async function loadImage() {
+  if (props.message.type !== 'image') return
+  isImageLoading.value = true
+  try {
+    const res = await api.get(`/nachhilfe/chat/messages/${props.message.id}/attachment`, {
+      responseType: 'blob',
+    })
+    const rawType = res.headers['content-type']
+    const mimeType = typeof rawType === 'string' ? rawType : 'image/png'
+    const blob = new Blob([res.data], { type: mimeType })
+    imageUrl.value = window.URL.createObjectURL(blob)
+  } catch (e) {
+    console.error('Failed to load inline image', e)
+  } finally {
+    isImageLoading.value = false
+  }
+}
+
+onMounted(() => {
+  if (props.message.type === 'image') {
+    loadImage()
+  }
+})
+
+watch(
+  () => props.message.id,
+  () => {
+    if (props.message.type === 'image') {
+      loadImage()
+    }
+  }
+)
 </script>

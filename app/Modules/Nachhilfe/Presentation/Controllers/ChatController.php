@@ -221,7 +221,15 @@ class ChatController extends Controller
         $filePath = $message->metadata['file_path'];
         $fileName = $message->metadata['file_name'] ?? basename($filePath);
 
-        return Storage::download($filePath, $fileName);
+        if (Storage::disk('local')->exists($filePath)) {
+            return Storage::disk('local')->download($filePath, $fileName);
+        }
+
+        if (Storage::exists($filePath)) {
+            return Storage::download($filePath, $fileName);
+        }
+
+        return response()->json(['message' => 'File not found on storage.'], 404);
     }
 
     // ──────────────────────────────────────────────────────────

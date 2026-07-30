@@ -1,243 +1,213 @@
-# Nachhilfe ERP & Management System Core (Modular Monolith Blueprint)
+# Nachhilfe ERP & Enterprise Management System Core (Modular Monolith Blueprint)
 
-This repository serves as the enterprise-grade **Core Boilerplate** and **Architectural Blueprint** for all future modules and SaaS applications (e.g., Beauty, Restaurant, Billing, Nachhilfe).
+[![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=flat-square&logo=php)](https://php.net)
+[![Laravel Version](https://img.shields.io/badge/Laravel-11-FF2D20?style=flat-square&logo=laravel)](https://laravel.com)
+[![Vue Version](https://img.shields.io/badge/Vue.js-3.5-4FC08D?style=flat-square&logo=vuedotjs)](https://vuejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com)
+[![PHPStan Level 9](https://img.shields.io/badge/PHPStan-Level%209-brightgreen?style=flat-square)](https://phpstan.org)
+[![Quality Gate](https://img.shields.io/badge/Deptrac-Enforced-blue?style=flat-square)](https://github.com/qossmic/deptrac)
 
----
-
-## 🚀 Architecture Highlights
-This platform is built on a highly strict **Modular Monolith** architecture:
-- **Core Namespace**: `App\Core` handles unified systems (Authentication, RBAC Authorization, Base Models, Global Audits).
-- **Module Namespaces**: Each module lives independently in `App\Modules\{ModuleName}` (e.g., `App\Modules\Nachhilfe`).
-- **Strict Boundaries**: Modules are completely forbidden from directly interacting with each other's Databases or Eloquent Models.
-- **Domain-Driven Design (DDD)**: Features strict separation into `Domain` (Entities, Value Objects), `Infrastructure` (Eloquent Repositories), and `Application` (Actions).
-
----
-
-## 🛡️ Key Enterprise Features
-- **Transactional Outbox Pattern**: Secure inter-module communication using `outbox_events` and a `lockForUpdate()->skipLocked()` background daemon worker (`php artisan outbox:work`).
-- **Blind Indexing Encryption**: Sensitive PII data (Phones, Emails) are encrypted at rest using Laravel's encrypter and searched using SHA-256 salted Blind Indices.
-- **Universal IDs (ULID)**: All primary keys and foreign keys use ULID (`foreignUlid()`) for hyper-scalable, timestamp-sortable, and conflict-free IDs.
-- **Idempotency Guarantees**: A strict `processed_events` compound unique index ensures events cannot be executed twice.
-- **GDPR Private Storage**: Sensitive student documentation (e.g., contracts, Jobcenter approvals) is stored in a non-public storage directory (`storage/app/private/`) and streamed securely through authenticated routes with Role-Based Access Controls (RBAC).
+This repository serves as the enterprise-grade **Core Boilerplate** and **Architectural Blueprint** for all SaaS modules and enterprise management applications (Nachhilfe, Beauty, Restaurant, Billing, HR). Built with a strict **Modular Monolith** architecture, Domain-Driven Design (DDD) principles, and modern real-time capabilities.
 
 ---
 
-## 🚦 Quality Gates (QA)
-The architecture is enforced mathematically via static analysis tools:
-1. **Deptrac**: Enforces architectural boundaries (`vendor/bin/deptrac`).
-2. **PHPStan (Level 9)**: Maximum strictness for Data Types, ensuring no `mixed` arrays pass silently (`vendor/bin/phpstan analyse`).
-3. **Pest**: Fast, beautiful testing for unit and feature layers (`vendor/bin/pest`).
+## 🚀 Key Architectural Highlights
+
+### 🏰 1. Strict Modular Monolith Architecture
+- **Core Namespace (`App\Core`)**: Encapsulates cross-cutting systems used by all modules:
+  - Authentication (Sanctum Tokens, Mobile Login Codes, Session Revocation).
+  - Role-Based Access Control (RBAC with Spatie Permissions).
+  - Universal Notification Center (`NotificationService` with multi-channel routing).
+  - Global Audit Logging Engine (tracking state diffs with old vs new values).
+  - Core System Settings engine.
+- **Module Namespaces (`App\Modules\{ModuleName}`)**: Each business domain (e.g., `App\Modules\Nachhilfe`, `App\Modules\Billing`) is completely decoupled into its own directory.
+- **Strict Boundary Enforcement**: Modules are strictly forbidden from directly importing or accessing each other's Database models or internal repositories. All inter-module communication is asynchronous via domain events.
+- **Domain-Driven Design (DDD)**: Each module is divided into clean architectural layers:
+  - `Domain`: Entities, Value Objects, and Domain Events.
+  - `Infrastructure`: Eloquent Models, Database Migrations, Repositories, and System Adapters.
+  - `Application`: Use-case Actions, Handlers, and Listeners.
+  - `Presentation`: API Controllers, Resources, and Request Validators.
+
+---
+
+## 🛡️ Enterprise Engineering Patterns
+
+- **⚡ Transactional Outbox Pattern**: Secure, reliable inter-module event publishing using `outbox_events` and a background worker (`php artisan outbox:work`) with `lockForUpdate()->skipLocked()` for zero lock contention and guaranteed message delivery.
+- **🔐 Blind Indexing & PII Encryption**: Sensitive Personally Identifiable Information (PII) like phone numbers and email addresses are encrypted at rest using AES-256 and queried using salted SHA-256 Blind Indices (`phone_blind_index`).
+- **🆔 Universal Lexicographically Sortable Identifiers (ULID)**: All database tables use 26-character ULID primary keys (`foreignUlid()`) providing timestamp-sortable, hyper-scalable, and conflict-free IDs across microservices/modules.
+- **🔄 Idempotency & Duplicate Protection**: A compound unique index on `processed_events` prevents double-execution of domain events and outbox notifications.
+- **📁 GDPR Private Storage & Secure Streaming**: Sensitive documentation (student contracts, BuT Jobcenter approvals) is stored in a non-public directory (`storage/app/private/`) and streamed strictly through authenticated RBAC routes.
+
+---
+
+## 💬 WhatsApp-Style Real-Time Chat & Instant Messaging
+
+The platform features an enterprise-grade instant messaging system designed to mimic **WhatsApp Web**:
+
+- **🚀 Direct Instant Access**: Automatically selects and loads the most recent active conversation on page load, eliminating empty selection screens.
+- **👥 Group Creation Modal (`CreateGroupModal.vue`)**:
+  - Multi-source user search across System Admins, Teachers, and Students without duplicates.
+  - Interactive top selection bar displaying selected members as removable chips with `x` buttons.
+  - Group name validation alert & auto-focus if the group name field is left blank.
+- **💬 Direct Messaging Modal (`CreateDirectModal.vue`)**: Quick 1-on-1 contact search and instant conversation initiation.
+- **⚡ Dual-Layer Real-Time Engine**:
+  - **Primary Layer**: Push notifications via **Laravel Reverb WebSockets** (`broadcast(new ChatMessageSent(...))`).
+  - **Secondary Layer**: Smart background polling timer (every 3s) with message deduplication (`msg.id`), guaranteeing **100% SignalR / Firebase style instant sync** in all environments (even when WebSockets are disabled or offline).
+- **🔔 Smart Notification Navigation**: Clicking any chat notification marks it as read, selects the target channel, and navigates directly to `/messaging`.
+
+---
+
+## 🚦 Quality Gates & Verification (QA)
+
+Architecture and code health are verified automatically:
+
+1. **Deptrac Architectural Check**:
+   ```bash
+   vendor/bin/deptrac
+   ```
+2. **PHPStan (Level 9 - Maximum Strictness)**:
+   ```bash
+   vendor/bin/phpstan analyse
+   ```
+3. **Pest PHP Unit & Feature Testing**:
+   ```bash
+   vendor/bin/pest
+   ```
+4. **Vue 3 TypeScript Compilation Check**:
+   ```bash
+   cd frontend && npx vue-tsc -b
+   ```
 
 ---
 
 ## 🛠️ Setup & Running Instructions
 
+### Prerequisites
+- **PHP**: 8.2 or 8.3+ with `pdo`, `mbstring`, `openssl`, `bcmath` extensions.
+- **Node.js**: 18+ & `npm`.
+- **Composer**: 2+.
+
 ### 1. Backend Setup
-1. Clone the repository and install PHP dependencies:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/amjad-awad-allah/Management-system-core.git
+   cd Management-system-core
+   ```
+2. Install PHP dependencies:
    ```bash
    composer install
    ```
-2. Set up your `.env` configuration (Database connection, encryption keys).
-3. Run migrations and database seeding to populate mock test data:
+3. Configure your `.env` file:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+4. Run migrations and database seeding (populates mock test data):
    ```bash
    php artisan migrate:fresh --seed
    ```
-4. Start the Laravel backend server:
+5. Start the Laravel backend server:
    ```bash
-   php artisan serve
+   php artisan serve --port=8001
    ```
-5. Start the background outbox worker (crucial for inter-module event syncing):
+6. Start the Outbox background worker (crucial for inter-module event processing):
    ```bash
    php artisan outbox:work --sleep=3
    ```
+7. *(Optional)* Start Laravel Reverb WebSocket server for instant broadcasting:
+   ```bash
+   php artisan reverb:start
+   ```
 
 ### 2. Frontend Setup
-1. Navigate to the frontend directory:
+1. Navigate to the `frontend` folder:
    ```bash
    cd frontend
    ```
-2. Install npm dependencies:
+2. Install npm packages:
    ```bash
    npm install
    ```
-3. Start the Vite frontend dev server:
+3. Start the Vite development server:
    ```bash
    npm run dev
    ```
+   Open your browser at `http://localhost:5173`.
 
 ---
 
-## 🖥️ الدليل الشامل لوجهة الاستخدام وإدارة لوحة التحكم (SaaS ERP Portal Manual)
+## 🖥️ Comprehensive SaaS ERP Portal User Manual
 
-تم تصميم لوحة تحكم نظام **Nachhilfe ERP** لتغطية دورة حياة المنشأة التعليمية بالكامل ومطابقة شروط الجهات التمويلية الرسمية في ألمانيا (مثل Jobcenter و BuT). فيما يلي دليل تفصيلي لكافة التبويبات والصفحات والأقسام المتوفرة في لوحة التحكم وكيفية التعامل معها:
-
----
-
-### 📊 1. لوحة القيادة الرئيسية (Dashboard)
-تعتبر الشاشة الترحيبية المركزية عند تسجيل الدخول، وتضم:
-* **مؤشرات الأداء السريعة (Stat Cards):**
-  * **الطلاب النشطون (Active Students):** إجمالي عدد الطلاب الذين يتابعون دروساً حالياً.
-  * **المعلمون النشطون (Active Teachers):** عدد المعلمين الذين يقدمون الحصص.
-  * **إيرادات الشهر الحالي (Monthly Revenue):** إجمالي التدفقات المالية المحسوبة من الاشتراكات الخاصة.
-  * **الدروس المجدولة (Scheduled Lessons):** إجمالي الدروس المحجوزة للأيام القادمة.
-* **الجدول الزمني للدروس القادمة (Upcoming Lessons List):**
-  * يعرض الحصص الدراسية المجدولة لليوم والأيام التالية، موضحاً اسم الطالب، المعلم، المادة، القاعة الدراسية، وتوقيت البدء.
+The **Nachhilfe ERP** control panel is designed to manage the entire educational lifecycle and comply with official funding authority requirements in Germany (such as Jobcenter and BuT). Below is the comprehensive guide to all sections:
 
 ---
 
-### 👥 2. إدارة الطلاب (Students Management)
-شاشة مخصصة لإدارة بيانات الطلاب المنتسبين للمركز:
-* **قائمة الطلاب (Students Grid):**
-  * تعرض جميع الطلاب مع حقول البحث والفلترة السريعة بالاسم أو المدرسة أو الصف الدراسي.
-* **إضافة طالب جديد (Add Student Slideover):**
-  * عند تسجيل طالب، يقوم النظام تلقائياً بإنشاء حساب مستخدم (User Account) مرتبط به لأولياء أمورهم للوصول للوحة التحكم عبر بريدهم الإلكتروني.
-  * إدخال معلومات المدرسة، الصف، أرقام هواتف أولياء الأمور، ونوع الفوترة الافتراضي (خاص أو تمويل مكتب العمل).
-
-#### 📑 تفاصيل ملف الطالب الموحد (Student Profile View Tabs):
-عند النقر على اسم الطالب، يُعرض ملفه الموحد الذي يحتوي على التبويبات التالية:
-
-1. **نظرة عامة (Overview):**
-   * **بيانات الطالب واشتراكه:** تفاصيل الاتصال والفوترة.
-   * **المواد المسجل بها (Subjects):** المواد الدراسية المتعاقد عليها.
-   * **المعلمون (Assigned Teachers):** المعلمون المسؤولون عن تدريس الطالب.
-   * **موافقات الساعات (Hour Approvals & Vouchers):**
-     * هذا القسم يتيح إدارة الموافقات وباقات الساعات (BuT Vouchers) الممنوحة من مكتب العمل لدعم الطالب.
-     * يمكن للموظف النقر على **Add Voucher** لإدخال باقة جديدة وتحديد المادة، كود الموافقة، إجمالي الساعات، وتاريخ الانتهاء.
-     * **حالات الباقات (Package Statuses):**
-       * `Active` (مقبولة): باقة معتمدة وجاهزة للخصم الفوري.
-       * `Pending Approval` (طلب مقدم): باقة افتراضية تتيح البدء بالدروس تمهيداً لوصول الموافقة.
-       * `Rejected` (مرفوضة): تم رفض الدعم، ويمنع النظام استخدام ساعاتها.
-       * `Expired` (منتهية): منتهية الصلاحية زمنياً ويقوم النظام بتعطيل الخصم منها تلقائياً.
-       * `Exhausted` (مستنفدة): انتهى رصيد ساعات الباقة بالكامل.
-     * **محرك الخصم التلقائي الذكي (Deduction priority Engine):** عند تحضير الحصص، يخصم النظام الساعات تلقائياً معطياً الأولوية للباقات النشطة وقريبة الانتهاء للحفاظ على ساعات الطالب من الضياع.
-
-2. **سجل العمليات والأنشطة (Timeline):**
-   * يعرض شريطاً زمنياً يوثق كل الأنشطة المتعلقة بالطالب (حجز الدروس، الحضور، الغياب، الموافقات، ملاحظات المدرسين، والمدفوعات).
-   * **تفاصيل التعديل (Audit details):** عند قيام الإدارة بتعديل رصيد الباقة أو أي بيانات، يمكن النقر على **Show System Edit Details** لعرض مقارنة دقيقة بين القيمة القديمة والقيمة الجديدة مع توثيق اسم المشرف الذي قام بالتعديل لضمان الشفافية.
-
-3. **الفواتير (Invoices):**
-   * عرض الفواتير المخصصة للطالب وقيمتها وحالتها المالية.
-   * إمكانية قيام الموظف بتغيير حالة الفاتورة يدوياً إلى "مدفوعة" (`Mark Paid`) عند الاستلام المالي الفعلي.
-
-4. **المستندات والتقارير (Documents & Reports - GDPR):**
-   * **إدارة الوثائق الآمنة (Secure Document Upload):**
-     * رفع العقود، خطابات التمديد، كشوف الحضور، وغيرها في مسار تخزين محمي.
-     * **صلاحيات الوصول (Access RBAC):** الإدارة تمتلك صلاحيات كاملة. أولياء الأمور يمكنهم تحميل مستندات أبنائهم فقط. المعلمون يقتصر وصولهم فقط على كشوفات الحضور (`attendance_sheet`) للطلاب الذين يدرسونهم فعلياً لضمان سرية العقود المالية.
-   * **تصدير كشف حضور مكتب العمل (Stundennachweis PDF):**
-     * أداة لتوليد تقرير رسمي باللغة الألمانية لتقديمه لمكتب العمل.
-     * حدد الشهر والمادة، واضغط على **Export**، وسيقوم النظام بتجميع الحصص الفعلية التي حضرها الطالب (`present` أو `late` فقط)، وحساب الساعات تلقائياً مع توفير خانات لتواقيع الحضور اليومية وإقرارات المركز والوالدين.
-
-5. **تنبيهات وإشعارات النظام (System Notifications):**
-   * تبويب مخصص لأولياء الأمور والإدارة لمراقبة وحالة استلام التنبيهات الصادرة للطالب.
-   * يعرض تفاصيل التنبيه، تاريخ الإرسال، القناة المستخدمة (داخل التطبيق In-App، الدردشة Chat، أو WhatsApp)، وحالة التوصيل الفعلي (`pending`, `sent`, `failed`).
-   * يتضمن زراً لـ **Mark All As Read** لتعليم كافة إشعارات الطالب كمقروءة بشكل فوري.
+### 📊 1. Main Dashboard
+The central landing screen upon login, featuring:
+* **Key Performance Indicators (Stat Cards):**
+  * **Active Students:** Total enrolled students currently taking lessons.
+  * **Active Teachers:** Number of qualified instructors available.
+  * **Monthly Revenue:** Financial performance calculated from private subscriptions.
+  * **Scheduled Lessons:** Total upcoming bookings.
+* **Upcoming Lessons Timeline:** Displays scheduled sessions with subject, teacher, student, room, and start time details.
 
 ---
 
-### 👨‍🏫 3. إدارة المعلمين (Teachers Management)
-شاشة متكاملة لإدارة الطاقم التدريسي في المركز:
-* **قائمة المعلمين (Teachers Grid):**
-  * استعراض المعلمين، حقول البحث بالاسم، وبيانات الاتصال والتقييم الساعي.
-* **الملف الشخصي للمعلم (Teacher Profile View):**
-  * **البيانات الشخصية والتعليمية:** مؤهلات المعلم الأكاديمية والراتب الساعي الأساسي المتفق عليه لتوليد كشوف الرواتب.
-  * **المواد المصرح بتدريسها (Subjects Qualified to Teach):** المواد التي يمكن للمعلم تدريسها.
-  * **ساعات التوفر (Availability Schedules):** يتيح تحديد الأيام والساعات المتاحة للمعلم لتقديم الحصص لتجنب تصادم الحجوزات عند جدولة الدروس.
+### 👥 2. Students Management
+Dedicated module for managing student profiles and funding documentation:
+* **Add Student Slideover:** Creates a student account linked to their parent user account with school, grade, and billing type details.
+* **Unified Student Profile View:**
+  1. **Overview:** Contact information, enrolled subjects, and assigned teachers.
+  2. **BuT Vouchers Management (Hour Approvals):**
+     - Manage funding vouchers issued by Jobcenter/BuT with status tracking (`Active`, `Pending Approval`, `Rejected`, `Expired`, `Exhausted`).
+     - **Automated Deduction Engine:** Automatically deducts lesson hours from active vouchers prioritized by nearest expiration date.
+  3. **Timeline & Audit Details:** Timeline log capturing all student activities. Click **Show System Edit Details** to view exact old vs new value diffs with operator attribution.
+  4. **GDPR Private Documents:**
+     - Upload and stream contracts and approvals via secure non-public storage (`storage/app/private/`).
+     - **Stundennachweis PDF Export:** Generates an official German attendance report formatted for Jobcenter submission, aggregating attended lessons (`present` / `late`) with signature sections.
 
 ---
 
-### 📅 4. جدولة الحصص والتقويم (Lessons & Calendar)
-شاشة تفاعلية مرئية لتنظيم المواعيد ومنع تداخل القاعات والمدرسين:
-* **تقويم الحصص (Calendar Grid):**
-  * يعرض الحصص الدراسية بشكل أسبوعي أو يومي ملوناً حسب حالة الحصة (مجدولة، مكتملة، ملغاة).
-* **حجز حصة جديدة (Book Lesson Slideover):**
-  * حدد المعلم، المادة، الغرفة الدراسية (فعلية أو افتراضية/أونلاين)، التاريخ، والتوقيت.
-  * **تسجيل الطلاب (Enroll Students):** يمكن تسجيل طالب فردي أو مجموعة طلاب للحصة الجماعية مع فحص رصيد ساعات باقاتهم للتأكد من إمكانية الحجز.
-* **تسجيل الحضور والغياب (Attendance Logging):**
-  * يمكن للمدرس أو الإدارة النقر على الدرس المنجز لتسجيل حالة حضور كل طالب (`present`, `late`, `absent_excused`, `absent_unexcused`) وإدخال ملاحظات الدرس.
-  * **سياسة الإلغاء (Cancellation Policy):** في حال الغياب غير المعذر أو الإلغاء المتأخر، يقوم النظام تلقائياً بخصم ساعة الدرس من باقة الطالب مع إشعار الإدارة.
+### 👨‍🏫 3. Teachers Management
+* **Teachers Grid:** List of qualified instructors, contact info, and qualifications.
+* **Teacher Profile View:**
+  - Base hourly rate (`hourly_rate`) for automated payroll generation.
+  - Qualified subjects and weekly availability schedules (`Availability Schedules`).
 
 ---
 
-### 💰 5. النظام المالي والفوترة والرواتب (Billing & Payrolls)
-يتولى النظام العمليات الحسابية والمالية المعقدة بشكل مؤتمت بالكامل:
-
-#### 💶 إدارة الفواتير (Invoices View):
-* استعراض الفواتير المالية الصادرة للطلاب ذوي الاشتراكات الخاصة والدفع المباشر.
-* أداة لتوليد الفواتير الشهرية تلقائياً بناءً على الحصص المسجلة.
-* طباعة الفاتورة أو إرسالها لولي الأمر.
-
-#### 💵 إدارة الرواتب للمعلمين (Payrolls View):
-* **حساب الرواتب التلقائي (Generate Payrolls):**
-  * يتيح للإدارة توليد كشف رواتب المعلمين لشهر محدد بضغطة زر.
-  * يقوم النظام بجلب كافة الحصص التي قام المعلم بتدريسها فعلياً خلال الشهر (`completed` ومسجل حضورها).
-  * يضرب عدد الساعات الفعلية للدروس في القيمة الساعية المحددة في ملف المعلم (`hourly_rate`) لتوليد إجمالي الراتب المستحق بدقة فائقة مع إمكانية طباعة وتصدير الكشف.
+### 📅 4. Lessons & Calendar
+* **Interactive Calendar Grid:** Weekly and daily visual schedule color-coded by lesson status.
+* **Book Lesson Slideover:** Select instructor, subject, classroom (physical or online room), and enroll individual or group students.
+* **Attendance Logging:** Mark attendance (`present`, `late`, `absent_excused`, `absent_unexcused`) with automated cancellation policy enforcement and hour deduction.
 
 ---
 
-### ⚙️ 6. الإعدادات والتهيئة العامة (General Settings)
-شاشات مخصصة لتهيئة النظام عند التثبيت وتعديل الخيارات الأساسية:
-* **المواد الدراسية والغرف (Subjects & Rooms View):**
-  * **إدارة المواد:** إضافة أو تعديل المواد الدراسية وأكوادها الرسمية.
-  * **إدارة الغرف:** تحديد القاعات الدراسية الفعلية وتحديد الطاقة الاستيعابية الفردية والجماعية لكل قاعة لمنع الاكتظاظ وتوزيع الطلاب بشكل سليم، وتجهيز غرف التدريس عن بُعد.
-* **إدارة باقات الساعات القياسية (Standard Packages Setup):**
-  * تحديد الباقات الجاهزة التي يقدمها المركز (مثال: باقة 10 ساعات خاصة، باقة 20 ساعة خاصة) وتحديد أسعارها لتسهيل اختيارها عند التسجيل.
+### 💬 5. Instant Messaging & WhatsApp-Style Chat
+* **Direct & Group Conversations:** Rich messaging supporting text, images, and document attachments.
+* **Create Group Modal:** Multi-source user search (Admins, Teachers, Students), selected user chips, and empty group name validation alert.
+* **Dual-Layer Real-Time Engine:** Combines Reverb WebSockets with smart background polling to ensure zero lost messages across all environments.
 
 ---
 
-### 🔑 7. الصلاحيات والمستخدمين (Users, Roles & RBAC)
-يوفر المركز لوحة تحكم مخصصة لإدارة الأمان والوصول إلى البيانات الحساسة:
-* **المستخدمون (Users Grid):** استعراض حسابات المشرفين، الموظفين، أولياء الأمور، والمعلمين.
-* **إدارة الأدوار (Roles & Permissions View):**
-  * تحديد الأدوار النظامية وتوزيع الصلاحيات (مثل: `Super Admin`, `Center Manager`, `Receptionist`, `Teacher`, `Student`).
-  * تفعيل أو إلغاء صلاحيات معينة لكل رتبة (مثل صلاحية تعديل الحصص المنجزة، أو استعراض السجلات الرقابية المالية).
+### 💰 6. Billing & Payrolls
+* **Invoices View:** Automated monthly invoice generation for private-paying students, status management, and printing.
+* **Teachers Payroll View:**
+  - **Automated Payroll Calculation:** Calculates completed monthly lesson hours multiplied by the teacher's hourly rate.
+  - **Manual Overrides:** Manually specify total amounts and initial status to generate custom items or adjustments without requiring lesson records.
+  - **Deletion & Soft-Delete:** Red deletion button allowing instant record removal and recalculation.
+  - **Advanced Search & Filtering:** Filter by name, specific day, or custom date range (From - To).
 
 ---
 
-### 🔔 8. نظام التنبيهات المركزي ومراقبة الباقات الذكي (Notification System & Voucher Alerts)
-يشتمل النظام على محرّك تنبيهات ذكي ومستقل لمراقبة وتتبع موافقات وساعات الطلاب وتنبيه أولياء الأمور تلقائياً:
-
-#### ⚡ 1. كشف التنبيهات التلقائي (Automated Detection):
-* **تنبيه قرب انتهاء الصلاحية (Voucher Expiring Soon Alert):** يقوم النظام يومياً بالتحقق من الموافقات ويطلق تحذيراً قبل 14 يوماً من تاريخ انتهاء الصلاحية الموثق للباقة.
-* **تنبيه انخفاض ساعات الرصيد (Voucher Low Hours Alert):**
-  * **الجدولة اليومية:** يتحقق النظام تلقائياً من الباقات التي تحتوي رصيداً متبقياً يبلغ 3 ساعات أو أقل.
-  * **الخصم اللحظي (Real-time trigger):** بمجرد قيام المدرس أو المشرف بإنهاء درس وتغيير حالته إلى `completed` في النظام، يُجري محرك الفوترة خصماً فورياً للساعات، ويقوم النظام تلقائياً بإرسال تنبيه فوري لولي الأمر دون انتظار الجدولة اليومية.
-
-#### 📣 2. توجيه قنوات التوصيل والتفضيلات (Multi-channel Routing & Preferences):
-* يوزع النظام التنبيهات عبر ثلاث قنوات رئيسية:
-  1. **داخل التطبيق (In-App Feed):** تظهر في شريط الإشعارات بملف الطالب بـ Portal.
-  2. **الدردشة (System Chat System Message):** تدرج رسائل النظام المترجمة تلقائياً داخل محادثة ولي الأمر لتسهيل المتابعة الفورية.
-  3. **تطبيق WhatsApp (Fallback Channel):** كقناة احتياطية تُرسل إليها الإشعارات تلقائياً في حال تعذر إرسالها أو الرغبة في زيادة قنوات التغطية.
-* **إدارة التفضيلات (Preferences Management):** يمكن لكل مستخدم (أو ولي أمر) الدخول وتفعيل أو تعطيل قنوات معينة لكل نوع من التنبيهات لضمان خصوصيتهم وراحتهم.
-
-#### 🔒 3. حماية التكرار والسرية الرقابية (Duplicate Protection & Security):
-* **منع الإشعارات المتكررة (Duplicate Protection):** يمتلك النظام قيداً فريداً ذكياً على مستوى قاعدة البيانات لمنع إرسال نفس التنبيه لنفس الباقة بشكل متكرر مزعج، مع السماح بإرسال تنبيهات جديدة في فترات لاحقة (مثال: الشهر التالي) في حال تجديد الموافقات.
-* **جدار الصلاحيات والخصوصية (Timeline Permissions):**
-  * تظهر جميع إشعارات الإرسال مجمعة في جدول الطالب الزمني (Student Timeline) كحدث إشعاري ذو أيقونة جرس موضحاً حالة التسليم لكل قناة (مثال: Chat ✓, App ✓, WhatsApp ✕).
-  * **عزل المعلمين:** يتم عزل المعلمين كلياً عن مشاهدة هذه الإشعارات لحماية سرية البيانات المالية ومستندات الفوترة الحساسة بين المركز وأولياء الأمور.
+### ⚙️ 7. General Settings & RBAC
+* **Subjects & Rooms View:** Classroom capacity management, physical vs online setup, and subject code management.
+* **Standard Packages:** Preset subscription packages and pricing.
+* **Users, Roles & RBAC:** Role-based permission controls (`Super Admin`, `Center Manager`, `Teacher`, `Parent/Student`).
 
 ---
 
-### 💳 9. التحديثات المالية المتقدمة والفلترة الجديدة (New Financial & Filtering Enhancements)
+## 📜 License
 
-تمت إضافة مجموعة من الميزات المتقدمة لتمكين الإدارة من التحكم المالي الكامل وتسهيل البحث والفرز:
-
-#### 1. التوليد والإنشاء اليدوي للمبالغ والحالات (Manual Creation & Overrides):
-* أصبح بإمكان الإدارة إدخال **المبلغ الإجمالي (Total Amount)** و**الحالة المبدئية (Initial Status)** بشكل يدوي واختياري عند توليد الفاتورة أو الراتب.
-* **تخطي شرط الحصص:** عند تحديد مبلغ يدوي، سيقوم النظام بتجاوز فحص الحصص وإنشاء المستند فوراً بالمبلغ المحدد (حتى لو لم يكن لدى الطالب أو المعلم أي حصص مسجلة في هذا الشهر)، مما يتيح إدخال فواتير ورسوم إضافية أو تسويات رواتب يدوية بسهولة.
-
-#### 2. حذف الفواتير ومسيرات الرواتب (Record Deletion & Soft-Delete):
-* عند محاولة إنشاء مستند مكرر لنفس الشخص في نفس الشهر، يمنع النظام ذلك منعاً للتضارب ويرسل تنبيهاً كود `409`.
-* لتسهيل التراجع وإعادة المحاولة، أضفنا زر حذف أحمر **(Delete)** في قائمة الإجراءات لكل فاتورة أو راتب، يتيح مسح المستند وبنوده فوراً لإتاحة إعادة توليده من جديد.
-
-#### 3. شريط التصفية والبحث الذكي (Search & Advanced Filters):
-* **البحث بالاسم:** خانة بحث حية تتيح البحث الفوري بكتابة اسم الطالب أو المعلم.
-* **تصفية التواريخ الذكية:** قائمة منسدلة تحتوي على ثلاثة خيارات للفرز الزمني:
-  * **All Dates (كافة الأوقات):** إلغاء الفلترة الزمنية وعرض كامل الأرشيف.
-  * **Specific Day (يوم محدد):** يفتح لك تقويماً لاختيار تاريخ يوم معين ليعرض لك المستندات الصادرة في ذلك اليوم تحديداً.
-  * **Date Range (نطاق تاريخي):** يتيح لك تحديد تاريخ بداية ونهاية (من - إلى) لعرض المستندات الصادرة خلال تلك الفترة حصراً.
-* **مسح الفلاتر الفوري (Clear Filters):** رابط لإلغاء كافة عمليات البحث والفرز والعودة للعرض الافتراضي فوراً.
-
-#### 4. إصلاح تداخل الأيقونات مع النصوص (Search input icon fix):
-* تم علاج مشكلة التداخل والتصاق أيقونة البحث بعبارة "Search by name..." من خلال إعطاء الحقل أولوية تنسيق قصوى (`padding-left: 2.5rem !important`) تتفوق على التنسيقات العامة للمشروع وتضمن بقاء الأيقونة مرتبة وبمظهر ممتاز.
-
-
+This project is proprietary software developed as a Core Management Boilerplate. All rights reserved.

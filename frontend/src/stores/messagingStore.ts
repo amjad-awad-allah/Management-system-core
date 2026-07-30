@@ -129,13 +129,15 @@ export const useMessagingStore = defineStore('messaging', () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
-      // Append sent message locally (broadcast will handle other users)
-      messages.value.push(res.data)
+      const newMsg = res.data
+      if (!messages.value.some(m => m.id === newMsg.id)) {
+        messages.value.push(newMsg)
+      }
 
       // Reset unread for this channel
       updateUnreadCount(channelId, 0)
 
-      return res.data
+      return newMsg
     } catch (e) {
       console.error('Failed to send message', e)
       throw e
@@ -182,6 +184,47 @@ export const useMessagingStore = defineStore('messaging', () => {
     if (idx !== -1) messages.value[idx].is_deleted = true
   }
 
+  // ── Sync & Polling Fallback Actions ─────────────────────────────
+
+  /**
+   * Syncs new messages for the currently active channel.
+   * Ensures instant SignalR/Firebase style updates even if WebSockets are offline.
+   */
+  async function syncLatestMessages() {
+    if (!activeChannelId.value) return
+    try {
+      const channelId = activeChannelId.value
+      const res = await api.get(`/nachhilfe/chat/channels/${channelId}/messages`)
+      const data: ChatMessage[] = res.data.data ?? res.data
+      const serverMsgs = [...data].reverse()
+
+      for (const msg of serverMsgs) {
+        if (!messages.value.some(m => m.id === msg.id)) {
+          messages.value.push(msg)
+        }
+      }
+    } catch (e) {
+      // silent
+    }
+  }
+
+  /**
+   * Periodically refreshes the channels list to sync latest message previews & unread badges.
+   */
+  async function refreshChannelsList() {
+    try {
+      const res = await api.get('/nachhilfe/chat/channels', { params: { scope: activeScope.value } })
+      const list: ChatChannel[] = res.data.data ?? res.data
+      if (activeScope.value === 'mine') {
+        myChannels.value = list
+      } else {
+        allChannels.value = list
+      }
+    } catch (e) {
+      // silent
+    }
+  }
+
   // ── Real-Time (Reverb) ─────────────────────────────────────────
 
   /**
@@ -189,13 +232,13 @@ export const useMessagingStore = defineStore('messaging', () => {
    * Appends to messages array if the active channel matches.
    */
   function onMessageReceived(msg: ChatMessage) {
-    // If this channel is currently open, append
+    // If this channel is currently open, append with deduplication
     if (activeChannelId.value === msg.channel_id) {
-      messages.value.push(msg)
-      // Auto mark read since user is viewing
+      if (!messages.value.some(m => m.id === msg.id)) {
+        messages.value.push(msg)
+      }
       markRead(msg.channel_id)
     } else {
-      // Increment unread badge
       incrementUnread(msg.channel_id)
     }
   }
@@ -237,6 +280,8 @@ export const useMessagingStore = defineStore('messaging', () => {
     archiveChannel,
     markRead,
     deleteMessage,
+    syncLatestMessages,
+    refreshChannelsList,
     onMessageReceived,
   }
 })
