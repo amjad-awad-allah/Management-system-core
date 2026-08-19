@@ -1,14 +1,14 @@
 <template>
   <div>
-    <div class="messaging-container flex h-[calc(100vh-64px)] overflow-hidden rounded-2xl shadow-xl border border-white/10">
+    <div class="messaging-container flex h-[calc(100vh-64px)] overflow-hidden rounded-2xl shadow-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900">
 
       <!-- ─── Sidebar ─────────────────────────────────────────────── -->
-      <aside class="w-80 flex-shrink-0 bg-gray-900/90 backdrop-blur-xl border-r border-white/10 flex flex-col">
+      <aside class="w-80 flex-shrink-0 bg-gray-50/80 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-200 dark:border-white/10 flex flex-col">
 
         <!-- Header -->
-        <div class="p-4 border-b border-white/10 space-y-3">
+        <div class="p-4 border-b border-gray-200 dark:border-white/10 space-y-3">
           <div class="flex items-center justify-between">
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <span>Messages</span>
             </h2>
             <!-- WhatsApp Action Icons -->
@@ -16,7 +16,7 @@
               <!-- Create Group Button -->
               <button
                 @click="isCreateGroupModalOpen = true"
-                class="p-2 rounded-xl bg-purple-600/30 hover:bg-purple-600 text-purple-300 hover:text-white transition-all shadow-sm"
+                class="p-2 rounded-xl bg-purple-100 dark:bg-purple-600/30 hover:bg-purple-600 text-purple-600 dark:text-purple-300 hover:text-white transition-all shadow-sm cursor-pointer"
                 title="Create New Group"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -26,7 +26,7 @@
               <!-- Create Direct Chat Button -->
               <button
                 @click="isCreateDirectModalOpen = true"
-                class="p-2 rounded-xl bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white transition-all shadow-sm"
+                class="p-2 rounded-xl bg-blue-100 dark:bg-blue-600/30 hover:bg-blue-600 text-blue-600 dark:text-blue-300 hover:text-white transition-all shadow-sm cursor-pointer"
                 title="New Direct Message"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -37,14 +37,14 @@
           </div>
 
           <!-- Scope Tabs -->
-          <div class="flex rounded-xl bg-gray-800/60 p-1 gap-1">
+          <div class="flex rounded-xl bg-gray-200/70 dark:bg-gray-800/60 p-1 gap-1">
             <button
               @click="setScope('mine')"
               :class="[
-                'flex-1 py-1.5 px-3 text-xs font-medium rounded-lg transition-all',
+                'flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all cursor-pointer',
                 activeScope === 'mine'
                   ? 'bg-purple-600 text-white shadow'
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               ]"
             >
               My Chats
@@ -55,14 +55,14 @@
             <button
               @click="setScope('all')"
               :class="[
-                'flex-1 py-1.5 px-3 text-xs font-medium rounded-lg transition-all',
+                'flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all cursor-pointer',
                 activeScope === 'all'
                   ? 'bg-gray-700 text-white shadow'
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               ]"
             >
               All Chats
-              <span v-if="observerUnread > 0 && activeScope !== 'all'" class="ml-1 bg-gray-600 text-gray-200 text-[10px] rounded-full px-1.5 py-0.5 font-bold">
+              <span v-if="observerUnread > 0 && activeScope !== 'all'" class="ml-1 bg-gray-400 dark:bg-gray-600 text-gray-900 dark:text-gray-200 text-[10px] rounded-full px-1.5 py-0.5 font-bold">
                 {{ observerUnread }}
               </span>
             </button>
@@ -70,35 +70,36 @@
 
           <!-- Search Channels Bar -->
           <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
             <input
               v-model="channelSearchQuery"
               type="text"
               placeholder="Search chats..."
-              class="w-full rounded-xl bg-gray-800/60 border border-white/10 focus:border-purple-500 focus:outline-none py-2 px-3 text-xs text-white placeholder-gray-500 transition-colors pl-8"
+              class="w-full rounded-xl bg-white dark:bg-gray-800/60 border border-gray-300 dark:border-white/10 focus:border-purple-500 focus:outline-none py-2 pr-3 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors shadow-sm"
+              style="padding-left: 2.25rem !important;"
             />
-            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-500">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
           </div>
         </div>
 
         <!-- Channel List -->
         <div class="flex-1 overflow-y-auto">
           <div v-if="isLoadingChannels" class="p-4 space-y-3">
-            <div v-for="i in 5" :key="i" class="h-16 rounded-xl bg-white/5 animate-pulse" />
+            <div v-for="i in 5" :key="i" class="h-16 rounded-xl bg-gray-200 dark:bg-white/5 animate-pulse" />
           </div>
 
-          <div v-else-if="filteredChannels.length === 0" class="flex flex-col items-center justify-center h-full text-gray-500 gap-3 p-6 text-center">
+          <div v-else-if="filteredChannels.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400 gap-3 p-6 text-center">
             <svg class="w-12 h-12 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <p class="text-xs text-gray-400">No conversations found</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">No conversations found</p>
             <div class="flex gap-2">
-              <button @click="isCreateGroupModalOpen = true" class="text-purple-400 hover:text-purple-300 text-xs font-semibold">Create Group</button>
-              <span class="text-gray-600">•</span>
-              <button @click="isCreateDirectModalOpen = true" class="text-blue-400 hover:text-blue-300 text-xs font-semibold">New Message</button>
+              <button @click="isCreateGroupModalOpen = true" class="text-purple-600 dark:text-purple-400 hover:underline text-xs font-semibold cursor-pointer">Create Group</button>
+              <span class="text-gray-400">•</span>
+              <button @click="isCreateDirectModalOpen = true" class="text-blue-600 dark:text-blue-400 hover:underline text-xs font-semibold cursor-pointer">New Message</button>
             </div>
           </div>
 
@@ -108,19 +109,19 @@
               :key="channel.id"
               @click="selectChannel(channel.id)"
               :class="[
-                'w-full text-left px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors flex items-start gap-3',
-                activeChannelId === channel.id ? 'bg-purple-900/40 border-l-4 border-l-purple-500' : ''
+                'w-full text-left px-4 py-3 border-b border-gray-100 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors flex items-start gap-3 cursor-pointer',
+                activeChannelId === channel.id ? 'bg-purple-50 dark:bg-purple-900/40 border-l-4 border-l-purple-600 dark:border-l-purple-500 shadow-sm' : ''
               ]"
             >
               <!-- Avatar -->
               <div :class="[
                 'flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-inner',
-                channel.type === 'group' ? 'bg-purple-600/30 text-purple-300' :
-                channel.type === 'survey' ? 'bg-amber-600/30 text-amber-300' :
-                'bg-blue-600/30 text-blue-300'
+                channel.type === 'group' ? 'bg-purple-100 dark:bg-purple-600/30 text-purple-700 dark:text-purple-300' :
+                channel.type === 'survey' ? 'bg-amber-100 dark:bg-amber-600/30 text-amber-700 dark:text-amber-300' :
+                'bg-blue-100 dark:bg-blue-600/30 text-blue-700 dark:text-blue-300'
               ]">
                 <svg v-if="channel.type === 'group'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M17 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
                 </svg>
                 <svg v-else-if="channel.type === 'survey'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -133,7 +134,7 @@
               <!-- Info -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="font-semibold text-sm text-white truncate">
+                  <span class="font-semibold text-sm text-gray-900 dark:text-white truncate">
                     {{ channel.name || channelDisplayName(channel) }}
                   </span>
                   <div class="flex items-center gap-1 flex-shrink-0">
@@ -144,12 +145,12 @@
                     </span>
                     <!-- Observer silent grey badge -->
                     <span v-else-if="(channel.unread_count ?? 0) > 0 && channel.my_role === 'observer'"
-                      class="bg-gray-600 text-gray-300 text-[10px] font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1">
+                      class="bg-gray-400 dark:bg-gray-600 text-white dark:text-gray-300 text-[10px] font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1">
                       {{ channel.unread_count }}
                     </span>
                   </div>
                 </div>
-                <p class="text-xs text-gray-400 truncate mt-0.5">
+                <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
                   {{ latestMessagePreview(channel) }}
                 </p>
               </div>
@@ -159,24 +160,24 @@
       </aside>
 
       <!-- ─── Chat Window ──────────────────────────────────────────── -->
-      <main class="flex-1 flex flex-col bg-gray-950/60 backdrop-blur-xl">
+      <main class="flex-1 flex flex-col bg-gray-100/60 dark:bg-gray-950/60 backdrop-blur-xl">
 
         <!-- Empty state (Only if no channel available) -->
-        <div v-if="!activeChannelId" class="flex-1 flex flex-col items-center justify-center text-gray-500 gap-4 p-8 text-center">
-          <div class="w-20 h-20 rounded-full bg-gray-900 border border-white/10 flex items-center justify-center text-purple-400/40">
+        <div v-if="!activeChannelId" class="flex-1 flex flex-col items-center justify-center text-gray-400 gap-4 p-8 text-center">
+          <div class="w-20 h-20 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 flex items-center justify-center text-purple-600 dark:text-purple-400/40 shadow-sm">
             <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-gray-300">Welcome to Instant Messaging</h3>
-            <p class="text-xs text-gray-500 mt-1 max-w-sm">Select a conversation from the sidebar or start a new group with teachers and students</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-300">Welcome to Instant Messaging</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">Select a conversation from the sidebar or start a new group with teachers and students</p>
           </div>
           <div class="flex gap-3">
-            <button @click="isCreateGroupModalOpen = true" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all">
+            <button @click="isCreateGroupModalOpen = true" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all shadow cursor-pointer">
               + Create Group
             </button>
-            <button @click="isCreateDirectModalOpen = true" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition-all">
+            <button @click="isCreateDirectModalOpen = true" class="px-4 py-2 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-transparent text-xs font-semibold transition-all shadow-sm cursor-pointer">
               New Direct Message
             </button>
           </div>

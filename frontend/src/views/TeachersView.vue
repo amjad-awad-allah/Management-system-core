@@ -4,12 +4,16 @@
       <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Teachers</h1>
       <div class="flex items-center gap-4">
         <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+            <MagnifyingGlassIcon class="w-4 h-4" />
+          </div>
           <input
             v-model="searchInput"
             @input="onSearchInput"
             type="text"
             placeholder="Search teachers..."
-            class="block w-64 rounded-xl border-0 py-2 pl-4 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-white dark:ring-gray-700"
+            class="block w-64 rounded-xl border border-gray-300 dark:border-gray-700 py-2 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-purple-600 sm:text-sm dark:bg-gray-800 dark:text-white shadow-sm"
+            style="padding-left: 2.5rem !important;"
           />
         </div>
         <button @click="openCreateSlideOver" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition-colors flex items-center gap-2">
@@ -115,6 +119,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { PlusIcon } from '@heroicons/vue/20/solid'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 import { useTeachersStore } from '@/stores/teachersStore'
 import type { Teacher } from '@/stores/teachersStore'
 import CreateTeacherSlideOver from '@/components/teachers/CreateTeacherSlideOver.vue'

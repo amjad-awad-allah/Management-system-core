@@ -3,22 +3,22 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="$emit('close')">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="$emit('close')" />
 
-    <div class="relative z-10 w-full max-w-lg max-h-[85vh] flex flex-col bg-gray-900 rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+    <div class="relative z-10 w-full max-w-lg max-h-[85vh] flex flex-col bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
 
       <!-- Header -->
-      <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between flex-shrink-0 bg-gray-900/80">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between flex-shrink-0 bg-gray-50 dark:bg-gray-900/80">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-purple-600/30 text-purple-400 flex items-center justify-center">
+          <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-600/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
             </svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-white">Create New Group</h3>
-            <p class="text-xs text-gray-400">Select members and enter a group name to start</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-white">Create New Group</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Select members and enter a group name to start</p>
           </div>
         </div>
-        <button @click="$emit('close')" class="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+        <button @click="$emit('close')" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -31,8 +31,8 @@
         <!-- Group Name Input -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider">Group Name *</label>
-            <span v-if="groupNameError" class="text-xs text-red-400 font-medium">Required field</span>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Group Name *</label>
+            <span v-if="groupNameError" class="text-xs text-red-500 font-medium">Required field</span>
           </div>
           <input
             ref="groupNameInput"
@@ -41,13 +41,13 @@
             type="text"
             placeholder="e.g., Mathematics Group / Teachers Inquiry"
             :class="[
-              'w-full rounded-xl bg-gray-800/80 border px-4 py-3 text-sm text-white placeholder-gray-500 transition-all outline-none',
+              'w-full rounded-xl bg-gray-100 dark:bg-gray-800/80 border px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all outline-none',
               groupNameError
-                ? 'border-red-500/80 focus:border-red-500 ring-2 ring-red-500/20'
-                : 'border-white/10 focus:border-purple-500'
+                ? 'border-red-500 focus:border-red-500 ring-2 ring-red-500/20'
+                : 'border-gray-300 dark:border-white/10 focus:border-purple-500'
             ]"
           />
-          <p v-if="groupNameError" class="text-xs text-red-400 mt-1.5 flex items-center gap-1 font-medium">
+          <p v-if="groupNameError" class="text-xs text-red-500 mt-1.5 flex items-center gap-1 font-medium">
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -57,17 +57,17 @@
 
         <!-- Selected Members Bar (WhatsApp Style Chips) -->
         <div v-if="selectedUsers.length > 0" class="space-y-1.5">
-          <label class="block text-xs font-semibold text-purple-400 uppercase tracking-wider">
+          <label class="block text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
             Selected Members ({{ selectedUsers.length }})
           </label>
-          <div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-gray-800/40 rounded-xl border border-white/5">
+          <div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-purple-50/50 dark:bg-gray-800/40 rounded-xl border border-purple-100 dark:border-white/5">
             <div
               v-for="user in selectedUsers"
               :key="user.id"
-              class="flex items-center gap-1.5 px-3 py-1 bg-purple-900/50 border border-purple-500/40 text-purple-200 rounded-full text-xs animate-fadeIn"
+              class="flex items-center gap-1.5 px-3 py-1 bg-purple-100 dark:bg-purple-900/50 border border-purple-300 dark:border-purple-500/40 text-purple-800 dark:text-purple-200 rounded-full text-xs animate-fadeIn"
             >
               <span class="font-medium truncate max-w-[120px]">{{ user.name }}</span>
-              <button @click.stop="removeParticipant(user.id)" class="hover:text-red-400 transition-colors">
+              <button @click.stop="removeParticipant(user.id)" class="hover:text-red-500 transition-colors cursor-pointer">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -78,19 +78,20 @@
 
         <!-- Search Bar -->
         <div>
-          <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">Search Members</label>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">Search Members</label>
           <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search by name or email..."
-              class="w-full rounded-xl bg-gray-800/80 border border-white/10 focus:border-purple-500 focus:outline-none py-2.5 px-4 pl-10 text-sm text-white placeholder-gray-500 transition-colors"
+              class="w-full rounded-xl bg-gray-100 dark:bg-gray-800/80 border border-gray-300 dark:border-white/10 focus:border-purple-500 focus:outline-none py-2.5 pr-4 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
+              style="padding-left: 2.75rem !important;"
             />
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
           </div>
         </div>
 
@@ -98,10 +99,10 @@
         <div>
           <div v-if="isLoadingUsers" class="text-center py-8">
             <div class="w-7 h-7 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <p class="text-xs text-gray-400">Loading members list...</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Loading members list...</p>
           </div>
 
-          <div v-else-if="!hasResults" class="text-center py-8 text-gray-500 text-sm border border-dashed border-white/10 rounded-xl">
+          <div v-else-if="!hasResults" class="text-center py-8 text-gray-500 text-sm border border-dashed border-gray-300 dark:border-white/10 rounded-xl">
             No members found matching search
           </div>
 
@@ -111,7 +112,7 @@
             <div v-if="filteredStaff.length > 0">
               <div 
                 @click="isStaffExpanded = !isStaffExpanded"
-                class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-amber-300 transition-colors"
+                class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-amber-500 transition-colors"
               >
                 <div class="flex items-center gap-1.5">
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isStaffExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,8 +129,8 @@
                   :class="[
                     'flex items-center justify-between px-4 py-2.5 rounded-xl border cursor-pointer transition-all',
                     selectedParticipantIds.includes(user.id)
-                      ? 'bg-purple-900/40 border-purple-500/60 text-white shadow-md shadow-purple-900/20'
-                      : 'bg-gray-800/40 border-white/5 text-gray-300 hover:text-white hover:bg-gray-800/80'
+                      ? 'bg-purple-100 dark:bg-purple-900/40 border-purple-400 dark:border-purple-500/60 text-purple-950 dark:text-white shadow-sm'
+                      : 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-white/5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/80'
                   ]"
                 >
                   <div class="flex items-center gap-3 min-w-0">
@@ -138,12 +139,12 @@
                     </div>
                     <div class="min-w-0">
                       <p class="text-sm font-medium truncate">{{ user.name }}</p>
-                      <p class="text-xs text-gray-500 truncate">{{ user.email || 'Staff' }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email || 'Staff' }}</p>
                     </div>
                   </div>
                   <div :class="[
                     'w-5 h-5 rounded-md border flex items-center justify-center transition-colors',
-                    selectedParticipantIds.includes(user.id) ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-600'
+                    selectedParticipantIds.includes(user.id) ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-400 dark:border-gray-600'
                   ]">
                     <svg v-if="selectedParticipantIds.includes(user.id)" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -157,7 +158,7 @@
             <div v-if="filteredTeachers.length > 0">
               <div 
                 @click="isTeachersExpanded = !isTeachersExpanded"
-                class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-purple-300 transition-colors"
+                class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-purple-500 transition-colors"
               >
                 <div class="flex items-center gap-1.5">
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isTeachersExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -174,8 +175,8 @@
                   :class="[
                     'flex items-center justify-between px-4 py-2.5 rounded-xl border cursor-pointer transition-all',
                     selectedParticipantIds.includes(user.id)
-                      ? 'bg-purple-900/40 border-purple-500/60 text-white shadow-md shadow-purple-900/20'
-                      : 'bg-gray-800/40 border-white/5 text-gray-300 hover:text-white hover:bg-gray-800/80'
+                      ? 'bg-purple-100 dark:bg-purple-900/40 border-purple-400 dark:border-purple-500/60 text-purple-950 dark:text-white shadow-sm'
+                      : 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-white/5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/80'
                   ]"
                 >
                   <div class="flex items-center gap-3 min-w-0">
@@ -184,12 +185,12 @@
                     </div>
                     <div class="min-w-0">
                       <p class="text-sm font-medium truncate">{{ user.name }}</p>
-                      <p class="text-xs text-gray-500 truncate">{{ user.email || 'Teacher' }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email || 'Teacher' }}</p>
                     </div>
                   </div>
                   <div :class="[
                     'w-5 h-5 rounded-md border flex items-center justify-center transition-colors',
-                    selectedParticipantIds.includes(user.id) ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-600'
+                    selectedParticipantIds.includes(user.id) ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-400 dark:border-gray-600'
                   ]">
                     <svg v-if="selectedParticipantIds.includes(user.id)" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -203,7 +204,7 @@
             <div v-if="filteredStudents.length > 0">
               <div 
                 @click="isStudentsExpanded = !isStudentsExpanded"
-                class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-blue-300 transition-colors"
+                class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-blue-500 transition-colors"
               >
                 <div class="flex items-center gap-1.5">
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isStudentsExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -220,8 +221,8 @@
                   :class="[
                     'flex items-center justify-between px-4 py-2.5 rounded-xl border cursor-pointer transition-all',
                     selectedParticipantIds.includes(user.id)
-                      ? 'bg-purple-900/40 border-purple-500/60 text-white shadow-md shadow-purple-900/20'
-                      : 'bg-gray-800/40 border-white/5 text-gray-300 hover:text-white hover:bg-gray-800/80'
+                      ? 'bg-purple-100 dark:bg-purple-900/40 border-purple-400 dark:border-purple-500/60 text-purple-950 dark:text-white shadow-sm'
+                      : 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-white/5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/80'
                   ]"
                 >
                   <div class="flex items-center gap-3 min-w-0">
@@ -230,12 +231,12 @@
                     </div>
                     <div class="min-w-0">
                       <p class="text-sm font-medium truncate">{{ user.name }}</p>
-                      <p class="text-xs text-gray-500 truncate">{{ user.email || 'Student' }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email || 'Student' }}</p>
                     </div>
                   </div>
                   <div :class="[
                     'w-5 h-5 rounded-md border flex items-center justify-center transition-colors',
-                    selectedParticipantIds.includes(user.id) ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-600'
+                    selectedParticipantIds.includes(user.id) ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-400 dark:border-gray-600'
                   ]">
                     <svg v-if="selectedParticipantIds.includes(user.id)" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -250,8 +251,8 @@
         </div>
 
         <!-- General Error Alert Banner -->
-        <div v-if="error" class="flex items-center gap-2 text-red-300 text-xs bg-red-950/60 border border-red-500/50 p-3 rounded-xl shadow-lg animate-fadeIn">
-          <svg class="w-4 h-4 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div v-if="error" class="flex items-center gap-2 text-red-700 dark:text-red-300 text-xs bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-500/50 p-3 rounded-xl shadow-sm animate-fadeIn">
+          <svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span class="font-medium">{{ error }}</span>
@@ -259,21 +260,21 @@
       </div>
 
       <!-- Footer -->
-      <div class="px-6 py-4 border-t border-white/10 flex items-center justify-between flex-shrink-0 bg-gray-900/80">
-        <span class="text-xs text-gray-400">
-          <strong class="text-white">{{ selectedParticipantIds.length }}</strong> member(s) selected
+      <div class="px-6 py-4 border-t border-gray-200 dark:border-white/10 flex items-center justify-between flex-shrink-0 bg-gray-50 dark:bg-gray-900/80">
+        <span class="text-xs text-gray-500 dark:text-gray-400">
+          <strong class="text-gray-900 dark:text-white">{{ selectedParticipantIds.length }}</strong> member(s) selected
         </span>
         <div class="flex gap-2">
           <button
             @click="$emit('close')"
-            class="px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+            class="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             @click="handleCreate"
             :disabled="isCreating || selectedParticipantIds.length === 0"
-            class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all shadow-lg hover:shadow-purple-500/25 flex items-center gap-2"
+            class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all shadow-lg hover:shadow-purple-500/25 flex items-center gap-2 cursor-pointer"
           >
             <svg v-if="isCreating" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

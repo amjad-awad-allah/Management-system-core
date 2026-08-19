@@ -21,14 +21,17 @@
 
           <!-- Interactive Search Bar -->
           <div class="mt-6 relative max-w-xl z-10">
-            <MagnifyingGlassIcon class="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+              <MagnifyingGlassIcon class="h-5 w-5" />
+            </div>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search anything (e.g. invoice, payroll, attendance, voucher, login code, audit, conflicts)..."
-              class="w-full rounded-2xl bg-white/95 dark:bg-gray-800/95 py-3.5 pl-12 pr-4 text-sm text-gray-900 dark:text-white placeholder-gray-500 shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
+              class="w-full rounded-2xl bg-white/95 dark:bg-gray-800/95 py-3.5 pr-16 text-sm text-gray-900 dark:text-white placeholder-gray-500 shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
+              style="padding-left: 3rem !important; padding-inline-start: 3rem !important;"
             />
-            <span v-if="searchQuery" @click="searchQuery = ''" class="absolute right-4 top-3 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
+            <span v-if="searchQuery" @click="searchQuery = ''" class="absolute right-4 top-3.5 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
               Clear
             </span>
           </div>

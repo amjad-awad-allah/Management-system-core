@@ -20,21 +20,21 @@
         'rounded-2xl px-4 py-3 max-w-full shadow-md',
         isMine
           ? 'bg-purple-600 text-white rounded-tr-sm'
-          : 'bg-gray-800/80 text-gray-100 rounded-tl-sm border border-white/10'
+          : 'bg-white dark:bg-gray-800/90 text-gray-900 dark:text-gray-100 rounded-tl-sm border border-gray-200 dark:border-white/10'
       ]">
         <!-- Sender name (for group, not mine) -->
-        <p v-if="!isMine" class="text-xs font-medium mb-1 opacity-60">{{ message.sender?.name ?? 'Unknown' }}</p>
+        <p v-if="!isMine" class="text-xs font-semibold mb-1 text-purple-600 dark:text-purple-300 opacity-90">{{ message.sender?.name ?? 'Unknown' }}</p>
 
         <!-- Text body -->
-        <p v-if="message.body" class="text-sm whitespace-pre-wrap break-words">{{ message.body }}</p>
+        <p v-if="message.body" class="text-sm whitespace-pre-wrap break-words leading-relaxed">{{ message.body }}</p>
 
         <!-- Survey Card inside Chat -->
-        <div v-if="message.type === 'survey_response' && message.metadata?.survey_id" class="mt-2 p-3 bg-gray-900/60 rounded-xl border border-white/5 space-y-2 max-w-[280px]">
+        <div v-if="message.type === 'survey_response' && message.metadata?.survey_id" class="mt-2 p-3 bg-amber-50/80 dark:bg-gray-900/60 rounded-xl border border-amber-200 dark:border-white/5 space-y-2 max-w-[280px]">
           <div class="flex items-center gap-1.5">
-            <span class="text-amber-400 text-base">📝</span>
-            <span class="text-xs font-bold text-gray-200 truncate">{{ message.metadata.survey_title ?? 'New Survey' }}</span>
+            <span class="text-amber-500 text-base">📝</span>
+            <span class="text-xs font-bold text-gray-900 dark:text-gray-200 truncate">{{ message.metadata.survey_title ?? 'New Survey' }}</span>
           </div>
-          <p class="text-[10px] text-gray-400">Please answer this brief feedback survey.</p>
+          <p class="text-[10px] text-gray-500 dark:text-gray-400">Please answer this brief feedback survey.</p>
           <div class="space-y-1.5">
             <button
               @click="showSurvey = true"
@@ -44,7 +44,7 @@
             </button>
             <button
               @click="showResults = true"
-              class="w-full py-1.5 px-3 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/20 text-purple-300 text-xs font-semibold transition-colors text-center shadow-md cursor-pointer"
+              class="w-full py-1.5 px-3 rounded-lg bg-purple-100 dark:bg-purple-600/20 hover:bg-purple-200 dark:hover:bg-purple-600/30 border border-purple-300 dark:border-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-semibold transition-colors text-center shadow-sm cursor-pointer"
             >
               View Results
             </button>
@@ -56,45 +56,45 @@
           v-if="message.type === 'file' && message.metadata?.file_name"
           @click="downloadAttachment"
           :disabled="isDownloading"
-          class="flex items-center gap-2 mt-2 p-2.5 rounded-xl bg-black/30 hover:bg-black/40 transition-colors text-left w-full cursor-pointer disabled:opacity-50 border border-white/10"
+          class="flex items-center gap-2 mt-2 p-2.5 rounded-xl bg-gray-100 dark:bg-black/30 hover:bg-gray-200 dark:hover:bg-black/40 transition-colors text-left w-full cursor-pointer disabled:opacity-50 border border-gray-200 dark:border-white/10"
         >
-          <svg v-if="isDownloading" class="w-5 h-5 animate-spin flex-shrink-0 text-purple-300" fill="none" viewBox="0 0 24 24">
+          <svg v-if="isDownloading" class="w-5 h-5 animate-spin flex-shrink-0 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <svg v-else class="w-5 h-5 flex-shrink-0 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg v-else class="w-5 h-5 flex-shrink-0 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
-          <span class="text-xs font-semibold truncate flex-1">{{ message.metadata.file_name }}</span>
-          <span v-if="message.metadata.file_size" class="text-[10px] opacity-60 flex-shrink-0 font-mono">
+          <span class="text-xs font-semibold truncate flex-1 text-gray-800 dark:text-gray-200">{{ message.metadata.file_name }}</span>
+          <span v-if="message.metadata.file_size" class="text-[10px] opacity-60 flex-shrink-0 font-mono text-gray-500 dark:text-gray-400">
             {{ formatSize(message.metadata.file_size) }}
           </span>
         </button>
 
         <!-- Image attachment -->
         <div v-if="message.type === 'image'" class="mt-2 relative">
-          <div v-if="isImageLoading" class="w-[200px] h-[150px] bg-black/30 rounded-xl animate-pulse flex items-center justify-center border border-white/10">
-            <span class="text-xs opacity-50">Loading image...</span>
+          <div v-if="isImageLoading" class="w-[200px] h-[150px] bg-gray-100 dark:bg-black/30 rounded-xl animate-pulse flex items-center justify-center border border-gray-200 dark:border-white/10">
+            <span class="text-xs opacity-50 text-gray-500">Loading image...</span>
           </div>
           <img
             v-else-if="imageUrl"
             :src="imageUrl"
             :alt="message.metadata?.file_name ?? 'Image'"
-            class="rounded-xl max-w-[250px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition-opacity border border-white/10 shadow-md"
+            class="rounded-xl max-w-[250px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition-opacity border border-gray-200 dark:border-white/10 shadow-md"
             @click="downloadAttachment"
             title="Click to download image"
           />
           <button
             v-else
             @click="downloadAttachment"
-            class="text-xs underline opacity-80 hover:opacity-100 flex items-center gap-1 cursor-pointer"
+            class="text-xs underline opacity-80 hover:opacity-100 flex items-center gap-1 cursor-pointer text-purple-600 dark:text-purple-400"
           >
             🖼 {{ message.metadata?.file_name ?? 'Download Image' }}
           </button>
         </div>
 
         <!-- Timestamp -->
-        <p class="text-[10px] mt-1 opacity-40 text-right">{{ formattedTime }}</p>
+        <p class="text-[10px] mt-1 opacity-60 text-right font-mono">{{ formattedTime }}</p>
       </div>
     </div>
 
