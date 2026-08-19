@@ -53,7 +53,7 @@ class CreateSurveyAction
             $message = ChatMessage::create([
                 'channel_id' => $channelId,
                 'sender_id' => $createdBy,
-                'body' => "تم إنشاء استبيان جديد: {$title}",
+                'body' => "New survey created: {$title}",
                 'type' => 'survey_response',
                 'metadata' => [
                     'survey_id' => $survey->id,

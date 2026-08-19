@@ -11,6 +11,12 @@ class TeacherPayrollItem extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'hours' => 'decimal:2',
+        'hourly_rate' => 'decimal:2',
+        'amount' => 'decimal:2',
+    ];
+
     public function payroll()
     {
         return $this->belongsTo(TeacherPayroll::class, 'payroll_id');

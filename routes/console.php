@@ -11,3 +11,10 @@ Artisan::command('inspire', function () {
 
 // Schedule package alerts check daily
 Schedule::command('nachhilfe:check-package-alerts')->daily();
+
+// Schedule automated lesson reminders check every 5 minutes
+Schedule::command('nachhilfe:send-reminders')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+

@@ -1570,7 +1570,7 @@ watch(activeTab, (newTab) => {
   }
 })
 
-function handleLessonClick(lesson: Lesson) {
+function handleLessonClick(lesson: any) {
   lessonDetailSlideOver.value?.open(lesson)
 }
 

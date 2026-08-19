@@ -11,9 +11,21 @@ class TeacherPayroll extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'approved_at' => 'datetime',
+        'total_hours' => 'decimal:2',
+        'total_amount' => 'decimal:2',
+        'snapshot_hash_version' => 'integer',
+    ];
+
     public function teacher()
     {
         return $this->belongsTo(Teacher::class);
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(\App\Core\Models\User::class, 'approved_by');
     }
 
     public function items()

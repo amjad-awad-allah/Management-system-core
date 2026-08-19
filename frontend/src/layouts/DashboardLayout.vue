@@ -259,7 +259,8 @@ import {
   ShieldCheckIcon,
   ClipboardDocumentListIcon,
   BellIcon,
-  ChatBubbleOvalLeftEllipsisIcon
+  ChatBubbleOvalLeftEllipsisIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/vue/24/outline'
 import { useUiStore } from '@/stores/uiStore'
 import { useMessagingStore } from '@/stores/messagingStore'
@@ -390,5 +391,6 @@ const navigation = [
   { name: 'Users', href: '/users', icon: UsersIcon },
   { name: 'Roles', href: '/roles', icon: ShieldCheckIcon },
   { name: 'Audit Logs', href: '/audit-logs', icon: ClipboardDocumentListIcon },
+  { name: 'User Guide', href: '/guide', icon: QuestionMarkCircleIcon },
 ]
 </script>

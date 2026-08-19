@@ -19,12 +19,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'index']);
         Route::post('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'update']);
 
-        // Core Notification Center
+        // Core Notification Center & Outbox DLQ Admin
         Route::get('/notifications', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'index']);
         Route::post('/notifications/{id}/read', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'markAsRead']);
         Route::post('/notifications/read-all', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'markAllAsRead']);
         Route::get('/notifications/preferences', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'getPreferences']);
         Route::post('/notifications/preferences', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'updatePreferences']);
+        Route::get('/admin/notifications/outbox', [\App\Core\Presentation\Controllers\AdminNotificationController::class, 'index']);
+        Route::post('/admin/notifications/outbox/{id}/retry', [\App\Core\Presentation\Controllers\AdminNotificationController::class, 'retry']);
 
         // Mobile Login Codes & Session Management
         Route::get('/users/{id}/login-code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'show']);

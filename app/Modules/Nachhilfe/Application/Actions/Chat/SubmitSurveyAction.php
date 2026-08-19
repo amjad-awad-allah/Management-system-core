@@ -34,12 +34,12 @@ class SubmitSurveyAction
 
             // Add notification message to the channel (e.g. system info)
             $user = User::find($userId);
-            $userName = $user ? $user->name : 'طالب';
+            $userName = $user ? $user->name : 'Student';
 
             $message = ChatMessage::create([
                 'channel_id' => $survey->channel_id,
                 'sender_id' => $userId,
-                'body' => "قام {$userName} بالإجابة على الاستبيان: {$survey->title}",
+                'body' => "{$userName} responded to survey: {$survey->title}",
                 'type' => 'system',
                 'metadata' => [
                     'survey_id' => $survey->id,

@@ -20,11 +20,16 @@ Route::prefix('api/v1/nachhilfe')
         Route::put('/rooms/{room}', [\App\Modules\Nachhilfe\Presentation\Controllers\RoomController::class, 'update']);
         Route::delete('/rooms/{room}', [\App\Modules\Nachhilfe\Presentation\Controllers\RoomController::class, 'destroy']);
 
+        Route::get('/calendar', [\App\Modules\Nachhilfe\Presentation\Controllers\CalendarController::class, 'index']);
+        Route::post('/holidays', [\App\Modules\Nachhilfe\Presentation\Controllers\CalendarController::class, 'storeHoliday']);
+
         Route::get('/lessons', [LessonController::class, 'index']);
         Route::post('/lessons', [LessonController::class, 'store']);
         Route::put('/lessons/{lesson}', [LessonController::class, 'update']);
         Route::patch('/lessons/{lesson}/status', [LessonController::class, 'updateStatus']);
         
+        Route::get('/payrolls/summary', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'summary']);
+        Route::post('/payrolls/approve', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'approve']);
         Route::get('/payrolls', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'index']);
         Route::post('/payrolls', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'generate']);
         Route::get('/payrolls/{payroll}', [\App\Modules\Nachhilfe\Presentation\Controllers\TeacherPayrollController::class, 'show']);
@@ -72,4 +77,9 @@ Route::prefix('api/v1/nachhilfe')
 
         // Stundennachweis PDF Export
         Route::get('/students/{studentId}/stundennachweis', [\App\Modules\Nachhilfe\Presentation\Controllers\StundennachweisController::class, 'generate']);
+
+        // Phase 5B PDF Report Engine
+        Route::get('/reports/teacher-timetable', [\App\Modules\Nachhilfe\Presentation\Controllers\PdfReportController::class, 'teacherTimetable']);
+        Route::get('/reports/room-door-sheet', [\App\Modules\Nachhilfe\Presentation\Controllers\PdfReportController::class, 'roomDoorSheet']);
+        Route::get('/reports/payroll/{payroll_id}', [\App\Modules\Nachhilfe\Presentation\Controllers\PdfReportController::class, 'payrollReport']);
     });

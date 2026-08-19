@@ -10,6 +10,31 @@ use App\Modules\Nachhilfe\Infrastructure\Models\Teacher;
 
 class TeacherPayrollController extends Controller
 {
+    public function summary(Request $request, \App\Modules\Nachhilfe\Application\Services\PayrollCalculationService $service)
+    {
+        $validated = $request->validate([
+            'month' => 'required|date_format:Y-m',
+        ]);
+
+        $summary = $service->getPayrollSummary($validated['month']);
+        return response()->json($summary);
+    }
+
+    public function approve(Request $request, \App\Modules\Nachhilfe\Application\Services\PayrollCalculationService $service)
+    {
+        $validated = $request->validate([
+            'month' => 'required|date_format:Y-m',
+        ]);
+
+        $userId = $request->user()?->id ?? (string) \Illuminate\Support\Str::ulid();
+        $summary = $service->approvePayroll($validated['month'], $userId);
+
+        return response()->json([
+            'message' => 'Payroll snapshot approved successfully',
+            'summary' => $summary,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $payrolls = TeacherPayroll::with('teacher')

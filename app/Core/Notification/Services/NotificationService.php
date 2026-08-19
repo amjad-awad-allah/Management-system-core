@@ -10,6 +10,9 @@ use App\Core\Notification\Data\NotificationOptions;
 use App\Core\Notification\Drivers\InAppDriver;
 use App\Core\Notification\Drivers\ChatDriver;
 use App\Core\Notification\Drivers\WhatsAppDriver;
+use App\Core\Notification\Models\NotificationEvent;
+use App\Core\Notification\Models\NotificationOutbox;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class NotificationService
@@ -26,6 +29,86 @@ class NotificationService
         $this->inAppDriver = $inAppDriver;
         $this->chatDriver = $chatDriver;
         $this->whatsAppDriver = $whatsAppDriver;
+    }
+
+    /**
+     * Universal Outbox Enqueueing with Business Idempotency.
+     *
+     * @param string $eventType e.g. 'lesson', 'invoice', 'payment'
+     * @param string $eventId Target entity ULID
+     * @param string $notificationType e.g. 'reminder_24h', 'reminder_2h', 'cancelled'
+     * @param string $recipientUserId
+     * @param array<string> $channels e.g. ['in_app', 'reverb', 'whatsapp', 'email']
+     * @param array<string, mixed> $payload Snapshot containing schema_version, template, template_version, locale, data
+     * @param string $tenantId
+     * @param \DateTimeInterface|null $scheduledAt
+     * @return NotificationEvent
+     */
+    public function enqueue(
+        string $eventType,
+        string $eventId,
+        string $notificationType,
+        string $recipientUserId,
+        array $channels,
+        array $payload,
+        string $tenantId = 'default',
+        ?\DateTimeInterface $scheduledAt = null
+    ): NotificationEvent {
+        return DB::transaction(function () use (
+            $eventType,
+            $eventId,
+            $notificationType,
+            $recipientUserId,
+            $channels,
+            $payload,
+            $tenantId,
+            $scheduledAt
+        ) {
+            // 1. Business Idempotency: Find or create notification event
+            /** @var NotificationEvent $event */
+            $event = NotificationEvent::firstOrCreate(
+                [
+                    'tenant_id' => $tenantId,
+                    'event_type' => $eventType,
+                    'event_id' => $eventId,
+                    'notification_type' => $notificationType,
+                    'recipient_user_id' => $recipientUserId,
+                ],
+                [
+                    'id' => (string) Str::ulid(),
+                    'status' => 'generated',
+                    'scheduled_at' => $scheduledAt,
+                    'triggered_at' => now(),
+                    'metadata' => $payload['data'] ?? null,
+                ]
+            );
+
+            // 2. Create outbox records for each channel (ignoring duplicates via unique constraint / firstOrCreate)
+            $correlationId = (string) Str::ulid();
+            $availableAt = $scheduledAt ? \Carbon\Carbon::instance($scheduledAt) : now();
+
+            foreach ($channels as $channel) {
+                NotificationOutbox::firstOrCreate(
+                    [
+                        'notification_event_id' => $event->id,
+                        'channel' => $channel,
+                    ],
+                    [
+                        'id' => (string) Str::ulid(),
+                        'tenant_id' => $tenantId,
+                        'correlation_id' => $correlationId,
+                        'recipient_user_id' => $recipientUserId,
+                        'payload' => $payload,
+                        'status' => 'pending',
+                        'attempts' => 0,
+                        'max_attempts' => 3,
+                        'available_at' => $availableAt,
+                    ]
+                );
+            }
+
+            return $event;
+        });
     }
 
     public function send(User $recipient, NotificationMessage $message, NotificationOptions $options): void

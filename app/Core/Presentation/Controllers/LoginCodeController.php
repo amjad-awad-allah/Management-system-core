@@ -112,7 +112,7 @@ class LoginCodeController extends Controller
         $admin = auth()->user();
         if (!Hash::check($request->admin_password, $admin->password)) {
             throw ValidationException::withMessages([
-                'admin_password' => ['كلمة المرور الخاصة بالإدارة غير صحيحة.']
+                'admin_password' => ['Admin password is incorrect.']
             ]);
         }
 
@@ -140,7 +140,7 @@ class LoginCodeController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'تم إلغاء الرمز وجلسات الأجهزة القديمة وتوليد رمز جديد بنجاح.',
+            'message' => 'Login code and legacy sessions revoked, new active code generated successfully.',
             'login_code' => $loginCode
         ]);
     }
@@ -159,7 +159,7 @@ class LoginCodeController extends Controller
 
         $device->delete();
 
-        return response()->json(['message' => 'تم تسجيل خروج الجهاز بنجاح.']);
+        return response()->json(['message' => 'Device logged out successfully.']);
     }
 
     /**
@@ -179,7 +179,7 @@ class LoginCodeController extends Controller
 
         if (!$loginCode) {
             throw ValidationException::withMessages([
-                'code' => ['رمز الدخول الممسوح غير صحيح أو تم إلغاؤه.']
+                'code' => ['Scanned login code is invalid or has been revoked.']
             ]);
         }
 

@@ -72,7 +72,7 @@ class SendMessageAction
             ->get();
 
         foreach ($participants as $participant) {
-            // Observers see a silent badge — no notification
+            /** @var ChatParticipant $participant */
             if ($participant->isObserver()) {
                 continue;
             }
@@ -84,8 +84,8 @@ class SendMessageAction
                 $recipient,
                 new NotificationMessage(
                     type: 'new_chat_message',
-                    title: 'رسالة جديدة',
-                    message: $body ?? 'مرفق جديد',
+                    title: 'New Message',
+                    message: $body ?? 'New attachment',
                     sourceType: 'chat_message',
                     sourceId: $message->id,
                     periodKey: null,

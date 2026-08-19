@@ -35,9 +35,9 @@
           <li v-for="student in lesson.students" :key="student.id" class="py-4 flex flex-col gap-3">
             <div class="flex items-center gap-3">
               <div class="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-300 font-bold text-sm">
-                {{ student.name[0] }}
+                {{ getStudentFullName(student)[0] }}
               </div>
-              <span class="font-medium text-gray-900 dark:text-gray-100">{{ student.name }}</span>
+              <span class="font-medium text-gray-900 dark:text-gray-100">{{ getStudentFullName(student) }}</span>
               <button @click="$router.push(`/students/${student.id}`)" class="ml-auto text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 px-2.5 py-1.5 rounded-lg transition-colors">
                 View Profile
               </button>
@@ -45,10 +45,10 @@
             
             <!-- Attendance Controls -->
             <div class="flex gap-2 justify-end transition-all duration-200">
-              <button @click="markAttendance(student, 'present')" :class="[student.attendance === 'present' ? 'ring-2 ring-green-500 bg-green-100 dark:bg-green-900/60 font-semibold' : 'bg-green-50 hover:bg-green-100 dark:bg-green-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-green-700 dark:text-green-400 transition-all">Present</button>
-              <button @click="markAttendance(student, 'late')" :class="[student.attendance === 'late' ? 'ring-2 ring-yellow-500 bg-yellow-100 dark:bg-yellow-900/60 font-semibold' : 'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-yellow-700 dark:text-yellow-400 transition-all">Late</button>
-              <button @click="markAttendance(student, 'absent_excused')" :class="[student.attendance === 'absent_excused' ? 'ring-2 ring-gray-500 bg-gray-200 dark:bg-gray-700 font-semibold' : 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-gray-700 dark:text-gray-300 transition-all">Excused</button>
-              <button @click="markAttendance(student, 'absent_unexcused')" :class="[student.attendance === 'absent_unexcused' ? 'ring-2 ring-red-500 bg-red-100 dark:bg-red-900/60 font-semibold' : 'bg-red-50 hover:bg-red-100 dark:bg-red-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-red-700 dark:text-red-400 transition-all">Absent</button>
+              <button @click="markAttendance(student, 'present')" :class="[getStudentAttendance(student) === 'present' ? 'ring-2 ring-green-500 bg-green-100 dark:bg-green-900/60 font-semibold' : 'bg-green-50 hover:bg-green-100 dark:bg-green-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-green-700 dark:text-green-400 transition-all">Present</button>
+              <button @click="markAttendance(student, 'late')" :class="[getStudentAttendance(student) === 'late' ? 'ring-2 ring-yellow-500 bg-yellow-100 dark:bg-yellow-900/60 font-semibold' : 'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-yellow-700 dark:text-yellow-400 transition-all">Late</button>
+              <button @click="markAttendance(student, 'absent_excused')" :class="[getStudentAttendance(student) === 'absent_excused' ? 'ring-2 ring-gray-500 bg-gray-200 dark:bg-gray-700 font-semibold' : 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-gray-700 dark:text-gray-300 transition-all">Excused</button>
+              <button @click="markAttendance(student, 'absent_unexcused')" :class="[getStudentAttendance(student) === 'absent_unexcused' ? 'ring-2 ring-red-500 bg-red-100 dark:bg-red-900/60 font-semibold' : 'bg-red-50 hover:bg-red-100 dark:bg-red-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-red-700 dark:text-red-400 transition-all">Absent</button>
             </div>
           </li>
         </ul>
@@ -80,10 +80,10 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(false)
-const lesson = ref<Lesson | null>(null)
+const lesson = ref<any>(null)
 const lessonsStore = useLessonsStore()
 
-function open(l: Lesson) {
+function open(l: any) {
   lesson.value = l
   isOpen.value = true
 }
@@ -99,9 +99,27 @@ function editLesson() {
   }
 }
 
+function getStudentFullName(student: any): string {
+  if (!student) return 'Student'
+  if (student.first_name || student.last_name) {
+    return `${student.first_name || ''} ${student.last_name || ''}`.trim()
+  }
+  return student.name || 'Student'
+}
+
+function getStudentAttendance(student: any): string {
+  if (student.attendance) return student.attendance
+  if (lesson.value?.lesson_students) {
+    const ls = lesson.value.lesson_students.find((item: any) => item.student_id === student.id)
+    return ls?.attendance?.status || ''
+  }
+  return ''
+}
+
 async function markAttendance(student: any, status: string) {
-  if (!student.pivot_id) return
-  const success = await lessonsStore.markAttendance(student.pivot_id, { status })
+  const pivotId = student.pivot?.id || student.pivot_id || lesson.value?.lesson_students?.find((item: any) => item.student_id === student.id)?.id
+  if (!pivotId) return
+  const success = await lessonsStore.markAttendance(pivotId, { status })
   if (success) {
     student.attendance = status
   }

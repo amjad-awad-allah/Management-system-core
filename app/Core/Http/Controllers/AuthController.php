@@ -21,7 +21,7 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['البريد الإلكتروني أو كلمة المرور غير صحيحة.'],
+                'email' => ['Invalid email address or password.'],
             ]);
         }
 
@@ -44,7 +44,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'تم تسجيل الخروج بنجاح.'
+            'message' => 'Successfully logged out.'
         ]);
     }
 

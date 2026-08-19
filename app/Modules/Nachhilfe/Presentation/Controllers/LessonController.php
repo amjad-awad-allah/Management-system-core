@@ -153,13 +153,18 @@ class LessonController extends Controller
 
         } catch (Exception $e) {
             return response()->json([
-                'message' => 'Conflict detected: ' . $e->getMessage()
-            ], 409);
+                'message' => 'Schedule conflict detected: ' . $e->getMessage(),
+                'conflicts' => [
+                    ['message' => $e->getMessage()]
+                ]
+            ], 422);
         }
     }
 
     public function update(BookLessonRequest $request, Lesson $lesson): \Illuminate\Http\JsonResponse
     {
+        app(\App\Modules\Nachhilfe\Domain\Services\LessonModificationGuard::class)->checkCanModify($lesson);
+
         $data = $request->validated();
         $updateSeries = filter_var($request->input('update_series'), FILTER_VALIDATE_BOOLEAN);
 
@@ -239,6 +244,21 @@ class LessonController extends Controller
                 );
 
                 DB::transaction(function () use ($data, $lesson) {
+                    $isRescheduled = ($lesson->date !== $data['date'] || $lesson->start_time !== $data['start_time']);
+
+                    if ($isRescheduled) {
+                        $eventIds = \App\Core\Notification\Models\NotificationEvent::where('event_type', 'lesson')
+                            ->where('event_id', $lesson->id)
+                            ->whereIn('notification_type', ['lesson_reminder_24h', 'lesson_reminder_2h'])
+                            ->pluck('id');
+
+                        if ($eventIds->isNotEmpty()) {
+                            \App\Core\Notification\Models\NotificationOutbox::whereIn('notification_event_id', $eventIds)
+                                ->whereIn('status', ['pending', 'failed'])
+                                ->update(['status' => 'cancelled']);
+                        }
+                    }
+
                     $start = Carbon::parse($data['date'] . ' ' . $data['start_time']);
                     $end = Carbon::parse($data['date'] . ' ' . $data['end_time']);
                     $durationMinutes = $start->diffInMinutes($end);
@@ -277,13 +297,18 @@ class LessonController extends Controller
 
         } catch (Exception $e) {
             return response()->json([
-                'message' => 'Conflict detected: ' . $e->getMessage()
-            ], 409);
+                'message' => 'Schedule conflict detected: ' . $e->getMessage(),
+                'conflicts' => [
+                    ['message' => $e->getMessage()]
+                ]
+            ], 422);
         }
     }
 
     public function updateStatus(Request $request, Lesson $lesson): \Illuminate\Http\JsonResponse
     {
+        app(\App\Modules\Nachhilfe\Domain\Services\LessonModificationGuard::class)->checkCanModify($lesson);
+
         $validated = $request->validate([
             'status' => 'required|string|in:scheduled,confirmed,started,completed,cancelled,no-show,rescheduled,Scheduled,Confirmed,Started,Completed,Cancelled,NoShow,Rescheduled',
             'charge_student' => 'nullable|boolean',

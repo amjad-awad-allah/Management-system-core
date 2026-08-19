@@ -391,7 +391,7 @@ function printCard() {
   window.print()
 }
 
-function handleLessonClick(lesson: Lesson) {
+function handleLessonClick(lesson: any) {
   lessonDetailSlideOver.value?.open(lesson)
 }
 
