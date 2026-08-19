@@ -57,9 +57,18 @@
 
         <!-- Selected Members Bar (WhatsApp Style Chips) -->
         <div v-if="selectedUsers.length > 0" class="space-y-1.5">
-          <label class="block text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
-            Selected Members ({{ selectedUsers.length }})
-          </label>
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+              Selected Members ({{ selectedUsers.length }})
+            </label>
+            <button
+              type="button"
+              @click="selectedParticipantIds = []"
+              class="text-[11px] text-red-500 hover:text-red-700 dark:hover:text-red-400 font-medium cursor-pointer"
+            >
+              Clear All
+            </button>
+          </div>
           <div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-purple-50/50 dark:bg-gray-800/40 rounded-xl border border-purple-100 dark:border-white/5">
             <div
               v-for="user in selectedUsers"
@@ -110,16 +119,26 @@
 
             <!-- Staff Section -->
             <div v-if="filteredStaff.length > 0">
-              <div 
-                @click="isStaffExpanded = !isStaffExpanded"
-                class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-amber-500 transition-colors"
-              >
-                <div class="flex items-center gap-1.5">
+              <div class="flex items-center justify-between mb-2">
+                <div 
+                  @click="isStaffExpanded = !isStaffExpanded"
+                  class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer select-none py-1 hover:text-amber-500 transition-colors"
+                >
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isStaffExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
                   <span>Management & Staff ({{ filteredStaff.length }})</span>
                 </div>
+                <button
+                  type="button"
+                  @click.stop="toggleSelectSection(filteredStaff)"
+                  class="text-[11px] font-semibold px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                  :class="isSectionAllSelected(filteredStaff)
+                    ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 hover:bg-amber-200'
+                    : 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20'"
+                >
+                  {{ isSectionAllSelected(filteredStaff) ? 'Deselect All' : `Select All (${filteredStaff.length})` }}
+                </button>
               </div>
               <div v-show="isStaffExpanded" class="space-y-1.5">
                 <div
@@ -156,16 +175,26 @@
 
             <!-- Teachers Section -->
             <div v-if="filteredTeachers.length > 0">
-              <div 
-                @click="isTeachersExpanded = !isTeachersExpanded"
-                class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-purple-500 transition-colors"
-              >
-                <div class="flex items-center gap-1.5">
+              <div class="flex items-center justify-between mb-2">
+                <div 
+                  @click="isTeachersExpanded = !isTeachersExpanded"
+                  class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer select-none py-1 hover:text-purple-500 transition-colors"
+                >
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isTeachersExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
                   <span>Teachers ({{ filteredTeachers.length }})</span>
                 </div>
+                <button
+                  type="button"
+                  @click.stop="toggleSelectSection(filteredTeachers)"
+                  class="text-[11px] font-semibold px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                  :class="isSectionAllSelected(filteredTeachers)
+                    ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 hover:bg-purple-200'
+                    : 'text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20'"
+                >
+                  {{ isSectionAllSelected(filteredTeachers) ? 'Deselect All' : `Select All (${filteredTeachers.length})` }}
+                </button>
               </div>
               <div v-show="isTeachersExpanded" class="space-y-1.5">
                 <div
@@ -202,16 +231,26 @@
 
             <!-- Students Section -->
             <div v-if="filteredStudents.length > 0">
-              <div 
-                @click="isStudentsExpanded = !isStudentsExpanded"
-                class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center justify-between cursor-pointer select-none py-1 hover:text-blue-500 transition-colors"
-              >
-                <div class="flex items-center gap-1.5">
+              <div class="flex items-center justify-between mb-2">
+                <div 
+                  @click="isStudentsExpanded = !isStudentsExpanded"
+                  class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer select-none py-1 hover:text-blue-500 transition-colors"
+                >
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isStudentsExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
                   <span>Students ({{ filteredStudents.length }})</span>
                 </div>
+                <button
+                  type="button"
+                  @click.stop="toggleSelectSection(filteredStudents)"
+                  class="text-[11px] font-semibold px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                  :class="isSectionAllSelected(filteredStudents)
+                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 hover:bg-blue-200'
+                    : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'"
+                >
+                  {{ isSectionAllSelected(filteredStudents) ? 'Deselect All' : `Select All (${filteredStudents.length})` }}
+                </button>
               </div>
               <div v-show="isStudentsExpanded" class="space-y-1.5">
                 <div
@@ -466,6 +505,25 @@ onMounted(async () => {
 
   isLoadingUsers.value = false
 })
+
+function isSectionAllSelected(list: UserItem[]): boolean {
+  if (list.length === 0) return false
+  return list.every(u => selectedParticipantIds.value.includes(u.id))
+}
+
+function toggleSelectSection(list: UserItem[]) {
+  if (list.length === 0) return
+  if (isSectionAllSelected(list)) {
+    const idsToRemove = new Set(list.map(u => u.id))
+    selectedParticipantIds.value = selectedParticipantIds.value.filter(id => !idsToRemove.has(id))
+  } else {
+    const currentSet = new Set(selectedParticipantIds.value)
+    for (const u of list) {
+      currentSet.add(u.id)
+    }
+    selectedParticipantIds.value = Array.from(currentSet)
+  }
+}
 
 function toggleParticipant(id: string) {
   const idx = selectedParticipantIds.value.indexOf(id)
