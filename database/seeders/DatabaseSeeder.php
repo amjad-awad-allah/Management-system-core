@@ -19,22 +19,23 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
         ]);
 
-        \Illuminate\Support\Facades\DB::table('module_settings')->insert([
+        \Illuminate\Support\Facades\DB::table('module_settings')->updateOrInsert(
+            ['module' => 'Nachhilfe'],
             [
                 'id' => (string) \Illuminate\Support\Str::ulid(),
-                'module' => 'Nachhilfe',
                 'enabled' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id' => (string) \Illuminate\Support\Str::ulid(),
-                'module' => 'Billing',
-                'enabled' => true,
-                'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ]);
+        );
+
+        \Illuminate\Support\Facades\DB::table('module_settings')->updateOrInsert(
+            ['module' => 'Billing'],
+            [
+                'id' => (string) \Illuminate\Support\Str::ulid(),
+                'enabled' => true,
+                'updated_at' => now(),
+            ]
+        );
 
         $this->call([
             NachhilfeModuleSeeder::class,

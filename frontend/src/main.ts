@@ -19,6 +19,35 @@ import Pusher from 'pusher-js'
   forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
   enabledTransports: ['ws', 'wss'],
   authEndpoint: '/api/v1/broadcasting/auth',
+  authorizer: (channel: any) => {
+    return {
+      authorize: (socketId: string, callback: Function) => {
+        const token = localStorage.getItem('token')
+        fetch('/api/v1/broadcasting/auth', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          body: JSON.stringify({
+            socket_id: socketId,
+            channel_name: channel.name,
+          }),
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({ message: 'Forbidden' }))
+              callback(err, null)
+            } else {
+              const data = await res.json()
+              callback(null, data)
+            }
+          })
+          .catch((err) => callback(err, null))
+      },
+    }
+  },
 })
 // ─────────────────────────────────────────────────────────────────────────
 

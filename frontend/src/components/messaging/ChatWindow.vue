@@ -2,10 +2,21 @@
   <div class="flex flex-col h-full">
 
     <!-- ── Channel Header ───────────────────────────────────────── -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/40">
-      <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/40">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <!-- Mobile Back Button -->
+        <button
+          @click="$emit('back')"
+          class="md:hidden p-1.5 -ml-1 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          title="Back to conversations"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
         <div :class="[
-          'w-10 h-10 rounded-xl flex items-center justify-center',
+          'w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0',
           channel?.type === 'group' ? 'bg-blue-100 dark:bg-blue-600/30 text-blue-600 dark:text-blue-300' :
           channel?.type === 'survey' ? 'bg-amber-100 dark:bg-amber-600/30 text-amber-600 dark:text-amber-300' :
           'bg-purple-100 dark:bg-purple-600/30 text-purple-600 dark:text-purple-300'
@@ -14,11 +25,11 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
         </div>
-        <div>
-          <h3 class="font-semibold text-gray-900 dark:text-white text-sm">
+        <div class="min-w-0">
+          <h3 class="font-semibold text-gray-900 dark:text-white text-sm truncate">
             {{ channel?.name || 'Conversation' }}
           </h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
+          <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
             {{ channel?.participants?.length ?? 0 }} participants
           </p>
         </div>
@@ -148,6 +159,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   send: [{ body: string | null; file?: File | null }]
   archive: [channelId: string]
+  back: []
 }>()
 
 const authStore = useAuthStore()

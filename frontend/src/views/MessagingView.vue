@@ -3,7 +3,10 @@
     <div class="messaging-container flex h-[calc(100vh-64px)] overflow-hidden rounded-2xl shadow-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900">
 
       <!-- ─── Sidebar ─────────────────────────────────────────────── -->
-      <aside class="w-80 flex-shrink-0 bg-gray-50/80 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-200 dark:border-white/10 flex flex-col">
+      <aside :class="[
+        'w-full md:w-80 flex-shrink-0 bg-gray-50/80 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-200 dark:border-white/10 flex flex-col',
+        activeChannelId ? 'hidden md:flex' : 'flex'
+      ]">
 
         <!-- Header -->
         <div class="p-4 border-b border-gray-200 dark:border-white/10 space-y-3">
@@ -160,7 +163,10 @@
       </aside>
 
       <!-- ─── Chat Window ──────────────────────────────────────────── -->
-      <main class="flex-1 flex flex-col bg-gray-100/60 dark:bg-gray-950/60 backdrop-blur-xl">
+      <main :class="[
+        'flex-1 flex flex-col bg-gray-100/60 dark:bg-gray-950/60 backdrop-blur-xl',
+        !activeChannelId ? 'hidden md:flex' : 'flex'
+      ]">
 
         <!-- Empty state (Only if no channel available) -->
         <div v-if="!activeChannelId" class="flex-1 flex flex-col items-center justify-center text-gray-400 gap-4 p-8 text-center">
@@ -192,6 +198,7 @@
           :is-sending="isSending"
           @send="handleSend"
           @archive="handleArchive"
+          @back="handleBack"
         />
       </main>
 
@@ -322,6 +329,10 @@ onUnmounted(() => {
 function setScope(scope: 'mine' | 'all') {
   store.activeScope = scope
   autoSelectFirstChannel()
+}
+
+function handleBack() {
+  store.activeChannelId = null
 }
 
 async function selectChannel(channelId: string) {
