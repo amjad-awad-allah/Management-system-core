@@ -6,6 +6,7 @@ use App\Core\Models\User;
 use App\Core\Models\UserLoginCode;
 use App\Core\Models\UserMobileDevice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class LoginCodeTest extends TestCase
@@ -84,7 +85,7 @@ class LoginCodeTest extends TestCase
     {
         // Create an active login code
         $loginCode = UserLoginCode::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'user_id' => $this->studentUser->id,
             'code' => 'K98PLQXZ',
             'status' => 'active'

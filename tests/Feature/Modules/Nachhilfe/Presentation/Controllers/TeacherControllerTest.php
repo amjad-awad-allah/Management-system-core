@@ -19,7 +19,7 @@ beforeEach(function () {
 });
 
 test('can create a teacher', function () {
-    $user = User::forceCreate(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'T', 'email' => 'tr1@t.com', 'password' => 'p']);
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 'tr1@t.com', 'password' => 'p']);
 
     $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/nachhilfe/teachers', [
         'user_id' => (string) Str::ulid(),
@@ -37,7 +37,7 @@ test('can create a teacher', function () {
 });
 
 test('can list teachers', function () {
-    $user = User::forceCreate(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'T', 'email' => 'tr2@t.com', 'password' => 'p']);
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 'tr2@t.com', 'password' => 'p']);
     
     $teacher = new Teacher();
     $teacher->id = (string) Str::ulid();
@@ -55,7 +55,7 @@ test('can list teachers', function () {
 });
 
 test('can view a soft-deleted teacher', function () {
-    $user = User::forceCreate(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'T', 'email' => 'tr3@t.com', 'password' => 'p']);
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 'tr3@t.com', 'password' => 'p']);
     
     $teacher = new Teacher();
     $teacher->id = (string) Str::ulid();

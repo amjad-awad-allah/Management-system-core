@@ -24,12 +24,12 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     DB::table('settings')->updateOrInsert(
         ['key' => 'modules.Nachhilfe.enabled'],
-        ['id' => (string) \Illuminate\Support\Str::ulid(), 'value' => 'true']
+        ['id' => (string) Str::ulid(), 'value' => 'true']
     );
 });
 
 test('can list lessons', function () {
-    $user = User::forceCreate(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'T', 'email' => 't3@t.com', 'password' => 'p']);
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't3@t.com', 'password' => 'p']);
 
     $response = $this->actingAs($user, 'sanctum')->getJson('/api/v1/nachhilfe/lessons');
 
@@ -40,7 +40,7 @@ test('can list lessons', function () {
 });
 
 test('can book a lesson', function () {
-    $user = User::forceCreate(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'T', 'email' => 't4@t.com', 'password' => 'p']);
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't4@t.com', 'password' => 'p']);
     
     $student = Student::create(['id' => Str::ulid()->toString(), 'first_name' => 'S', 'last_name' => 'L', 'birth_date' => '2010-01-01', 'level' => 'Grade 10']);
     $teacher = Teacher::create(['id' => Str::ulid()->toString(), 'user_id' => $user->id, 'name' => 'T L']);

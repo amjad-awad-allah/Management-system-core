@@ -18,6 +18,8 @@ use App\Modules\Nachhilfe\Infrastructure\Models\SurveyResponse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Core\Broadcasting\ChatMessageSent;
 use Tests\TestCase;
 
@@ -47,7 +49,7 @@ class ChatSystemTest extends TestCase
         $this->teacherUser = User::factory()->create();
         $this->teacherUser->assignRole($teacherRole);
         $this->teacher = Teacher::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'user_id' => $this->teacherUser->id,
             'name' => 'Herr Müller',
             'email' => $this->teacherUser->email,
@@ -56,7 +58,7 @@ class ChatSystemTest extends TestCase
         $this->studentUser = User::factory()->create();
         $this->studentUser->assignRole($studentRole);
         $this->student = Student::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'user_id' => $this->studentUser->id,
             'first_name' => 'Max',
             'last_name' => 'Mustermann',
@@ -128,16 +130,16 @@ class ChatSystemTest extends TestCase
         $response->assertStatus(403); // Forbidden
 
         // 2. Link student to teacher via lesson
-        $roomId = (string) \Illuminate\Support\Str::ulid();
-        \Illuminate\Support\Facades\DB::table('rooms')->insert([
+        $roomId = (string) Str::ulid();
+        DB::table('rooms')->insert([
             'id' => $roomId,
             'name' => 'Room A',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        $subjectId = (string) \Illuminate\Support\Str::ulid();
-        \Illuminate\Support\Facades\DB::table('subjects')->insert([
+        $subjectId = (string) Str::ulid();
+        DB::table('subjects')->insert([
             'id' => $subjectId,
             'name' => 'Math',
             'code' => 'MATH',
@@ -146,7 +148,7 @@ class ChatSystemTest extends TestCase
         ]);
 
         $lesson = Lesson::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'teacher_id' => $this->teacher->id,
             'room_id' => $roomId,
             'subject_id' => $subjectId,

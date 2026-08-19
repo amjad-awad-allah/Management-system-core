@@ -14,6 +14,7 @@ use App\Modules\Nachhilfe\Infrastructure\Models\Lesson;
 use App\Modules\Nachhilfe\Infrastructure\Models\SubscriptionUsage;
 use App\Modules\Nachhilfe\Infrastructure\Models\Room;
 use App\Modules\Nachhilfe\Infrastructure\Models\SubjectModel;
+use Illuminate\Support\Str;
 
 class Phase1SchemaTest extends TestCase
 {
@@ -48,8 +49,8 @@ class Phase1SchemaTest extends TestCase
             'status' => 'Draft',
         ]);
 
-        $room = Room::create(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'Room A', 'capacity' => 10]);
-        $subject = SubjectModel::create(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'Math', 'color' => '#fff']);
+        $room = Room::create(['id' => (string) Str::ulid(), 'name' => 'Room A', 'capacity' => 10]);
+        $subject = SubjectModel::create(['id' => (string) Str::ulid(), 'name' => 'Math', 'color' => '#fff']);
 
         $lesson = Lesson::create([
             'teacher_id' => $teacher->id,

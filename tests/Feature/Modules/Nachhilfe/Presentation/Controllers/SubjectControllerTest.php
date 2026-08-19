@@ -22,12 +22,12 @@ beforeEach(function () {
     // Ensure module is active in DB registry for tests
     DB::table('settings')->updateOrInsert(
         ['key' => 'modules.Nachhilfe.enabled'],
-        ['id' => (string) \Illuminate\Support\Str::ulid(), 'value' => 'true']
+        ['id' => (string) Str::ulid(), 'value' => 'true']
     );
 });
 
 test('can list subjects', function () {
-    $user = User::forceCreate(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'T', 'email' => 't1@t.com', 'password' => 'p']);
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't1@t.com', 'password' => 'p']);
     SubjectModel::create(['id' => '01H...1', 'name' => 'Math']);
     SubjectModel::create(['id' => '01H...2', 'name' => 'Physics']);
 
@@ -43,7 +43,7 @@ test('can list subjects', function () {
 });
 
 test('can create a subject', function () {
-    $user = User::forceCreate(['id' => (string) \Illuminate\Support\Str::ulid(), 'name' => 'T', 'email' => 't2@t.com', 'password' => 'p']);
+    $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't2@t.com', 'password' => 'p']);
 
     $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/nachhilfe/subjects', [
         'name' => 'Chemistry',
