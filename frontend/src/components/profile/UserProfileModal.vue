@@ -37,7 +37,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400">{{ userRoles }}</p>
                   </div>
                 </div>
-                <button @click="close" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                <button @click="close" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer">
                   <XMarkIcon class="w-5 h-5" />
                 </button>
               </div>
@@ -53,7 +53,7 @@
                     'pb-2 px-3 text-xs font-bold border-b-2 transition-colors cursor-pointer'
                   ]"
                 >
-                  Profil & Daten
+                  Kontodaten & Rolle
                 </button>
                 <button
                   @click="activeTab = 'security'"
@@ -68,45 +68,49 @@
                 </button>
               </div>
 
-              <!-- TAB 1: Profile Form -->
-              <form v-if="activeTab === 'profile'" @submit.prevent="handleUpdateProfile" class="space-y-4">
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Vollständiger Name</label>
-                  <input
-                    v-model="profileForm.name"
-                    type="text"
-                    required
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                  />
+              <!-- TAB 1: Profile Info (Read-Only) -->
+              <div v-if="activeTab === 'profile'" class="space-y-4">
+                <div class="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-3">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-0.5">Vollständiger Name</span>
+                    <p class="text-sm font-bold text-gray-900 dark:text-white">{{ authStore.user?.name }}</p>
+                  </div>
+
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-0.5">E-Mail-Adresse</span>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 font-mono">{{ authStore.user?.email }}</p>
+                  </div>
+
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-0.5">System-Rolle & Berechtigungen</span>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span
+                        v-for="role in (authStore.user?.roles || [])"
+                        :key="role"
+                        class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300"
+                      >
+                        🛡️ {{ role }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">E-Mail-Adresse</label>
-                  <input
-                    v-model="profileForm.email"
-                    type="email"
-                    required
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                  />
+                <div class="rounded-xl bg-blue-50/70 dark:bg-blue-950/30 p-3 border border-blue-200/50 dark:border-blue-900/40">
+                  <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                    💡 <strong>Hinweis:</strong> Zur Gewährleistung der Revisionssicherheit können Name und E-Mail-Adresse nur von einem Administrator unter <em>Benutzerverwaltung</em> geändert werden.
+                  </p>
                 </div>
 
-                <div class="pt-2 flex justify-end gap-2">
+                <div class="pt-2 flex justify-end">
                   <button
                     type="button"
                     @click="close"
-                    class="px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition cursor-pointer"
+                    class="px-5 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition cursor-pointer"
                   >
-                    Abbrechen
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="isSavingProfile"
-                    class="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-md shadow-purple-500/20 disabled:opacity-50 transition cursor-pointer"
-                  >
-                    {{ isSavingProfile ? 'Speichert...' : 'Profil aktualisieren' }}
+                    Schließen
                   </button>
                 </div>
-              </form>
+              </div>
 
               <!-- TAB 2: Password Form -->
               <form v-if="activeTab === 'security'" @submit.prevent="handleUpdatePassword" class="space-y-4">
@@ -116,6 +120,7 @@
                     v-model="passwordForm.current_password"
                     type="password"
                     required
+                    placeholder="••••••••"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
                   />
                 </div>
@@ -127,6 +132,7 @@
                     type="password"
                     required
                     minlength="8"
+                    placeholder="••••••••"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
                   />
                 </div>
@@ -138,6 +144,7 @@
                     type="password"
                     required
                     minlength="8"
+                    placeholder="••••••••"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
                   />
                 </div>
@@ -169,7 +176,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/authStore'
@@ -192,26 +199,13 @@ const isOpen = computed({
 })
 
 const activeTab = ref<'profile' | 'security'>('profile')
-const isSavingProfile = ref(false)
 const isSavingPassword = ref(false)
-
-const profileForm = ref({
-  name: '',
-  email: ''
-})
 
 const passwordForm = ref({
   current_password: '',
   new_password: '',
   new_password_confirmation: ''
 })
-
-watch(() => authStore.user, (u) => {
-  if (u) {
-    profileForm.value.name = u.name || ''
-    profileForm.value.email = u.email || ''
-  }
-}, { immediate: true })
 
 const userInitials = computed(() => {
   const n = authStore.user?.name || 'U'
@@ -229,22 +223,6 @@ function close() {
     current_password: '',
     new_password: '',
     new_password_confirmation: ''
-  }
-}
-
-async function handleUpdateProfile() {
-  isSavingProfile.value = true
-  try {
-    await authStore.updateProfile({
-      name: profileForm.value.name,
-      email: profileForm.value.email
-    })
-    toast.success('Erfolg', 'Profil erfolgreich aktualisiert.')
-    close()
-  } catch (err: any) {
-    toast.error('Fehler', err?.response?.data?.message || 'Fehler beim Aktualisieren des Profils.')
-  } finally {
-    isSavingProfile.value = false
   }
 }
 

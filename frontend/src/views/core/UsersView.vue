@@ -11,7 +11,7 @@
       </button>
     </div>
 
-    <!-- Tabs -->
+    <!-- Tabs with Count Badges -->
     <div class="border-b border-gray-200 dark:border-gray-800">
       <nav class="-mb-px flex space-x-6" aria-label="Tabs">
         <button
@@ -21,10 +21,13 @@
             activeTab === 'staff'
               ? 'border-purple-500 text-purple-600 dark:text-purple-400'
               : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-            'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-semibold cursor-pointer transition-all'
+            'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-semibold cursor-pointer transition-all flex items-center gap-2'
           ]"
         >
-          Staff & Administrators
+          <span>Mitarbeiter & Administratoren</span>
+          <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+            {{ staffUsersCount }}
+          </span>
         </button>
         <button
           @click="activeTab = 'students'"
@@ -33,10 +36,13 @@
             activeTab === 'students'
               ? 'border-purple-500 text-purple-600 dark:text-purple-400'
               : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-            'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-semibold cursor-pointer transition-all'
+            'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-semibold cursor-pointer transition-all flex items-center gap-2'
           ]"
         >
-          {{ $t('students.title') }}
+          <span>{{ $t('students.title') }}</span>
+          <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+            {{ studentUsersCount }}
+          </span>
         </button>
       </nav>
     </div>
@@ -173,12 +179,25 @@ const form = ref({
   roles: [] as string[]
 })
 
+const staffUsers = computed(() => {
+  return (store.users as any[]).filter((u: any) => !u.roles?.some((r: any) => {
+    const rn = (r.name || '').toLowerCase()
+    return rn === 'student' || rn === 'parent'
+  }))
+})
+
+const studentUsers = computed(() => {
+  return (store.users as any[]).filter((u: any) => u.roles?.some((r: any) => {
+    const rn = (r.name || '').toLowerCase()
+    return rn === 'student' || rn === 'parent'
+  }))
+})
+
+const staffUsersCount = computed(() => staffUsers.value.length)
+const studentUsersCount = computed(() => studentUsers.value.length)
+
 const filteredUsers = computed(() => {
-  if (activeTab.value === 'staff') {
-    return (store.users as any[]).filter((u: any) => !u.roles?.some((r: any) => r.name === 'student' || r.name === 'parent'))
-  } else {
-    return (store.users as any[]).filter((u: any) => u.roles?.some((r: any) => r.name === 'student' || r.name === 'parent'))
-  }
+  return activeTab.value === 'staff' ? staffUsers.value : studentUsers.value
 })
 
 onMounted(() => {

@@ -118,6 +118,36 @@
               </p>
             </div>
 
+            <!-- System Language Selector -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                {{ $t('settings.language') || 'Systemsprache / Language' }}
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  v-for="loc in supportedLocales"
+                  :key="loc.code"
+                  type="button"
+                  @click="changeSystemLanguage(loc.code)"
+                  :class="[
+                    currentLocale === loc.code
+                      ? 'border-purple-600 bg-purple-50/80 text-purple-700 dark:bg-purple-950/40 dark:border-purple-500 dark:text-purple-300 ring-2 ring-purple-500/20'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750',
+                    'flex items-center justify-between p-3 rounded-xl border text-sm font-semibold transition-all cursor-pointer'
+                  ]"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-xl leading-none">{{ loc.flag }}</span>
+                    <span>{{ loc.nativeName }}</span>
+                  </div>
+                  <CheckIcon v-if="currentLocale === loc.code" class="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0" />
+                </button>
+              </div>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1.5 flex items-center gap-1">
+                <span>🌐</span> {{ $t('settings.languageDesc') }}
+              </p>
+            </div>
+
             <div class="pt-2 flex justify-end">
               <button 
                 type="submit"
@@ -380,8 +410,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { PlusIcon, TrashIcon } from '@heroicons/vue/20/solid'
+import { PlusIcon, TrashIcon, CheckIcon } from '@heroicons/vue/20/solid'
 import { useI18n } from 'vue-i18n'
+import { supportedLocales } from '@/config/locales'
+import { setAppLocale } from '@/i18n'
 import { useSubjectsStore, type Subject } from '@/stores/subjectsStore'
 import { useRoomsStore, type Room } from '@/stores/roomsStore'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -389,12 +421,27 @@ import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import api from '@/api'
 import { useToastStore } from '@/stores/toastStore'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const currentLocale = computed(() => locale.value)
 const subjectsStore = useSubjectsStore()
 const roomsStore = useRoomsStore()
 const settingsStore = useSettingsStore()
 const toastStore = useToastStore()
 const confirmModal = ref<InstanceType<typeof ConfirmModal> | null>(null)
+
+async function changeSystemLanguage(code: string) {
+  if (code === currentLocale.value) return
+  setAppLocale(code)
+  try {
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      await api.patch('/user/preferences', { preferred_locale: code })
+    }
+    toastStore.success(t('settings.settingsSaved') || 'Sprache erfolgreich geändert.')
+  } catch (e) {
+    console.warn('Could not sync preferred locale:', e)
+  }
+}
 
 // Tab handling (Defaults to General)
 const activeTab = ref('general')

@@ -122,9 +122,6 @@
         </button>
 
         <div class="flex flex-1 gap-x-3 lg:gap-x-4 self-stretch justify-end items-center">
-          <!-- Language Switcher -->
-          <LanguageSwitcher />
-
           <!-- Theme Toggle -->
           <button
             @click="uiStore.toggleDarkMode"
@@ -308,7 +305,6 @@ import api from '@/api'
 import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import OnboardingTour from '@/components/common/OnboardingTour.vue'
-import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 import UserProfileModal from '@/components/profile/UserProfileModal.vue'
 
 const uiStore = useUiStore()

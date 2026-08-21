@@ -15,6 +15,8 @@ export default {
   logoUpdated: 'Logo erfolgreich aktualisiert.',
   logoRemoved: 'Logo erfolgreich entfernt.',
   settingsSaved: 'Einstellungen erfolgreich gespeichert.',
+  language: 'Systemsprache',
+  languageDesc: 'Ändert die Sprache der gesamten Benutzeroberfläche sofort.',
   users: 'Benutzerverwaltung',
   roles: 'Rollen & Berechtigungen',
   auditLogs: 'Audit- & Sicherheitsprotokoll',
