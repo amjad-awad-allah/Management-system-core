@@ -231,9 +231,24 @@
             </Transition>
           </div>
 
+          <!-- User Profile Button -->
+          <button
+            @click="showProfileModal = true"
+            class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer text-left"
+            title="Mein Profil"
+          >
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-blue-500 flex items-center justify-center text-white text-xs font-bold shadow-xs">
+              {{ authStore.user?.name ? authStore.user.name[0]?.toUpperCase() : 'U' }}
+            </div>
+            <div class="hidden md:block">
+              <p class="text-xs font-bold text-gray-900 dark:text-white leading-tight truncate max-w-[120px]">{{ authStore.user?.name || 'User' }}</p>
+              <p class="text-[10px] text-gray-400 dark:text-gray-500 leading-tight truncate max-w-[120px]">{{ userPrimaryRole }}</p>
+            </div>
+          </button>
+
           <!-- Logout -->
           <div class="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-          <button @click="handleLogout" class="flex items-center gap-2 p-2 text-sm font-semibold text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+          <button @click="handleLogout" class="flex items-center gap-2 p-2 text-sm font-semibold text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer">
             <ArrowRightOnRectangleIcon class="w-5 h-5" />
             <span class="hidden sm:inline">Logout</span>
           </button>
@@ -259,6 +274,9 @@
 
     <!-- Interactive Role-Aware Onboarding Tour -->
     <OnboardingTour />
+
+    <!-- User Profile & Password Modal -->
+    <UserProfileModal v-model="showProfileModal" />
   </div>
 </template>
 
@@ -284,17 +302,27 @@ import {
 import { useUiStore } from '@/stores/uiStore'
 import { useMessagingStore } from '@/stores/messagingStore'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
 import api from '@/api'
 import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import OnboardingTour from '@/components/common/OnboardingTour.vue'
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
+import UserProfileModal from '@/components/profile/UserProfileModal.vue'
 
 const uiStore = useUiStore()
 const messagingStore = useMessagingStore()
 const settingsStore = useSettingsStore()
+const authStore = useAuthStore()
 const router = useRouter()
+
+const showProfileModal = ref(false)
+
+const userPrimaryRole = computed(() => {
+  const roles = authStore.user?.roles || []
+  return Array.isArray(roles) && roles.length > 0 ? roles[0] : 'User'
+})
 
 // ─── Notification Bell ─────────────────────────────────────────────────────────
 const showNotifications = ref(false)

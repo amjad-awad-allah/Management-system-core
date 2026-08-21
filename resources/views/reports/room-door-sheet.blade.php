@@ -70,8 +70,10 @@
                 <h1>Raumbelegungsplan (Tagesübersicht)</h1>
                 <div class="meta">
                     <strong>Raum:</strong> {{ $data['room_name'] }} |
-                    <strong>Datum:</strong> {{ $data['date'] }} |
-                    <strong>Kapazität:</strong> {{ $data['room_capacity'] }} Plätze
+                    <strong>Datum:</strong> {{ $data['date'] }}
+                    @if(!empty($data['room_capacity']))
+                        | <strong>Kapazität:</strong> {{ $data['room_capacity'] }} Plätze
+                    @endif
                 </div>
             </td>
             <td style="text-align: right;">

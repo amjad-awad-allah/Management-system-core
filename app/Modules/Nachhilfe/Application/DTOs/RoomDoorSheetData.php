@@ -21,6 +21,7 @@ final class RoomDoorSheetData
         public readonly array $lessons,
         public readonly int $totalLessons,
         public readonly string $generatedAt,
+        public readonly ?int $roomCapacity = null,
     ) {}
 
     public function toArray(): array
@@ -32,6 +33,7 @@ final class RoomDoorSheetData
             'lessons' => $this->lessons,
             'total_lessons' => $this->totalLessons,
             'generated_at' => $this->generatedAt,
+            'room_capacity' => $this->roomCapacity,
         ];
     }
 }

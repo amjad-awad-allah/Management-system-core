@@ -16,6 +16,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
         Route::patch('/user/preferences', [AuthController::class, 'updatePreferences']);
+        Route::patch('/user/profile', [AuthController::class, 'updateProfile']);
+        Route::patch('/user/password', [AuthController::class, 'updatePassword']);
         
         // System Management (Protected by Super Admin Gate implicitly or explicit permission)
         Route::apiResource('/users', \App\Core\Presentation\Controllers\UserController::class);

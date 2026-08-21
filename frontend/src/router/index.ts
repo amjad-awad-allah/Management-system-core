@@ -94,6 +94,12 @@ const router = createRouter({
           component: () => import('@/views/UserGuideView.vue'),
         }
       ]
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('@/views/NotFoundView.vue'),
+      meta: { requiresAuth: false }
     }
   ]
 })

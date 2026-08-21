@@ -49,11 +49,26 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const updateProfile = async (data: { name: string; email: string }) => {
+    const response = await api.patch('/user/profile', data)
+    if (response.data.user) {
+      setUser(response.data.user)
+    }
+    return response.data
+  }
+
+  const updatePassword = async (data: { current_password: string; new_password: string; new_password_confirmation: string }) => {
+    const response = await api.patch('/user/password', data)
+    return response.data
+  }
+
   return {
     token,
     user,
     login,
     logout,
-    fetchUser
+    fetchUser,
+    updateProfile,
+    updatePassword,
   }
 })

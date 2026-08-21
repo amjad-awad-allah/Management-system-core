@@ -36,8 +36,8 @@
             </span>
           </div>
 
-          <!-- Actions: Tour & Expand -->
-          <div class="mt-4 flex flex-wrap items-center gap-3">
+          <!-- Actions: Tour, Expand & Print Handbook -->
+          <div class="mt-4 flex flex-wrap items-center gap-3 no-print">
             <button
               @click="onboardingStore.restartTour()"
               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 active:scale-95 text-white text-xs font-bold backdrop-blur-md border border-white/25 shadow-lg shadow-black/10 transition-all cursor-pointer"
@@ -51,6 +51,13 @@
             >
               <BookOpenIcon class="w-4 h-4" />
               <span>{{ showAllDetails ? 'Alle Details einklappen' : 'Alle Details ausklappen' }}</span>
+            </button>
+            <button
+              @click="printHandbook"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
+            >
+              <PrinterIcon class="w-4 h-4" />
+              <span>Handbuch drucken / PDF</span>
             </button>
           </div>
         </div>
@@ -462,6 +469,15 @@ function getFilteredCount(catId: string): number {
   return currentGuides.value.filter(g => g.categoryId === catId).length
 }
 
+function printHandbook() {
+  activeCategory.value = 'all'
+  showAllDetails.value = true
+  expandAllFaqs()
+  setTimeout(() => {
+    window.print()
+  }, 150)
+}
+
 const filteredGuides = computed(() => {
   return currentGuides.value.filter(g => {
     const matchesCat = activeCategory.value === 'all' || g.categoryId === activeCategory.value
@@ -481,3 +497,33 @@ const filteredGuides = computed(() => {
   })
 })
 </script>
+
+<style scoped>
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  :deep(.sidebar),
+  header {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: none !important;
+  }
+
+  .border {
+    border-color: #e5e7eb !important;
+  }
+}
+</style>
