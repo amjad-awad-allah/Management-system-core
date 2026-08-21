@@ -143,10 +143,10 @@
 
           <!-- Logo Display Preview Box -->
           <div class="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 text-center gap-4">
-            <div class="w-32 h-32 rounded-2xl p-2.5 bg-white/90 dark:bg-white/10 dark:ring-1 dark:ring-white/20 shadow-inner flex items-center justify-center backdrop-blur-sm">
+            <div class="w-32 h-32 rounded-2xl p-2.5 bg-white/90 dark:bg-white/10 dark:ring-1 dark:ring-white/20 shadow-inner flex items-center justify-center backdrop-blur-sm overflow-hidden">
               <img 
-                v-if="settingsStore.centerLogoUrl" 
-                :src="settingsStore.centerLogoUrl" 
+                v-if="localLogoPreview || settingsStore.centerLogoUrl" 
+                :src="(localLogoPreview || settingsStore.centerLogoUrl) ?? undefined" 
                 alt="Logo Preview" 
                 class="max-w-full max-h-full object-contain"
               />
@@ -406,6 +406,7 @@ const centerForm = ref({
 })
 
 const logoFileInput = ref<HTMLInputElement | null>(null)
+const localLogoPreview = ref<string | null>(null)
 
 const currentBundeslandName = computed(() => {
   const match = settingsStore.availableBundeslaender.find(s => s.code === centerForm.value.bundesland)
@@ -441,10 +442,15 @@ async function onLogoFileSelected(e: Event) {
     return
   }
 
+  // Create immediate local object URL for instant UI response
+  const objectUrl = URL.createObjectURL(file)
+  localLogoPreview.value = objectUrl
+
   try {
     await settingsStore.uploadLogo(file)
     toastStore.success(t('settings.logoUpdated'))
   } catch (err: any) {
+    localLogoPreview.value = null
     toastStore.error(err?.response?.data?.message || t('common.error'))
   } finally {
     if (logoFileInput.value) logoFileInput.value.value = ''
@@ -459,6 +465,7 @@ function handleDeleteLogo() {
     t('common.cancel'),
     async () => {
       try {
+        localLogoPreview.value = null
         await settingsStore.deleteLogo()
         toastStore.success(t('settings.logoRemoved'))
       } catch (err: any) {

@@ -86,11 +86,14 @@ class CenterSettingsService
     public function getCenterLogoUrl(): ?string
     {
         $path = $this->getCenterLogoPath();
-        if (!$path) {
+        if (!$path || !Storage::disk('public')->exists($path)) {
             return null;
         }
 
-        return Storage::url($path);
+        $fullPath = Storage::disk('public')->path($path);
+        $mtime = @filemtime($fullPath) ?: time();
+
+        return '/api/v1/settings/logo?v=' . $mtime;
     }
 
     /**
@@ -226,7 +229,7 @@ class CenterSettingsService
             'new' => $storedPath,
         ], $actor);
 
-        return Storage::url($storedPath);
+        return $this->getCenterLogoUrl() ?? '/api/v1/settings/logo';
     }
 
     /**

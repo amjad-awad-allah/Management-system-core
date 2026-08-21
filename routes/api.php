@@ -7,7 +7,8 @@ use App\Core\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Broadcast;
 
 Route::prefix('v1')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::get('/settings/logo', [\App\Core\Presentation\Controllers\SettingController::class, 'getLogo']);
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
     Route::middleware('auth:sanctum')->group(function () {

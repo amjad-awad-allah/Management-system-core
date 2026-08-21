@@ -128,13 +128,22 @@ class CenterSettingsTest extends TestCase
         Storage::disk('public')->assertExists($path2);
         Storage::disk('public')->assertMissing($path1); // Old logo unlinked
 
-        // 3. Delete logo
+        // 3. Test streaming logo endpoint
+        $stream = $this->get('/api/v1/settings/logo');
+        $stream->assertStatus(200);
+        $stream->assertHeader('Content-Type', 'image/webp');
+
+        // 4. Delete logo
         $delete = $this->actingAs($this->admin, 'sanctum')
             ->deleteJson('/api/v1/settings/logo');
 
         $delete->assertStatus(200);
         $this->assertNull($service->getCenterLogoPath());
         Storage::disk('public')->assertMissing($path2);
+
+        // 5. Verify streaming returns 404 after deletion
+        $stream404 = $this->get('/api/v1/settings/logo');
+        $stream404->assertStatus(404);
     }
 
     public function test_invalid_bundesland_code_rejected(): void

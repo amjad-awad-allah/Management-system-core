@@ -83,6 +83,33 @@ class SettingController extends Controller
     }
 
     /**
+     * Stream the center logo image directly with cache headers.
+     */
+    public function getLogo(): \Symfony\Component\HttpFoundation\Response
+    {
+        $path = $this->centerSettings->getCenterLogoPath();
+        if (!$path || !\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return response()->noContent(404);
+        }
+
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $mimeMap = [
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'webp' => 'image/webp',
+            'svg' => 'image/svg+xml',
+        ];
+        $mime = $mimeMap[$ext] ?? (\Illuminate\Support\Facades\Storage::mimeType($path) ?: 'image/png');
+        $fileContent = \Illuminate\Support\Facades\Storage::disk('public')->get($path);
+
+        return response($fileContent, 200, [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'public, max-age=86400, stale-while-revalidate=604800',
+        ]);
+    }
+
+    /**
      * Remove the center logo.
      */
     public function deleteLogo(Request $request): JsonResponse

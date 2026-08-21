@@ -8,13 +8,19 @@
     <div class="relative z-10 w-full max-w-md p-8 sm:p-12 mx-4 rounded-3xl bg-white/10 dark:bg-black/20 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300">
       
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-500 to-purple-500 mb-4 shadow-lg">
-          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/90 dark:bg-white/10 dark:ring-1 dark:ring-white/20 p-2 mb-4 shadow-xl overflow-hidden backdrop-blur-md">
+          <img 
+            v-if="settingsStore.centerLogoUrl" 
+            :src="settingsStore.centerLogoUrl" 
+            alt="Institution Logo" 
+            class="max-w-full max-h-full object-contain"
+          />
+          <div v-else class="w-full h-full rounded-xl bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
+            {{ settingsStore.centerName ? settingsStore.centerName[0]?.toUpperCase() : 'N' }}
+          </div>
         </div>
-        <h2 class="text-3xl font-bold text-white mb-2">Sign In</h2>
-        <p class="text-gray-300 text-sm">Welcome back to the Management System</p>
+        <h2 class="text-2xl font-bold text-white mb-1">{{ settingsStore.centerName || 'Sign In' }}</h2>
+        <p class="text-gray-300 text-sm">Management & ERP System</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-6">
@@ -75,14 +81,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useToastStore } from '../../stores/toastStore'
+import { useSettingsStore } from '../../stores/settingsStore'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const toast = useToastStore()
+const settingsStore = useSettingsStore()
+
+onMounted(() => {
+  settingsStore.fetchSettings()
+})
 
 const email = ref('')
 const password = ref('')
