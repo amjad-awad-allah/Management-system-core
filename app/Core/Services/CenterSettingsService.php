@@ -23,9 +23,12 @@ class CenterSettingsService
      */
     public function getRawSettings(): array
     {
-        return Cache::remember(self::CACHE_KEY, now()->addHours(24), function () {
-            return DB::table('settings')->pluck('value', 'key')->toArray();
+        /** @var array<string, string|null> $result */
+        $result = Cache::remember(self::CACHE_KEY, now()->addHours(24), function () {
+            return DB::table('settings')->pluck('value', 'key')->all();
         });
+
+        return $result;
     }
 
     /**
@@ -68,8 +71,12 @@ class CenterSettingsService
             return null;
         }
 
-        $mime = Storage::disk('public')->mimeType($path) ?: 'image/png';
+        $mime = Storage::mimeType($path) ?: 'image/png';
         $content = Storage::disk('public')->get($path);
+        if (!is_string($content)) {
+            return null;
+        }
+
         return 'data:' . $mime . ';base64,' . base64_encode($content);
     }
 
@@ -83,11 +90,13 @@ class CenterSettingsService
             return null;
         }
 
-        return Storage::disk('public')->url($path);
+        return Storage::url($path);
     }
 
     /**
      * Build the structured settings payload for frontend consumption.
+     *
+     * @return array<string, mixed>
      */
     public function getSettingsPayload(?User $user = null): array
     {
@@ -124,10 +133,12 @@ class CenterSettingsService
         // Normalize array format if key-value or list of objects
         $pairs = [];
         if (isset($settings[0]) && is_array($settings[0]) && isset($settings[0]['key'])) {
+            /** @var array<int, array{key: string, value: string|null}> $settings */
             foreach ($settings as $item) {
-                $pairs[$item['key']] = $item['value'] ?? null;
+                $pairs[(string) $item['key']] = $item['value'] ?? null;
             }
         } else {
+            /** @var array<string, mixed> $settings */
             $pairs = $settings;
         }
 
@@ -136,25 +147,26 @@ class CenterSettingsService
 
         DB::transaction(function () use ($pairs, $oldSettings, &$changed) {
             foreach ($pairs as $key => $value) {
-                $oldVal = $oldSettings[$key] ?? null;
-                $newVal = is_null($value) ? null : (string) $value;
+                $keyStr = (string) $key;
+                $oldVal = $oldSettings[$keyStr] ?? null;
+                $newVal = is_null($value) ? null : (is_scalar($value) ? (string) $value : json_encode($value));
 
                 if ($oldVal !== $newVal) {
-                    $changed[$key] = [
+                    $changed[$keyStr] = [
                         'old' => $oldVal,
                         'new' => $newVal,
                     ];
 
-                    $exists = DB::table('settings')->where('key', $key)->exists();
+                    $exists = DB::table('settings')->where('key', $keyStr)->exists();
                     if ($exists) {
-                        DB::table('settings')->where('key', $key)->update([
+                        DB::table('settings')->where('key', $keyStr)->update([
                             'value' => $newVal,
                             'updated_at' => now(),
                         ]);
                     } else {
                         DB::table('settings')->insert([
                             'id' => (string) Str::ulid(),
-                            'key' => $key,
+                            'key' => $keyStr,
                             'value' => $newVal,
                             'created_at' => now(),
                             'updated_at' => now(),
@@ -181,7 +193,7 @@ class CenterSettingsService
         }
 
         $filename = 'logo_' . (string) Str::ulid() . '.' . $extension;
-        $storedPath = $file->storeAs('logos', $filename, 'public');
+        $storedPath = (string) $file->storeAs('logos', $filename, 'public');
 
         $oldPath = $this->getCenterLogoPath();
 
@@ -214,7 +226,7 @@ class CenterSettingsService
             'new' => $storedPath,
         ], $actor);
 
-        return Storage::disk('public')->url($storedPath);
+        return Storage::url($storedPath);
     }
 
     /**
@@ -252,6 +264,8 @@ class CenterSettingsService
 
     /**
      * Record an entry in audit_logs.
+     *
+     * @param array<string, mixed> $values
      */
     private function recordAudit(string $event, string $type, ?string $id, array $values, ?User $actor = null): void
     {
@@ -272,8 +286,8 @@ class CenterSettingsService
                 'auditable_id' => $id ?: (string) Str::ulid(),
                 'old_values' => json_encode($oldValues),
                 'new_values' => json_encode($newValues),
-                'ip_address' => request()?->ip(),
-                'user_agent' => request()?->userAgent(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
