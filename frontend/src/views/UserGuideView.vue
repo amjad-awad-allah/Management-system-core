@@ -214,17 +214,17 @@
             class="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-white dark:bg-gray-800 overflow-hidden transition-all shadow-xs"
           >
             <button
-              @click="faq.open = !faq.open"
+              @click="toggleFaq(idx)"
               class="w-full px-5 py-4 text-left flex items-center justify-between gap-4 cursor-pointer focus:outline-none"
             >
               <span class="text-sm font-bold text-gray-900 dark:text-white">{{ faq.q }}</span>
               <ChevronDownIcon
                 class="w-5 h-5 text-gray-400 transition-transform duration-200 shrink-0"
-                :class="{ 'rotate-180 text-purple-600': faq.open }"
+                :class="{ 'rotate-180 text-purple-600': isFaqOpen(idx) }"
               />
             </button>
             <div
-              v-show="faq.open"
+              v-show="isFaqOpen(idx)"
               class="px-5 pb-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed border-t border-gray-100 dark:border-gray-700/60 pt-3"
             >
               {{ faq.a }}
@@ -325,6 +325,20 @@ const currentGuides = computed(() => {
 const activeFaqs = computed(() => {
   return localizedFaqs[currentLocale.value] || localizedFaqs.de
 })
+
+const openFaqIndices = ref<Set<number>>(new Set())
+
+function toggleFaq(index: number) {
+  if (openFaqIndices.value.has(index)) {
+    openFaqIndices.value.delete(index)
+  } else {
+    openFaqIndices.value.add(index)
+  }
+}
+
+function isFaqOpen(index: number): boolean {
+  return openFaqIndices.value.has(index)
+}
 
 function getFilteredCount(catId: string): number {
   if (catId === 'all') return currentGuides.value.length
