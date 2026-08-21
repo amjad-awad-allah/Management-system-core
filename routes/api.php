@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Broadcast;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::get('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'index']);
     Route::get('/settings/logo', [\App\Core\Presentation\Controllers\SettingController::class, 'getLogo']);
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
@@ -24,7 +25,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/system-logs', [\App\Core\Presentation\Controllers\SystemLogController::class, 'index']);
         Route::get('/system-logs/export', [\App\Core\Presentation\Controllers\SystemLogController::class, 'export']);
         Route::post('/system-logs/clear', [\App\Core\Presentation\Controllers\SystemLogController::class, 'clear']);
-        Route::get('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'index']);
         Route::post('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'update']);
         Route::post('/settings/logo', [\App\Core\Presentation\Controllers\SettingController::class, 'uploadLogo']);
         Route::delete('/settings/logo', [\App\Core\Presentation\Controllers\SettingController::class, 'deleteLogo']);

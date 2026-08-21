@@ -25,16 +25,19 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const toast = useToastStore()
+    const isLoginPage = window.location.pathname === '/login' || window.location.hash.includes('/login')
     
     if (error.response?.status === 401) {
-      toast.error('Session Expired', 'Your session has expired. Please log in again.')
       localStorage.removeItem('auth_token')
-      window.location.href = '/login'
+      if (!isLoginPage) {
+        toast.error('Session Expired', 'Your session has expired. Please log in again.')
+        window.location.href = '/login'
+      }
     } else if (error.response?.status === 500) {
       toast.error('Error', 'Internal Server Error (500)')
-    } else if (error.response?.data?.message) {
+    } else if (error.response?.data?.message && !isLoginPage) {
       toast.error('Alert', error.response.data.message)
-    } else {
+    } else if (!isLoginPage) {
       toast.error('Error', 'An unexpected error occurred')
     }
     
