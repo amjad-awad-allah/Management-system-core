@@ -1,0 +1,21 @@
+export default {
+  title: 'Teacher Payrolls',
+  subtitle: 'Calculation and cryptographic sealing of teacher payouts.',
+  generate: 'Generate Payrolls',
+  generateMonthly: 'Generate Monthly Payrolls',
+  generateModalTitle: 'Generate Payrolls',
+  teacher: 'Teacher',
+  period: 'Billing Period',
+  totalHours: 'Teaching Hours',
+  totalAmount: 'Payout Amount',
+  hashSignature: 'Cryptographic Signature (SHA-256)',
+  approveAndSeal: 'Approve & Seal Payroll',
+  downloadPdf: 'Teacher Payroll (PDF)',
+  status: {
+    draft: 'Draft',
+    processing: 'Processing',
+    approved: 'Approved & Sealed',
+    paid: 'Paid',
+    void: 'Void',
+  },
+}

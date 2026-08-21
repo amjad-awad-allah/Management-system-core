@@ -34,6 +34,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'preferred_locale' => $user->preferredLocale(),
                 'roles' => $user->getRoleNames()
             ]
         ]);
@@ -55,7 +56,25 @@ class AuthController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'preferred_locale' => $user->preferredLocale(),
             'roles' => $user->getRoleNames()
+        ]);
+    }
+
+    public function updatePreferences(Request $request)
+    {
+        $supported = array_keys(config('localization.supported_locales', ['de' => [], 'en' => []]));
+        $validated = $request->validate([
+            'preferred_locale' => 'required|string|in:' . implode(',', $supported),
+        ]);
+
+        $request->user()->update([
+            'preferred_locale' => $validated['preferred_locale'],
+        ]);
+
+        return response()->json([
+            'message' => 'Preferences updated successfully.',
+            'preferred_locale' => $validated['preferred_locale'],
         ]);
     }
 }

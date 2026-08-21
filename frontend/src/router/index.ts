@@ -19,6 +19,7 @@ const router = createRouter({
       children: [
         {
           path: '',
+          alias: ['dashboard', '/dashboard'],
           name: 'Dashboard',
           component: () => import('@/views/DashboardView.vue'),
         },

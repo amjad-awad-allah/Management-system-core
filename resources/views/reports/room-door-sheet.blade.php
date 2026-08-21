@@ -2,116 +2,118 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Raumbelegungsplan - {{ $data['room_name'] }}</title>
+    <title>Raumbelegung - {{ $data['room_name'] }}</title>
     <style>
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 12px;
-            color: #0f172a;
+            font-size: 11px;
+            color: #1e293b;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
-        .header {
-            text-align: center;
-            border-bottom: 3px solid #0284c7;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #7c3aed;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .header-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
         }
         .header h1 {
-            font-size: 24px;
-            color: #0369a1;
+            font-size: 18px;
+            color: #5b21b6;
             margin: 0 0 5px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        }
+        .logo-img {
+            max-height: 48px;
+            max-width: 160px;
         }
         .meta {
-            font-size: 14px;
-            color: #475569;
-            font-weight: bold;
+            font-size: 10px;
+            color: #64748b;
         }
-        table {
+        table.room-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 10px;
         }
-        th, td {
-            border: 1px solid #94a3b8;
-            padding: 10px;
+        table.room-table th, table.room-table td {
+            border: 1px solid #cbd5e1;
+            padding: 8px;
             text-align: left;
         }
-        th {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            font-size: 13px;
+        table.room-table th {
+            background-color: #f5f3ff;
+            color: #5b21b6;
             font-weight: bold;
         }
-        tr:nth-child(even) {
-            background-color: #f8fafc;
-        }
-        .time-col {
-            font-weight: bold;
-            color: #0f172a;
-            width: 20%;
-        }
-        .privacy-notice {
-            margin-top: 25px;
-            padding: 10px;
-            background-color: #f1f5f9;
-            border-left: 4px solid #0284c7;
-            font-size: 10px;
-            color: #475569;
+        table.room-table tr:nth-child(even) {
+            background-color: #fcfaff;
         }
         .footer {
-            margin-top: 30px;
-            font-size: 10px;
+            margin-top: 20px;
+            font-size: 9px;
             color: #94a3b8;
-            border-top: 1px solid #cbd5e1;
-            padding-top: 8px;
-            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 5px;
+            text-align: right;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Raumbelegungsplan</h1>
-        <div class="meta">
-            Raum: {{ $data['room_name'] }} | Datum: {{ $data['date'] }}
-        </div>
-    </div>
+    <table class="header-table">
+        <tr>
+            <td>
+                <h1>Raumbelegungsplan (Tagesübersicht)</h1>
+                <div class="meta">
+                    <strong>Raum:</strong> {{ $data['room_name'] }} |
+                    <strong>Datum:</strong> {{ $data['date'] }} |
+                    <strong>Kapazität:</strong> {{ $data['room_capacity'] }} Plätze
+                </div>
+            </td>
+            <td style="text-align: right;">
+                @if(!empty($center['logo_base64']))
+                    <img src="{{ $center['logo_base64'] }}" alt="Logo" class="logo-img" /><br>
+                @endif
+                <strong style="font-size: 12px; color: #5b21b6;">{{ $center['name'] ?? 'Muster Nachhilfeinstitut' }}</strong>
+            </td>
+        </tr>
+    </table>
 
-    <table>
+    <table class="room-table">
         <thead>
             <tr>
-                <th>Uhrzeit</th>
+                <th>Zeitraum</th>
                 <th>Fach</th>
                 <th>Lehrkraft</th>
-                <th>Teilnehmerzahl</th>
+                <th>Schüleranzahl</th>
                 <th>Status</th>
             </tr>
         </thead>
         <tbody>
             @forelse($data['lessons'] as $lesson)
                 <tr>
-                    <td class="time-col">{{ $lesson['start_time'] }} - {{ $lesson['end_time'] }} Uhr</td>
+                    <td>{{ $lesson['start_time'] }} - {{ $lesson['end_time'] }} Uhr</td>
                     <td>{{ $lesson['subject'] }}</td>
                     <td>{{ $lesson['teacher_name'] }}</td>
                     <td>{{ $lesson['student_count'] }} Schüler</td>
-                    <td>{{ $lesson['status'] }}</td>
+                    <td>
+                        {{ $lesson['status'] === 'scheduled' ? 'Geplant' : ($lesson['status'] === 'completed' ? 'Abgeschlossen' : ($lesson['status'] === 'cancelled' ? 'Abgesagt' : $lesson['status'])) }}
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">Keine Unterrichtseinheiten für diesen Raum an diesem Tag geplant.</td>
+                    <td colspan="5" style="text-align: center; color: #64748b;">Keine Belegungen an diesem Tag geplant.</td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 
-    <div class="privacy-notice">
-        <strong>Datenschutzhinweis (DSGVO):</strong> Aus Datenschutzgründen werden auf Raumbelegungsplänen ausschließlich Schüleranzahlen ausgewiesen. Namenslisten sind nicht öffentlich einzusehen.
-    </div>
-
     <div class="footer">
-        Generated: {{ $data['generated_at'] }} | Nachhilfe Management System
+        Erstellt am: {{ $data['generated_at'] }} | {{ $center['name'] ?? 'Nachhilfe Management System' }}
     </div>
 </body>
 </html>

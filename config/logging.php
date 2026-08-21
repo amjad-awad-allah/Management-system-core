@@ -63,14 +63,18 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+            'formatter' => \App\Core\Logging\JsonLinesFormatter::class,
+            'processors' => [\App\Core\Logging\StructuredLogProcessor::class],
         ],
 
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'days' => env('LOG_DAILY_DAYS', 14),
+            'days' => env('LOG_DAILY_DAYS', 30),
             'replace_placeholders' => true,
+            'formatter' => \App\Core\Logging\JsonLinesFormatter::class,
+            'processors' => [\App\Core\Logging\StructuredLogProcessor::class],
         ],
 
         'slack' => [

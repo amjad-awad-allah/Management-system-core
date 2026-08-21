@@ -1,0 +1,20 @@
+export default {
+  title: 'Lehrkräfte & Dozenten',
+  subtitle: 'Verwaltung von Lehrkräften, Qualifikationen und Stundensätzen.',
+  searchPlaceholder: 'Lehrkräfte suchen...',
+  addTeacher: 'Lehrkraft hinzufügen',
+  editTeacher: 'Lehrkraft bearbeiten',
+  name: 'Name',
+  contact: 'Kontakt',
+  email: 'E-Mail-Adresse',
+  phone: 'Telefonnummer',
+  hourlyRate: 'Stundensatz',
+  subjects: 'Unterrichtsfächer',
+  availability: 'Verfügbarkeit',
+  deleteTeacherTitle: 'Lehrkraft löschen',
+  deleteTeacherDesc: 'Sind Sie sicher, dass Sie {name} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+  status: {
+    active: 'Aktiv',
+    inactive: 'Inaktiv',
+  },
+}

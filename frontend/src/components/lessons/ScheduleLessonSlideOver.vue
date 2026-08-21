@@ -1,37 +1,37 @@
 <template>
-  <SlideOver v-model="isOpen" :title="isEditing ? 'Edit Lesson' : 'Schedule Lesson'" :description="isEditing ? 'Modify lesson details and students. Conflicts are checked automatically.' : 'Create a new individual or group lesson. Conflicts are checked automatically.'">
+  <SlideOver v-model="isOpen" :title="isEditing ? $t('lessons.editLesson') : $t('lessons.scheduleLesson')" :description="$t('lessons.subtitle')">
     <form @submit.prevent="submitForm" class="space-y-6">
       
       <!-- Lesson Type -->
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Type</label>
-        <select v-model="form.type" class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
-          <option value="individual">Individual</option>
-          <option value="group">Group</option>
+        <label for="lesson-type" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">{{ $t('lessons.type') }}</label>
+        <select id="lesson-type" name="type" v-model="form.type" class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+          <option value="individual">{{ $t('lessons.individual') }}</option>
+          <option value="group">{{ $t('lessons.group') }}</option>
         </select>
       </div>
 
       <!-- Date & Time -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Date</label>
-          <input type="date" v-model="form.date" :disabled="isEditing && editSeriesOption === 'series'" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6 disabled:opacity-50" />
+          <label for="lesson-date" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">{{ $t('common.date') }}</label>
+          <input id="lesson-date" name="date" type="date" v-model="form.date" :disabled="isEditing && editSeriesOption === 'series'" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6 disabled:opacity-50" />
         </div>
         <div>
-          <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Start Time</label>
-          <input type="time" v-model="form.start_time" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
+          <label for="lesson-start-time" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">{{ $t('lessons.startTime') }}</label>
+          <input id="lesson-start-time" name="start_time" type="time" v-model="form.start_time" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
         </div>
         <div class="col-span-2">
-          <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">End Time</label>
-          <input type="time" v-model="form.end_time" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
+          <label for="lesson-end-time" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">{{ $t('lessons.endTime') }}</label>
+          <input id="lesson-end-time" name="end_time" type="time" v-model="form.end_time" required class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6" />
         </div>
       </div>
 
       <!-- Relationships -->
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Teacher</label>
-        <select v-model="form.teacher_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
-          <option value="" disabled>Select a teacher</option>
+        <label for="lesson-teacher" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">{{ $t('teachers.title') }}</label>
+        <select id="lesson-teacher" name="teacher_id" v-model="form.teacher_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+          <option value="" disabled>{{ $t('lessons.filterTeacher') }}</option>
           <option v-for="teacher in teachersStore.teachers" :key="teacher.id" :value="teacher.id">
             {{ teacher.name }}
           </option>
@@ -39,19 +39,19 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Room</label>
-        <select v-model="form.room_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
-          <option value="" disabled>Select a room</option>
+        <label for="lesson-room" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">{{ $t('settings.rooms') }}</label>
+        <select id="lesson-room" name="room_id" v-model="form.room_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+          <option value="" disabled>{{ $t('lessons.filterRoom') }}</option>
           <option v-for="room in roomsStore.rooms" :key="room.id" :value="room.id">
-            {{ room.name }} (Capacity: {{ room.capacity }})
+            {{ room.name }} ({{ room.capacity }})
           </option>
         </select>
       </div>
 
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Subject</label>
-        <select v-model="form.subject_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
-          <option value="" disabled>Select a subject</option>
+        <label for="lesson-subject" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">{{ $t('teachers.subjects') }}</label>
+        <select id="lesson-subject" name="subject_id" v-model="form.subject_id" required class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
+          <option value="" disabled>{{ $t('lessons.filterSubject') }}</option>
           <option v-for="subject in subjectsStore.subjects" :key="subject.id" :value="subject.id">
             {{ subject.name }}
           </option>
@@ -60,12 +60,12 @@
 
       <!-- Student(s) -->
       <div class="space-y-3">
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Students</label>
+        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">{{ $t('students.title') }}</label>
         
         <div v-for="(studentSlot, index) in form.students" :key="index" class="flex gap-2 items-center">
           <div class="flex-1">
             <select v-model="studentSlot.student_id" required class="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-purple-600 sm:text-sm sm:leading-6">
-              <option value="" disabled>Select a student</option>
+              <option value="" disabled>{{ $t('lessons.filterStudent') }}</option>
               <option v-for="student in studentsStore.students" :key="student.id" :value="student.id" :disabled="form.students.some((s, idx) => s.student_id === student.id && idx !== index)">
                 {{ student.first_name }} {{ student.last_name }}
               </option>
@@ -77,8 +77,8 @@
           </button>
         </div>
 
-        <button v-if="form.type === 'group'" type="button" @click="addStudentSlot" class="mt-2 text-xs font-semibold text-purple-600 hover:text-purple-500 flex items-center gap-1">
-          <PlusIcon class="w-4 h-4" /> Add another student
+        <button v-if="form.type === 'group'" type="button" @click="addStudentSlot" class="mt-2 text-xs font-semibold text-purple-600 hover:text-purple-500 flex items-center gap-1 cursor-pointer">
+          <PlusIcon class="w-4 h-4" /> {{ $t('students.addStudent') }}
         </button>
       </div>
 

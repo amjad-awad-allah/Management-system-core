@@ -15,6 +15,8 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  const currentLocale = localStorage.getItem('app_locale') || 'de'
+  config.headers['Accept-Language'] = currentLocale === 'de' ? 'de,de-DE;q=0.9,en;q=0.8' : 'en,en-US;q=0.9,de;q=0.8'
   return config
 })
 

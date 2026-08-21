@@ -1,0 +1,45 @@
+export default {
+  title: 'Nachhilfe Center Playbook',
+  subtitle: 'Your complete operating guide for daily education center management.',
+  searchPlaceholder: 'Search handbook (e.g. payroll, BuT vouchers, attendance)...',
+  systemStatus: 'System Services',
+  operational100: '100% Operational',
+  launchTourButton: 'Launch Interactive Tour 🎯',
+  dailyRoutines: 'Daily Operations & Checklists',
+  faqTitle: 'Frequently Asked Questions & Answers',
+  allGuides: 'All Guides',
+  categories: {
+    all: 'All Guides',
+    calendar: 'Calendar & Lessons',
+    attendance: 'Attendance',
+    reminders: 'Reminders',
+    payrolls: 'Teacher Payroll',
+    invoices: 'Invoices & Billing',
+    students: 'Students & Packages',
+    teachers: 'Teachers & Staff',
+    reports: 'Reports & Printing',
+    admin: 'Settings & Security',
+  },
+  routines: {
+    morning: {
+      timing: 'Morning Routine',
+      title: 'Start of the Day',
+      summary: 'Check the calendar for today\'s scheduled lessons and print room door sheets for classrooms.',
+    },
+    midday: {
+      timing: 'Midday Routine',
+      title: 'Taking Attendance',
+      summary: 'Click each finished lesson, mark students as Present or Absent, and confirm hour deductions.',
+    },
+    evening: {
+      timing: 'Evening Routine',
+      title: 'Tomorrow Check',
+      summary: 'Verify that automatic 24h reminders were sent and resolve any potential schedule overlaps.',
+    },
+    monthly: {
+      timing: 'Monthly Routine',
+      title: 'Payrolls & Billing',
+      summary: 'Review teacher hours for the month, click Approve Payroll to lock payments, and export PDF statements.',
+    },
+  },
+}

@@ -2,10 +2,12 @@
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">User Management</h1>
-      <button @click="openCreateModal" class="inline-flex items-center rounded-lg bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 transition-colors">
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+        {{ $t('settings.users') }}
+      </h1>
+      <button @click="openCreateModal" class="inline-flex items-center rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 transition-colors cursor-pointer">
         <UserPlusIcon class="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Add User
+        {{ $t('settings.addUser') }}
       </button>
     </div>
 
@@ -34,7 +36,7 @@
             'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-semibold cursor-pointer transition-all'
           ]"
         >
-          Students
+          {{ $t('students.title') }}
         </button>
       </nav>
     </div>
@@ -48,10 +50,18 @@
       <table v-else class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
         <thead class="bg-gray-50/50 dark:bg-gray-800/50">
           <tr>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-6">Name</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Email</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Roles</th>
-            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6"><span class="sr-only">Actions</span></th>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-6">
+              {{ $t('settings.userName') }}
+            </th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {{ $t('settings.userEmail') }}
+            </th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {{ $t('settings.userRole') }}
+            </th>
+            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+              <span class="sr-only">{{ $t('common.actions') }}</span>
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-800 bg-transparent">
@@ -59,65 +69,75 @@
             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">{{ user.name }}</td>
             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{{ user.email }}</td>
             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-              <span v-for="role in user.roles" :key="role.id" class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-400/30 mr-1">
-                {{ role.name }}
-              </span>
+              <div class="flex flex-wrap gap-1">
+                <span v-for="role in user.roles" :key="role.id" class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10 dark:bg-purple-900/30 dark:text-purple-400 dark:ring-purple-400/30">
+                  {{ role.name }}
+                </span>
+              </div>
             </td>
-            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-              <button @click="openEditModal(user)" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 mr-4">Edit</button>
-              <button @click="deleteUser(user)" class="text-red-600 hover:text-red-900 dark:text-red-400">Delete</button>
+            <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+              <div class="flex justify-end gap-2">
+                <button @click="openEditModal(user)" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 cursor-pointer">
+                  <PencilIcon class="h-5 w-5" />
+                </button>
+                <button v-if="user.id !== authStore.user?.id" @click="deleteUser(user)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 cursor-pointer">
+                  <TrashIcon class="h-5 w-5" />
+                </button>
+              </div>
             </td>
-          </tr>
-          <tr v-if="filteredUsers.length === 0">
-            <td colspan="4" class="py-8 text-center text-sm text-gray-500">No users found.</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- User Modal -->
+    <!-- User Modal (Create/Edit) -->
     <TransitionRoot appear :show="isModalOpen" as="template">
       <Dialog as="div" @close="closeModal" class="relative z-50">
         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
-          <div class="fixed inset-0 bg-gray-900/25 backdrop-blur-sm" />
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
         </TransitionChild>
 
         <div class="fixed inset-0 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4 text-center">
             <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
               <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all border border-gray-100 dark:border-gray-700">
-                <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">
-                  {{ isEditing ? 'Edit User' : 'Add New User' }}
+                <DialogTitle as="h3" class="text-lg font-bold leading-6 text-gray-900 dark:text-white">
+                  {{ isEditing ? $t('common.edit') : $t('settings.addUser') }}
                 </DialogTitle>
+                
+                <form @submit.prevent="saveUser" class="mt-4 space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('settings.userName') }}</label>
+                    <input v-model="form.name" type="text" required class="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-2 text-gray-900 dark:text-white shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500 dark:bg-gray-700 sm:text-sm" />
+                  </div>
 
-                <form @submit.prevent="saveUser" class="space-y-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                    <input v-model="formData.name" type="text" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm p-2 border" />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('settings.userEmail') }}</label>
+                    <input v-model="form.email" type="email" required class="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-2 text-gray-900 dark:text-white shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500 dark:bg-gray-700 sm:text-sm" />
                   </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-                    <input v-model="formData.email" type="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm p-2 border" />
+
+                  <div v-if="!isEditing">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <input v-model="form.password" type="password" required class="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-2 text-gray-900 dark:text-white shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500 dark:bg-gray-700 sm:text-sm" />
                   </div>
+
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Password <span v-if="isEditing" class="text-xs text-gray-400 font-normal">(Leave blank to keep current)</span>
-                    </label>
-                    <input v-model="formData.password" type="password" :required="!isEditing" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm p-2 border" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Roles</label>
-                    <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('settings.userRole') }}</label>
+                    <div class="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-xl p-3">
                       <div v-for="role in rolesStore.roles" :key="role.id" class="flex items-center">
-                        <input type="checkbox" :id="role.id" :value="role.name" v-model="formData.roles" class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-600 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800" />
-                        <label :for="role.id" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">{{ role.name }}</label>
+                        <input :id="'role-' + role.id" v-model="form.roles" :value="role.name" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 dark:border-gray-700 dark:bg-gray-900" />
+                        <label :for="'role-' + role.id" class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">{{ role.name }}</label>
                       </div>
                     </div>
                   </div>
 
                   <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" @click="closeModal" class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">Cancel</button>
-                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">Save</button>
+                    <button type="button" @click="closeModal" class="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
+                      {{ $t('common.cancel') }}
+                    </button>
+                    <button type="submit" class="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 cursor-pointer">
+                      {{ $t('common.save') }}
+                    </button>
                   </div>
                 </form>
               </DialogPanel>
@@ -133,23 +153,32 @@
 import { ref, onMounted, computed } from 'vue'
 import { useUsersStore } from '@/stores/usersStore'
 import { useRolesStore } from '@/stores/rolesStore'
+import { useAuthStore } from '@/stores/authStore'
+import { UserPlusIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { UserPlusIcon } from '@heroicons/vue/24/outline'
 
 const store = useUsersStore()
 const rolesStore = useRolesStore()
-
-const isModalOpen = ref(false)
-const isEditing = ref(false)
-const editId = ref('')
+const authStore = useAuthStore()
 
 const activeTab = ref<'staff' | 'students'>('staff')
+const isModalOpen = ref(false)
+const isEditing = ref(false)
+const selectedUserId = ref<string | null>(null)
 
-const formData = ref({
+const form = ref({
   name: '',
   email: '',
   password: '',
   roles: [] as string[]
+})
+
+const filteredUsers = computed(() => {
+  if (activeTab.value === 'staff') {
+    return (store.users as any[]).filter((u: any) => !u.roles?.some((r: any) => r.name === 'student' || r.name === 'parent'))
+  } else {
+    return (store.users as any[]).filter((u: any) => u.roles?.some((r: any) => r.name === 'student' || r.name === 'parent'))
+  }
 })
 
 onMounted(() => {
@@ -157,28 +186,17 @@ onMounted(() => {
   rolesStore.fetchRoles()
 })
 
-const filteredUsers = computed(() => {
-  return store.users.filter(user => {
-    const isStudent = user.roles && user.roles.some((role: any) => role.name === 'Student')
-    if (activeTab.value === 'students') {
-      return isStudent
-    } else {
-      return !isStudent
-    }
-  })
-})
-
 function openCreateModal() {
   isEditing.value = false
-  editId.value = ''
-  formData.value = { name: '', email: '', password: '', roles: [] }
+  selectedUserId.value = null
+  form.value = { name: '', email: '', password: '', roles: [] }
   isModalOpen.value = true
 }
 
 function openEditModal(user: any) {
   isEditing.value = true
-  editId.value = user.id
-  formData.value = {
+  selectedUserId.value = user.id
+  form.value = {
     name: user.name,
     email: user.email,
     password: '',
@@ -192,16 +210,12 @@ function closeModal() {
 }
 
 async function saveUser() {
-  let success = false
-  if (isEditing.value) {
-    success = await store.updateUser(editId.value, formData.value)
+  if (isEditing.value && selectedUserId.value) {
+    await store.updateUser(selectedUserId.value, { roles: form.value.roles })
   } else {
-    success = await store.createUser(formData.value)
+    await store.createUser(form.value)
   }
-  
-  if (success) {
-    closeModal()
-  }
+  closeModal()
 }
 
 async function deleteUser(user: any) {

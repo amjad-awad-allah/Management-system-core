@@ -1,0 +1,15 @@
+export default {
+  dashboard: 'Übersicht',
+  messages: 'Nachrichten',
+  students: 'Schüler',
+  teachers: 'Lehrkräfte',
+  invoices: 'Rechnungen',
+  payrolls: 'Honorare',
+  lessons: 'Unterricht',
+  packages: 'Unterrichtspakete',
+  settings: 'Einstellungen',
+  users: 'Benutzer',
+  roles: 'Rollen & Rechte',
+  auditLogs: 'Audit-Protokoll',
+  userGuide: 'Betriebshandbuch',
+}

@@ -314,3 +314,23 @@ test('teacher user receives only their own lessons in calendar feed', function (
     expect(count($response->json('lessons')))->toBe(1);
     expect($response->json('lessons.0.id'))->toBe($lesson2->id);
 });
+
+test('center bundesland setting is used as calendar default and explicit state query overrides it', function () {
+    // 1. Configure Center Bundesland as Berlin (BE)
+    app(\App\Core\Services\CenterSettingsService::class)->updateSettings([
+        'center_bundesland' => 'BE',
+    ]);
+
+    $date = '2026-03-08'; // Internationaler Frauentag (Public holiday in Berlin)
+
+    // Query calendar without explicit state parameter -> should default to 'BE'
+    $response = $this->getJson("/api/v1/nachhilfe/calendar?start_date={$date}&end_date={$date}");
+    $response->assertStatus(200);
+    expect($response->json('meta.state'))->toBe('BE');
+
+    // Query calendar with explicit state override 'BY' (Bayern) -> should use 'BY'
+    $overrideResponse = $this->getJson("/api/v1/nachhilfe/calendar?start_date={$date}&end_date={$date}&state=BY");
+    $overrideResponse->assertStatus(200);
+    expect($overrideResponse->json('meta.state'))->toBe('BY');
+});
+

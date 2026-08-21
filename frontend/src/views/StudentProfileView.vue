@@ -11,15 +11,15 @@
           {{ store.currentStudent.first_name }} {{ store.currentStudent.last_name }}
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Parent: {{ store.currentStudent.parent_name }} | Phone: {{ store.currentStudent.parent_phone_1 }}
+          {{ $t('students.parent') }}: {{ store.currentStudent.parent_name }} | {{ $t('students.phone') }}: {{ store.currentStudent.parent_phone_1 }}
         </p>
       </div>
       <div class="ml-auto flex gap-3">
-        <button @click="openEditSlideOver" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors">
-          Edit Profile
+        <button @click="openEditSlideOver" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors cursor-pointer">
+          {{ $t('students.editProfile') }}
         </button>
-        <button @click="confirmDeleteStudent" class="bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 dark:border-red-900 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors">
-          Delete
+        <button @click="confirmDeleteStudent" class="bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 dark:border-red-900 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors cursor-pointer">
+          {{ $t('common.delete') }}
         </button>
       </div>
     </div>
@@ -34,7 +34,7 @@
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          Overview
+          {{ $t('students.overview') }}
         </button>
         <button 
           @click="activeTab = 'timeline'" 
@@ -43,7 +43,7 @@
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          Timeline
+          {{ $t('students.timeline') }}
         </button>
         <button 
           @click="activeTab = 'invoices'" 
@@ -52,7 +52,7 @@
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Invoices
+          {{ $t('billing.title') }}
         </button>
         <button 
           @click="activeTab = 'statement'" 
@@ -61,7 +61,7 @@
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
-          Statement of Account
+          {{ $t('students.statementOfAccount') }}
         </button>
         <button 
           @click="activeTab = 'mobile_access'" 
@@ -70,7 +70,7 @@
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
-          App Access
+          {{ $t('students.appAccess') }}
         </button>
         <button 
           @click="activeTab = 'documents'" 
@@ -79,7 +79,7 @@
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
           </svg>
-          Documents & Reports
+          {{ $t('students.documents') }}
         </button>
         <button 
           @click="activeTab = 'notifications'" 
@@ -88,7 +88,7 @@
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          Notifications
+          {{ $t('common.notifications') }}
         </button>
       </nav>
     </div>
@@ -98,14 +98,14 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Details Card -->
         <div class="glass-panel rounded-2xl p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Details</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ $t('students.details') }}</h3>
           <dl class="divide-y divide-gray-100 dark:divide-gray-800">
             <div class="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-              <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">Billing Type</dt>
+              <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">{{ $t('students.billingType') }}</dt>
               <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0">{{ store.currentStudent.billing_type }}</dd>
             </div>
             <div class="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-              <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">Status</dt>
+              <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">{{ $t('common.status') }}</dt>
               <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0">
                 <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                   {{ store.currentStudent.status }}
@@ -113,7 +113,7 @@
               </dd>
             </div>
             <div class="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-              <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">DOB</dt>
+              <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">{{ $t('students.dob') }}</dt>
               <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0">{{ store.currentStudent.date_of_birth }}</dd>
             </div>
           </dl>
@@ -121,9 +121,9 @@
 
         <!-- Subjects -->
         <div class="glass-panel rounded-2xl p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Enrolled Subjects</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ $t('teachers.subjects') }}</h3>
           <div v-if="!store.currentStudent.subjects || store.currentStudent.subjects.length === 0" class="text-center py-6 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-            No subjects assigned.
+            {{ $t('students.noSubjects') }}
           </div>
           <div v-else class="flex flex-wrap gap-2">
             <span v-for="subject in store.currentStudent.subjects" :key="subject.id" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 ring-1 ring-inset ring-blue-700/10">
@@ -134,9 +134,9 @@
 
         <!-- Teachers -->
         <div class="glass-panel rounded-2xl p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">My Teachers</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ $t('teachers.title') }}</h3>
           <div v-if="!store.currentStudent.teachers || store.currentStudent.teachers.length === 0" class="text-center py-6 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-            No teachers assigned.
+            {{ $t('students.noTeachers') }}
           </div>
           <ul v-else class="divide-y divide-gray-100 dark:divide-gray-800">
             <li v-for="teacher in store.currentStudent.teachers" :key="teacher.id" class="py-3 flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg px-2 -mx-2 transition-colors" @click="$router.push(`/teachers/${teacher.id}`)">
@@ -156,38 +156,38 @@
         <!-- Hour Approvals & Vouchers -->
         <div class="glass-panel rounded-2xl p-6 lg:col-span-3">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Hour Approvals & Vouchers (Bewilligung)</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('students.hourApprovals') }}</h3>
             <button 
               @click="openAddPackageSlideOver"
               class="rounded-lg bg-purple-600 px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-purple-500 transition-colors cursor-pointer"
             >
-              Add Hour Approval
+              {{ $t('students.addHourApproval') }}
             </button>
           </div>
           
           <div v-if="!store.currentStudent.packages || store.currentStudent.packages.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-            No hour approvals or vouchers registered yet.
+            {{ $t('students.noHourApprovals') }}
           </div>
           <div v-else class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
               <thead>
                 <tr class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  <th class="pb-3">Subject</th>
-                  <th class="pb-3">Funding</th>
-                  <th class="pb-3">Reference No.</th>
-                  <th class="pb-3 text-center">Remaining / Total Hours</th>
-                  <th class="pb-3">Status</th>
-                  <th class="pb-3">Expires At</th>
+                  <th class="pb-3">{{ $t('teachers.subjects') }}</th>
+                  <th class="pb-3">{{ $t('students.billingType') }}</th>
+                  <th class="pb-3">{{ $t('students.referenceNo') }}</th>
+                  <th class="pb-3 text-center">{{ $t('students.remainingTotalHours') }}</th>
+                  <th class="pb-3">{{ $t('common.status') }}</th>
+                  <th class="pb-3">{{ $t('students.expiresAt') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50 text-sm">
                 <tr v-for="pkg in store.currentStudent.packages" :key="pkg.id" class="text-gray-700 dark:text-gray-300">
                   <td class="py-3 font-semibold">{{ pkg.subject }}</td>
-                  <td class="py-3 capitalize">{{ pkg.funding_source === 'jobcenter' ? 'Jobcenter (BuT)' : 'Private' }}</td>
+                  <td class="py-3 capitalize">{{ pkg.funding_source === 'jobcenter' ? 'Jobcenter (BuT)' : $t('students.billingTypeOptions.private') }}</td>
                   <td class="py-3 font-mono text-xs">{{ pkg.voucher_reference || 'N/A' }}</td>
                   <td class="py-3 text-center font-bold">
                     <span class="text-purple-600 dark:text-purple-400">{{ pkg.remaining_hours }}</span>
-                    <span class="text-gray-400"> / {{ pkg.total_hours }} hrs</span>
+                    <span class="text-gray-400"> / {{ pkg.total_hours }} Std.</span>
                   </td>
                   <td class="py-3">
                     <span :class="[
@@ -199,15 +199,15 @@
                       pkg.status === 'expired' ? 'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20 dark:bg-gray-800 dark:text-gray-400' : '',
                     ]">
                       {{ 
-                        pkg.status === 'active' ? 'Active' :
-                        pkg.status === 'pending_approval' ? 'Pending Approval (Antrag gestellt)' :
-                        pkg.status === 'exhausted' ? 'Exhausted' :
-                        pkg.status === 'rejected' ? 'Rejected (Abgelehnt)' :
-                        pkg.status === 'expired' ? 'Expired (Abgelaufen)' : pkg.status 
+                        pkg.status === 'active' ? $t('students.status.active') :
+                        pkg.status === 'pending_approval' ? $t('students.status.pending_approval') :
+                        pkg.status === 'exhausted' ? $t('students.status.exhausted') :
+                        pkg.status === 'rejected' ? $t('students.status.rejected') :
+                        pkg.status === 'expired' ? $t('students.status.expired') : pkg.status 
                       }}
                     </span>
                   </td>
-                  <td class="py-3 text-gray-500">{{ pkg.expires_at || 'Never' }}</td>
+                  <td class="py-3 text-gray-500">{{ pkg.expires_at || '-' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -218,7 +218,7 @@
       <!-- Calendar View for Student's Lessons -->
       <div class="glass-panel p-6 rounded-2xl flex-1 min-h-[500px] flex flex-col relative">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Student Schedule</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('students.studentSchedule') }}</h2>
         </div>
         
         <div v-if="lessonsStore.isLoading" class="absolute inset-0 z-10 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm flex items-center justify-center rounded-2xl">
@@ -262,7 +262,7 @@
           <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p class="text-base font-medium">No events recorded in this section currently.</p>
+          <p class="text-base font-medium">{{ $t('students.noTimelineEvents') }}</p>
         </div>
 
         <!-- Timeline Feed -->
@@ -291,7 +291,7 @@
                     @click="toggleEventDetails(event.id)"
                     class="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 cursor-pointer ml-auto"
                   >
-                    <span>{{ showDetails[event.id] ? 'Hide Details' : 'Show System Edit Details' }}</span>
+                    <span>{{ showDetails[event.id] ? $t('students.hideDetails') : $t('students.showDetails') }}</span>
                     <svg :class="['w-3 h-3 transition-transform', showDetails[event.id] ? 'rotate-180' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
@@ -299,10 +299,10 @@
 
                   <div v-if="showDetails[event.id]" class="mt-2 text-[11px] bg-white dark:bg-gray-900 p-3 rounded-xl border border-gray-100 dark:border-gray-800/80 space-y-1.5 shadow-inner">
                     <div class="font-bold text-gray-500 border-b border-gray-100 dark:border-gray-800 pb-1 flex justify-between">
-                      <span>Field</span>
+                      <span>{{ $t('students.field') }}</span>
                       <div class="flex gap-4">
-                        <span class="w-24 text-center">Old Value</span>
-                        <span class="w-24 text-center">New Value</span>
+                        <span class="w-24 text-center">{{ $t('students.oldValue') }}</span>
+                        <span class="w-24 text-center">{{ $t('students.newValue') }}</span>
                       </div>
                     </div>
                     
@@ -330,29 +330,26 @@
                 event.color === 'yellow' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-950/40 dark:text-yellow-400' : '',
               ]">
                 <!-- Dynamic Icons -->
-                <!-- calendar -->
                 <svg v-if="event.icon === 'calendar'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <!-- check-circle -->
                 <svg v-if="event.icon === 'check-circle'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <!-- credit-card -->
                 <svg v-if="event.icon === 'credit-card'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 00-3 3z" />
                 </svg>
-                <!-- archive -->
                 <svg v-if="event.icon === 'archive'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <!-- chat-bubble -->
                 <svg v-if="event.icon === 'chat-bubble'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <!-- document-text -->
-                <svg v-if="event.icon === 'document-text'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg v-if="event.icon === 'user-edit'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <svg v-if="event.icon === 'bell'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </div>
             </li>
@@ -366,17 +363,17 @@
             :disabled="timelineMeta.current_page === 1"
             class="px-4 py-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 rounded-xl text-xs font-semibold cursor-pointer disabled:opacity-50 transition-colors"
           >
-            Previous
+            {{ $t('common.previous') }}
           </button>
           <span class="text-xs text-gray-500 dark:text-gray-400">
-            Page {{ timelineMeta.current_page }} of {{ timelineMeta.last_page }}
+            {{ timelineMeta.current_page }} / {{ timelineMeta.last_page }}
           </span>
           <button 
             @click="changeTimelinePage(timelineMeta.current_page + 1)"
             :disabled="timelineMeta.current_page === timelineMeta.last_page"
             class="px-4 py-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 rounded-xl text-xs font-semibold cursor-pointer disabled:opacity-50 transition-colors"
           >
-            Next
+            {{ $t('common.next') }}
           </button>
         </div>
       </div>
@@ -385,22 +382,22 @@
     <!-- Invoices Tab -->
     <div v-else-if="activeTab === 'invoices'" class="glass-panel rounded-2xl p-6 mt-6">
       <div>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Invoices</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ $t('billing.title') }}</h3>
         <div v-if="!invoices.length" class="text-center text-gray-500 py-8">
-          No invoices found.
+          {{ $t('common.noData') }}
         </div>
         <ul v-else class="divide-y divide-gray-100 dark:divide-gray-800">
           <li v-for="invoice in invoices" :key="invoice.id" class="flex justify-between gap-x-6 py-4">
             <div class="flex min-w-0 gap-x-4">
               <div class="min-w-0 flex-auto">
                 <p class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">{{ invoice.month }}</p>
-                <p class="mt-1 truncate text-xs leading-5 text-gray-500">Status: {{ invoice.status }}</p>
+                <p class="mt-1 truncate text-xs leading-5 text-gray-500">{{ $t('common.status') }}: {{ invoice.status }}</p>
               </div>
             </div>
             <div class="hidden sm:flex sm:flex-col sm:items-end">
               <p class="text-sm leading-6 text-gray-900 dark:text-white font-medium">€{{ invoice.total_amount }}</p>
               <button v-if="invoice.status === 'draft' || invoice.status === 'unpaid'" @click="markAsPaid(invoice)" class="mt-1 inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10 hover:bg-purple-100 transition-colors">
-                Mark Paid
+                {{ $t('billing.markAsPaid') }}
               </button>
             </div>
           </li>
@@ -414,8 +411,8 @@
       <div class="glass-panel rounded-2xl p-6 lg:col-span-2 space-y-6">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Documents</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage official vouchers, extensions, contracts and invoices.</p>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('students.documents') }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $t('students.documentsSubtitle') }}</p>
           </div>
           <button 
             v-if="isAdmin"
@@ -425,7 +422,7 @@
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Upload Document
+            {{ $t('students.uploadDocument') }}
           </button>
         </div>
 
@@ -454,18 +451,18 @@
           <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <span class="text-sm text-gray-500 dark:text-gray-400">No documents found.</span>
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ $t('students.noDocumentsFound') }}</span>
         </div>
         <div v-else class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
             <thead>
               <tr class="text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th class="pb-3">Title</th>
-                <th class="pb-3">Category</th>
-                <th class="pb-3">Doc Date</th>
-                <th class="pb-3">Expiry Date</th>
-                <th class="pb-3">Size</th>
-                <th class="pb-3 text-right">Actions</th>
+                <th class="pb-3">{{ $t('common.id') }} / Titel</th>
+                <th class="pb-3">{{ $t('common.filter') }}</th>
+                <th class="pb-3">{{ $t('students.docDate') }}</th>
+                <th class="pb-3">{{ $t('students.expiryDate') }}</th>
+                <th class="pb-3">{{ $t('students.size') }}</th>
+                <th class="pb-3 text-right">{{ $t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50 text-sm">
@@ -490,14 +487,14 @@
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Download
+                    {{ $t('students.download') }}
                   </button>
                   <button 
                     v-if="isAdmin"
                     @click="deleteDoc(doc)"
                     class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 font-semibold text-xs cursor-pointer"
                   >
-                    Delete
+                    {{ $t('common.delete') }}
                   </button>
                 </td>
               </tr>
@@ -509,13 +506,13 @@
       <!-- Export Generator & Reports (col-span-1) -->
       <div class="glass-panel rounded-2xl p-6 space-y-6 self-start">
         <div>
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Reports & Export</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Generate daily verification sheets for Jobcenter.</p>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('students.reportsAndExport') }}</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $t('students.reportsSubtitle') }}</p>
         </div>
 
         <form @submit.prevent="generateStundennachweis" class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Target Month</label>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ $t('students.targetMonth') }}</label>
             <input 
               type="month" 
               v-model="reportMonth" 
@@ -525,12 +522,12 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Subject Filter (Optional)</label>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ $t('students.subjectFilter') }}</label>
             <select 
               v-model="reportSubject"
               class="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white focus:border-purple-500 focus:ring-purple-500"
             >
-              <option value="">All Subjects</option>
+              <option value="">{{ $t('students.allSubjects') }}</option>
               <option v-for="sub in subjectsStore.subjects" :key="sub.id" :value="sub.id">
                 {{ sub.name }}
               </option>
@@ -549,7 +546,7 @@
             <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
-            {{ isExporting ? 'Generating PDF...' : 'Export Stundennachweis' }}
+            {{ isExporting ? $t('students.generatingPdf') : $t('students.exportStundennachweis') }}
           </button>
         </form>
       </div>
@@ -560,16 +557,16 @@
       <!-- Dashboard Summary Cards (hidden on print) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4 print:mb-6">
         <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">Total Purchased Hours</span>
-          <span class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ totalPurchasedHours.toFixed(2) }} hrs</span>
+          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">{{ $t('students.totalPurchasedHours') }}</span>
+          <span class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ totalPurchasedHours.toFixed(2) }} Std.</span>
         </div>
         <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">Total Consumed Hours</span>
-          <span class="text-3xl font-bold text-red-600 dark:text-red-400 mt-2">{{ totalConsumedHours.toFixed(2) }} hrs</span>
+          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">{{ $t('students.totalConsumedHours') }}</span>
+          <span class="text-3xl font-bold text-red-600 dark:text-red-400 mt-2">{{ totalConsumedHours.toFixed(2) }} Std.</span>
         </div>
         <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">Remaining Balance</span>
-          <span class="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{{ totalRemainingHours.toFixed(2) }} hrs</span>
+          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">{{ $t('students.remainingBalance') }}</span>
+          <span class="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{{ totalRemainingHours.toFixed(2) }} Std.</span>
         </div>
       </div>
 
@@ -577,18 +574,18 @@
       <div class="glass-panel rounded-2xl p-6 space-y-6 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
         <div class="flex items-center justify-between print:hidden">
           <div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Account Ledger</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Detailed history of voucher transactions and lesson deductions.</p>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('students.accountLedger') }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $t('students.accountLedgerSubtitle') }}</p>
           </div>
           <div class="flex gap-3">
             <select 
               v-model="ledgerFilter" 
               class="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs text-gray-950 dark:text-white focus:border-purple-500 focus:ring-purple-500"
             >
-              <option value="all">All Transactions</option>
-              <option value="Deduction">Deductions</option>
-              <option value="Refund">Refunds</option>
-              <option value="Adjustment">Adjustments</option>
+              <option value="all">{{ $t('students.allTransactions') }}</option>
+              <option value="Deduction">{{ $t('students.deductions') }}</option>
+              <option value="Refund">{{ $t('students.refunds') }}</option>
+              <option value="Adjustment">{{ $t('students.adjustments') }}</option>
             </select>
             <button 
               @click="printStatement"
@@ -597,17 +594,15 @@
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Print Statement
+              {{ $t('students.printStatement') }}
             </button>
           </div>
-        </div>
-
-        <!-- Print-only header -->
+        </div>        <!-- Print-only header -->
         <div class="hidden print:block border-b pb-4 mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">Statement of Account</h2>
-          <p class="text-sm text-gray-600">Student: {{ store.currentStudent.first_name }} {{ store.currentStudent.last_name }}</p>
-          <p class="text-sm text-gray-600">Parent: {{ store.currentStudent.parent_name }} | Phone: {{ store.currentStudent.parent_phone_1 }}</p>
-          <p class="text-xs text-gray-500 mt-2">Generated on: {{ new Date().toLocaleDateString('de-DE') }}</p>
+          <h2 class="text-2xl font-bold text-gray-900">{{ $t('students.statementOfAccount') }}</h2>
+          <p class="text-sm text-gray-600">{{ $t('students.name') }}: {{ store.currentStudent.first_name }} {{ store.currentStudent.last_name }}</p>
+          <p class="text-sm text-gray-600">{{ $t('students.parent') }}: {{ store.currentStudent.parent_name }} | {{ $t('students.phone') }}: {{ store.currentStudent.parent_phone_1 }}</p>
+          <p class="text-xs text-gray-500 mt-2">Erstellt am: {{ new Date().toLocaleDateString('de-DE') }}</p>
         </div>
 
         <div v-if="isStatementLoading" class="flex justify-center items-center h-48 print:hidden">
@@ -617,17 +612,17 @@
           <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
           </svg>
-          <span class="text-sm text-gray-500 dark:text-gray-400">No transactions recorded yet.</span>
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ $t('students.noTransactions') }}</span>
         </div>
         <div v-else class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
             <thead>
               <tr class="text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th class="pb-3">Date</th>
-                <th class="pb-3">Type</th>
-                <th class="pb-3">Package Reference</th>
-                <th class="pb-3">Details</th>
-                <th class="pb-3 text-right">Amount (Hrs)</th>
+                <th class="pb-3">{{ $t('common.date') }}</th>
+                <th class="pb-3">{{ $t('common.status') }}</th>
+                <th class="pb-3">{{ $t('students.packageReference') }}</th>
+                <th class="pb-3">{{ $t('students.details') }}</th>
+                <th class="pb-3 text-right">{{ $t('students.hoursAmount') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50 text-sm">
@@ -642,24 +637,24 @@
                       'bg-gray-50 text-gray-700 ring-gray-600/10 dark:bg-gray-900/40 dark:text-gray-400'
                     ]"
                   >
-                    {{ tx.type }}
+                    {{ tx.type === 'Deduction' ? $t('students.deductions') : (tx.type === 'Refund' ? $t('students.refunds') : tx.type) }}
                   </span>
                 </td>
                 <td class="py-3.5">
-                  <div class="font-medium text-gray-900 dark:text-white">{{ tx.subscription?.package?.name ?? 'Standard Package' }}</div>
-                  <div class="text-xs text-gray-500">{{ tx.subscription?.voucher_reference ?? 'Private Funding' }}</div>
+                  <div class="font-medium text-gray-900 dark:text-white">{{ tx.subscription?.package?.name ?? 'Standard' }}</div>
+                  <div class="text-xs text-gray-500">{{ tx.subscription?.voucher_reference ?? 'Privatzahler' }}</div>
                 </td>
                 <td class="py-3.5">
                   <div v-if="tx.lesson">
-                    Lesson: {{ tx.lesson.subject?.name }} with {{ tx.lesson.teacher?.name }}
+                    {{ tx.lesson.subject?.name }} ({{ tx.lesson.teacher?.name }})
                     <span class="text-xs text-gray-500">({{ tx.lesson.date }})</span>
                   </div>
                   <div v-else class="text-xs text-gray-500">
-                    {{ tx.notes || 'Manual Adjustment' }}
+                    {{ tx.notes || 'Korrektur' }}
                   </div>
                 </td>
                 <td class="py-3.5 text-right font-semibold" :class="tx.type === 'Deduction' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
-                  {{ tx.type === 'Deduction' ? '-' : '+' }}{{ parseFloat(tx.hours).toFixed(2) }}
+                  {{ tx.type === 'Deduction' ? '-' : '+' }}{{ parseFloat(tx.hours).toFixed(2) }} Std.
                 </td>
               </tr>
             </tbody>
@@ -682,9 +677,9 @@
               <div class="border-4 border-purple-600 rounded-[2.5rem] p-10 w-[440px] mx-auto text-center bg-white text-gray-900 shadow-2xl border-double flex flex-col items-center justify-between min-h-[500px] pb-12 my-8">
                 <!-- Header with premium line decoration -->
                 <div class="w-full">
-                  <div class="text-[11px] uppercase tracking-[0.25em] text-purple-600 font-extrabold mb-1">Access Pass</div>
+                  <div class="text-[11px] uppercase tracking-[0.25em] text-purple-600 font-extrabold mb-1">{{ $t('students.appAccess') }}</div>
                   <h2 class="text-2xl font-black tracking-tight text-gray-900">{{ store.currentStudent.first_name }} {{ store.currentStudent.last_name }}</h2>
-                  <div class="text-xs text-gray-500 font-medium mt-1">Student Profile</div>
+                  <div class="text-xs text-gray-500 font-medium mt-1">{{ $t('students.overview') }}</div>
                 </div>
 
                 <div class="w-full my-6 flex flex-col items-center">
@@ -706,12 +701,12 @@
 
                 <!-- Access Code -->
                 <div class="w-full">
-                  <span class="text-[9px] uppercase tracking-[0.2em] text-gray-400 font-bold block mb-1">Access Code</span>
+                  <span class="text-[9px] uppercase tracking-[0.2em] text-gray-400 font-bold block mb-1">{{ $t('students.manualCode') }}</span>
                   <div class="text-2xl font-black tracking-[0.15em] bg-purple-50 text-purple-700 py-3 rounded-2xl font-mono border border-purple-100 shadow-inner">
                     {{ loginCode?.code }}
                   </div>
                   <p class="text-[10px] text-gray-400 mt-4 leading-relaxed max-w-[280px] mx-auto">
-                    Scan QR code using the Nachhilfe App camera, or enter the code manually to access your profile.
+                    {{ $t('students.mobileQrSubtitle') }}
                   </p>
                 </div>
               </div>
@@ -719,8 +714,8 @@
           </Teleport>
 
           <div class="print:hidden w-full flex flex-col items-center">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Mobile App QR Code</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 mb-6">Scan using the mobile app to log in instantly.</p>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('students.mobileQrTitle') }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 mb-6">{{ $t('students.mobileQrSubtitle') }}</p>
             
             <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 mb-4">
               <img 
@@ -732,7 +727,7 @@
             </div>
 
             <div class="text-center space-y-1 mb-6">
-              <span class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Manual Code</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">{{ $t('students.manualCode') }}</span>
               <div class="text-2xl font-black tracking-widest text-purple-600 dark:text-purple-400 font-mono">
                 {{ loginCode?.code }}
               </div>
@@ -743,13 +738,13 @@
                 @click="printStatement"
                 class="flex-1 rounded-xl border border-gray-300 dark:border-gray-700 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer flex justify-center items-center gap-1.5"
               >
-                Print Access Card
+                {{ $t('students.printAccessCard') }}
               </button>
               <button 
                 @click="showRegenPasswordModal = true"
                 class="flex-1 rounded-xl bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
               >
-                Regenerate Code
+                {{ $t('students.regenerateCode') }}
               </button>
             </div>
           </div>
@@ -758,15 +753,15 @@
         <!-- Devices Session Management -->
         <div class="lg:col-span-2 glass-panel rounded-2xl p-6 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 space-y-4 print:hidden">
           <div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Authorized Devices</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">List of active devices logged into this student account.</p>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('students.authorizedDevices') }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $t('students.authorizedDevicesSubtitle') }}</p>
           </div>
 
           <div v-if="activeDevices.length === 0" class="text-center py-10 bg-gray-50/50 dark:bg-gray-800/10 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
             <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
-            <span class="text-sm text-gray-500 dark:text-gray-400">No active mobile sessions.</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $t('students.noActiveDevices') }}</span>
           </div>
 
           <ul v-else class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -779,14 +774,14 @@
                 </div>
                 <div>
                   <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ device.device_name }}</div>
-                  <div class="text-xs text-gray-500">Session Registered: {{ formatDate(device.created_at) }}</div>
+                  <div class="text-xs text-gray-500">{{ $t('students.sessionRegistered') }}: {{ formatDate(device.created_at) }}</div>
                 </div>
               </div>
               <button 
                 @click="revokeDevice(device.id)"
                 class="rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer transition-colors"
               >
-                Log Out Device
+                {{ $t('students.logoutDevice') }}
               </button>
             </li>
           </ul>
@@ -798,12 +793,12 @@
     <div v-if="showRegenPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 print:hidden">
       <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-gray-100 dark:border-gray-700">
         <div>
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Regenerate Login Code</h3>
-          <p class="text-xs text-gray-500 mt-1">This will invalidate the current QR/short code and immediately log out all active mobile devices for security.</p>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('students.regenModalTitle') }}</h3>
+          <p class="text-xs text-gray-500 mt-1">{{ $t('students.regenModalDesc') }}</p>
         </div>
         <form @submit.prevent="handleRegenerateCode" class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Confirm Administrator Password</label>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">{{ $t('students.confirmAdminPassword') }}</label>
             <input 
               type="password" 
               required 
@@ -818,7 +813,7 @@
               @click="showRegenPasswordModal = false; adminPasswordForRegen = ''"
               class="rounded-xl border border-gray-300 dark:border-gray-700 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
             >
-              Cancel
+              {{ $t('common.cancel') }}
             </button>
             <button 
               type="submit" 
@@ -829,7 +824,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Regenerate Code
+              {{ $t('students.regenerateCode') }}
             </button>
           </div>
         </form>
@@ -840,14 +835,14 @@
     <div v-else-if="activeTab === 'notifications'" class="glass-panel rounded-2xl p-6 mt-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">System Notifications</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Logs and channel deliveries for the parent's account.</p>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('students.systemNotificationsTitle') }}</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $t('students.systemNotificationsSubtitle') }}</p>
         </div>
         <button 
           @click="markAllNotificationsRead"
           class="rounded-xl border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
         >
-          Mark all read
+          {{ $t('common.markAllRead') }}
         </button>
       </div>
 
@@ -858,7 +853,7 @@
         <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
-        <span class="text-sm text-gray-500 dark:text-gray-400">No notifications found.</span>
+        <span class="text-sm text-gray-500 dark:text-gray-400">{{ $t('students.noNotificationsFound') }}</span>
       </div>
       <div v-else class="space-y-4">
         <div v-for="group in groupedNotifications" :key="group.group_id" class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/40 space-y-3">
@@ -869,24 +864,24 @@
                   {{ group.type }}
                 </span>
                 <span v-if="group.priority === 'high'" class="inline-flex items-center rounded-md bg-red-50 dark:bg-red-950/40 px-2 py-1 text-xs font-semibold text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-600/20">
-                  Priority High
+                  {{ $t('students.priorityHigh') }}
                 </span>
                 <h4 class="text-sm font-bold text-gray-900 dark:text-white">{{ group.title }}</h4>
               </div>
               <p class="text-sm text-gray-600 dark:text-gray-300">{{ group.message }}</p>
               <div v-if="group.metadata" class="text-xs bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700 font-mono text-gray-500 dark:text-gray-400 mt-2">
-                <div>Student: {{ group.metadata.student_name }}</div>
-                <div>Subject: {{ group.metadata.subject_name }}</div>
-                <div v-if="group.metadata.hours_remaining !== undefined">Hours Remaining: {{ group.metadata.hours_remaining }}</div>
-                <div v-if="group.metadata.expires_at">Expires At: {{ group.metadata.expires_at }}</div>
-                <div>Voucher Ref: {{ group.metadata.voucher_reference }}</div>
+                <div>{{ $t('students.name') }}: {{ group.metadata.student_name }}</div>
+                <div>{{ $t('teachers.subjects') }}: {{ group.metadata.subject_name }}</div>
+                <div v-if="group.metadata.hours_remaining !== undefined">{{ $t('students.hoursRemainingLabel') }}: {{ group.metadata.hours_remaining }}</div>
+                <div v-if="group.metadata.expires_at">{{ $t('students.expiresAt') }}: {{ group.metadata.expires_at }}</div>
+                <div>{{ $t('students.referenceNo') }}: {{ group.metadata.voucher_reference }}</div>
               </div>
             </div>
             <span class="text-xs text-gray-500 whitespace-nowrap">{{ formatDate(group.created_at) }}</span>
           </div>
 
           <div class="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-800/80">
-            <span class="text-xs font-medium text-gray-500">Delivery Status:</span>
+            <span class="text-xs font-medium text-gray-500">{{ $t('students.deliveryStatus') }}:</span>
             <div class="flex gap-2">
               <span v-for="channel in group.deliveries" :key="channel.channel" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset"
                 :class="[
@@ -911,7 +906,7 @@
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg p-6 space-y-4 border border-gray-100 dark:border-gray-800">
             <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
-              <h3 class="text-lg font-bold text-gray-900 dark:text-white" id="modal-title">Upload Student Document</h3>
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white" id="modal-title">{{ $t('students.uploadDocument') }}</h3>
               <button @click="closeUploadModal" class="text-gray-400 hover:text-gray-500 cursor-pointer">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -921,18 +916,18 @@
 
             <form @submit.prevent="submitUpload" class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Document Title</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('common.id') }} / Titel</label>
                 <input 
                   type="text" 
                   v-model="uploadForm.title" 
                   required
-                  placeholder="e.g. Jobcenter Bewilligungsbescheid 2026"
+                  placeholder="z.B. Jobcenter Bewilligungsbescheid 2026"
                   class="mt-1 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('common.filter') }}</label>
                 <select 
                   v-model="uploadForm.category" 
                   required
@@ -946,7 +941,7 @@
 
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Document Date</label>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('students.docDate') }}</label>
                   <input 
                     type="date" 
                     v-model="uploadForm.document_date" 
@@ -955,7 +950,7 @@
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Expiry Date (Optional)</label>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('students.expiryDate') }}</label>
                   <input 
                     type="date" 
                     v-model="uploadForm.expires_at" 
@@ -965,7 +960,7 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select File (PDF, PNG, JPG, Max 10MB)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Datei auswählen (PDF, PNG, JPG, Max 10MB)</label>
                 <label 
                   @dragover.prevent="isDragOver = true"
                   @dragleave.prevent="isDragOver = false"
@@ -983,11 +978,11 @@
                     </svg>
                     <div class="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
                       <span class="font-semibold text-purple-600 hover:text-purple-500">
-                        Drag and drop a file, or click to browse
+                        Datei hierher ziehen oder klicken zum Auswählen
                       </span>
                       <input type="file" ref="fileInput" @change="handleFileChange" required class="sr-only" />
                     </div>
-                    <p class="text-xs text-gray-500">{{ selectedFileName || 'No file selected' }}</p>
+                    <p class="text-xs text-gray-500">{{ selectedFileName || 'Keine Datei ausgewählt' }}</p>
                   </div>
                 </label>
               </div>
@@ -998,10 +993,10 @@
                   @click="closeUploadModal" 
                   class="rounded-xl border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                 >
-                  Cancel
+                  {{ $t('common.cancel') }}
                 </button>
                 <button 
-                  type="submit"
+                  type="submit" 
                   :disabled="isUploading"
                   class="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                 >
@@ -1009,7 +1004,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Submit
+                  {{ $t('common.save') }}
                 </button>
               </div>
             </form>
@@ -1036,11 +1031,11 @@
       </svg>
     </div>
     <div>
-      <h3 class="text-lg font-bold text-gray-900 dark:text-white">Student Not Found</h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">This student record does not exist or the ID has changed.</p>
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('students.studentNotFound') }}</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $t('students.studentNotFoundDesc') }}</p>
     </div>
     <button @click="$router.push('/students')" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-colors text-sm cursor-pointer">
-      &larr; Back to Students List
+      &larr; {{ $t('students.backToStudents') }}
     </button>
   </div>
 </div>
@@ -1049,6 +1044,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useStudentsStore } from '@/stores/studentsStore'
 import { useLessonsStore, type Lesson } from '@/stores/lessonsStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -1064,6 +1060,7 @@ import api from '@/api'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const store = useStudentsStore()
 const lessonsStore = useLessonsStore()
 const authStore = useAuthStore()
@@ -1092,24 +1089,20 @@ const documents = ref<any[]>([])
 const isDocsLoading = ref(false)
 const activeDocFilter = ref('all')
 
-const docCategories = [
-  { label: 'All', value: 'all' },
-  { label: 'Vouchers (Antrag)', value: 'application' },
-  { label: 'Extensions (Verlängerung)', value: 'extension' },
-  { label: 'Contracts (Vertrag)', value: 'contract' },
-  { label: 'Invoices (Rechnung)', value: 'invoice' },
-  { label: 'Attendance Sheets', value: 'attendance_sheet' },
-  { label: 'Other', value: 'other' }
-]
+const docCategories = computed(() => [
+  { label: t('students.docCategories.all'), value: 'all' },
+  { label: t('students.docCategories.application'), value: 'application' },
+  { label: t('students.docCategories.extension'), value: 'extension' },
+  { label: t('students.docCategories.contract'), value: 'contract' },
+  { label: t('students.docCategories.invoice'), value: 'invoice' },
+])
 
-const uploadCategories = [
-  { label: 'Voucher (Antrag)', value: 'application' },
-  { label: 'Extension (Verlängerung)', value: 'extension' },
-  { label: 'Contract (Vertrag)', value: 'contract' },
-  { label: 'Invoice (Rechnung)', value: 'invoice' },
-  { label: 'Attendance Sheet', value: 'attendance_sheet' },
-  { label: 'Other', value: 'other' }
-]
+const uploadCategories = computed(() => [
+  { label: t('students.docCategories.application'), value: 'application' },
+  { label: t('students.docCategories.extension'), value: 'extension' },
+  { label: t('students.docCategories.contract'), value: 'contract' },
+  { label: t('students.docCategories.invoice'), value: 'invoice' },
+])
 
 const filteredDocuments = computed(() => {
   if (activeDocFilter.value === 'all') return documents.value
@@ -1160,44 +1153,51 @@ function closeUploadModal() {
 }
 
 function handleFileChange(event: any) {
-  const files = event.target.files
-  if (files && files.length > 0) {
-    selectedFile.value = files[0]
-    selectedFileName.value = files[0].name
+  const file = event.target.files[0]
+  if (file) {
+    selectedFile.value = file
+    selectedFileName.value = file.name
   }
 }
 
 function handleFileDrop(event: DragEvent) {
   isDragOver.value = false
-  const files = event.dataTransfer?.files
-  if (files && files.length > 0) {
-    selectedFile.value = files[0]
-    selectedFileName.value = files[0].name
+  const file = event.dataTransfer?.files[0]
+  if (file) {
+    selectedFile.value = file
+    selectedFileName.value = file.name
   }
 }
 
 async function submitUpload() {
-  if (!selectedFile.value || !route.params.id) return
+  if (!selectedFile.value || !store.currentStudent) {
+    toastStore.error('Bitte wählen Sie eine Datei aus.')
+    return
+  }
+
   isUploading.value = true
   try {
     const formData = new FormData()
+    formData.append('document', selectedFile.value)
     formData.append('title', uploadForm.value.title)
     formData.append('category', uploadForm.value.category)
     formData.append('document_date', uploadForm.value.document_date)
     if (uploadForm.value.expires_at) {
       formData.append('expires_at', uploadForm.value.expires_at)
     }
-    formData.append('file', selectedFile.value)
 
-    await api.post(`/nachhilfe/students/${route.params.id}/documents`, formData, {
+    await api.post(`/nachhilfe/students/${store.currentStudent.id}/documents`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
+
+    toastStore.success('Dokument erfolgreich hochgeladen!')
     closeUploadModal()
-    fetchDocuments(route.params.id as string)
+    fetchDocuments(store.currentStudent.id)
   } catch (err) {
-    console.error('Upload failed', err)
+    console.error('Failed to upload document', err)
+    toastStore.error('Fehler beim Hochladen des Dokuments.')
   } finally {
     isUploading.value = false
   }
@@ -1206,69 +1206,69 @@ async function submitUpload() {
 // Download & Delete
 async function downloadDoc(doc: any) {
   try {
-    const response = await api.get(`/nachhilfe/documents/${doc.id}/download`, {
+    const res = await api.get(`/nachhilfe/documents/${doc.id}/download`, {
       responseType: 'blob'
     })
-    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const url = window.URL.createObjectURL(new Blob([res.data]))
     const link = document.createElement('a')
     link.href = url
-    const fileExt = doc.file_path ? doc.file_path.split('.').pop() : getFileExtension(doc.mime_type)
-    link.setAttribute('download', doc.title + '.' + fileExt)
+    link.setAttribute('download', doc.file_name || doc.title)
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
   } catch (err) {
-    console.error('Download failed', err)
+    console.error('Failed to download document', err)
+    toastStore.error('Fehler beim Herunterladen des Dokuments.')
   }
-}
-
-function getFileExtension(mimeType: string): string {
-  const map: Record<string, string> = {
-    'application/pdf': 'pdf',
-    'image/png': 'png',
-    'image/jpeg': 'jpg',
-    'image/jpg': 'jpg',
-  }
-  return map[mimeType] ?? 'bin'
 }
 
 async function deleteDoc(doc: any) {
-  if (!confirm(`Are you sure you want to delete "${doc.title}"?`)) return
+  if (!confirm(`Möchten Sie "${doc.title}" wirklich löschen?`)) return
   try {
     await api.delete(`/nachhilfe/documents/${doc.id}`)
-    if (route.params.id) {
-      fetchDocuments(route.params.id as string)
+    toastStore.success('Dokument gelöscht.')
+    if (store.currentStudent) {
+      fetchDocuments(store.currentStudent.id)
     }
   } catch (err) {
-    console.error('Delete failed', err)
+    console.error('Failed to delete document', err)
+    toastStore.error('Fehler beim Löschen des Dokuments.')
   }
 }
 
 // Stundennachweis Export
-const reportMonth = ref(new Date().toISOString().substring(0, 7))
+const reportMonth = ref(new Date().toISOString().slice(0, 7))
 const reportSubject = ref('')
 const isExporting = ref(false)
 
 async function generateStundennachweis() {
-  if (!route.params.id) return
+  if (!store.currentStudent) return
   isExporting.value = true
   try {
-    let url = `/nachhilfe/students/${route.params.id}/stundennachweis?month=${reportMonth.value}`
-    if (reportSubject.value) {
-      url += `&subject_id=${reportSubject.value}`
+    const params: Record<string, any> = {
+      month: reportMonth.value
     }
-    const response = await api.get(url, {
+    if (reportSubject.value) {
+      params.subject_id = reportSubject.value
+    }
+
+    const res = await api.get(`/nachhilfe/students/${store.currentStudent.id}/stundennachweis`, {
+      params,
       responseType: 'blob'
     })
-    const blob = new Blob([response.data], { type: 'application/pdf' })
+
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
     const link = document.createElement('a')
-    link.href = window.URL.createObjectURL(blob)
-    link.setAttribute('download', `Stundennachweis_${store.currentStudent?.last_name || 'Student'}_${reportMonth.value}.pdf`)
+    link.href = url
+    link.setAttribute('download', `Stundennachweis_${store.currentStudent.first_name}_${store.currentStudent.last_name}_${reportMonth.value}.pdf`)
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
+    
+    toastStore.success('Stundennachweis erfolgreich heruntergeladen!')
   } catch (err) {
-    console.error('Export failed', err)
+    console.error('Failed to generate Stundennachweis', err)
+    toastStore.error('Fehler beim Erstellen des Stundennachweises.')
   } finally {
     isExporting.value = false
   }
@@ -1277,12 +1277,10 @@ async function generateStundennachweis() {
 // Metadata formatting helpers
 function getCategoryLabel(category: string): string {
   const map: Record<string, string> = {
-    application: 'Voucher (Antrag)',
-    extension: 'Extension',
-    contract: 'Contract',
-    invoice: 'Invoice',
-    attendance_sheet: 'Attendance Sheet',
-    other: 'Other'
+    application: t('students.docCategories.application'),
+    extension: t('students.docCategories.extension'),
+    contract: t('students.docCategories.contract'),
+    invoice: t('students.docCategories.invoice'),
   }
   return map[category] ?? category
 }
@@ -1323,15 +1321,15 @@ const timelineFilter = ref('all')
 const isTimelineLoading = ref(false)
 const showDetails = ref<Record<string, boolean>>({})
 
-const timelineFilters = [
-  { label: 'All', value: 'all' },
-  { label: 'Lessons', value: 'lesson' },
-  { label: 'Attendance', value: 'attendance' },
-  { label: 'Payments', value: 'payment' },
-  { label: 'Packages', value: 'package' },
-  { label: 'Notes', value: 'note' },
-  { label: 'System Changes', value: 'change' },
-]
+const timelineFilters = computed(() => [
+  { label: t('students.timelineCategories.all'), value: 'all' },
+  { label: t('students.timelineCategories.lesson'), value: 'lesson' },
+  { label: t('students.timelineCategories.attendance'), value: 'attendance' },
+  { label: t('students.timelineCategories.payment'), value: 'payment' },
+  { label: t('students.timelineCategories.package'), value: 'package' },
+  { label: t('students.timelineCategories.note'), value: 'note' },
+  { label: t('students.timelineCategories.change'), value: 'change' },
+])
 
 async function fetchTimeline(page = 1) {
   if (!route.params.id) return
@@ -1377,19 +1375,22 @@ const isNotificationsLoading = ref(false)
 async function fetchNotifications(studentId: string) {
   isNotificationsLoading.value = true
   try {
-    const res = await api.get(`/nachhilfe/students/${studentId}/timeline`)
-    // Filter the timeline events that are notifications
-    const notificationEvents = res.data.filter((e: any) => e.type === 'notification')
+    const res = await api.get(`/nachhilfe/students/${studentId}/timeline`, {
+      params: { type: 'notification' }
+    })
+    // Safely extract event list from paginated or raw array response
+    const rawList = Array.isArray(res.data) ? res.data : (res.data?.data ?? [])
+    const notificationEvents = rawList.filter((e: any) => e.type === 'notification')
     
     groupedNotifications.value = notificationEvents.map((e: any) => ({
-      group_id: e.metadata.notification_group_id,
-      type: e.metadata.type,
-      title: e.title,
-      message: e.description.split(' (Status:')[0],
+      group_id: e.metadata?.notification_group_id || e.id,
+      type: e.metadata?.type || 'general',
+      title: e.title || '',
+      message: (e.description || '').split(' (Status:')[0],
       priority: e.priority || 'normal',
-      created_at: e.date + ' ' + e.time,
-      metadata: e.metadata,
-      deliveries: e.metadata.deliveries || []
+      created_at: (e.date ? `${e.date} ${e.time || ''}` : e.created_at || '').trim(),
+      metadata: e.metadata || {},
+      deliveries: e.metadata?.deliveries || []
     }))
   } catch (err) {
     console.error('Failed to load notifications', err)

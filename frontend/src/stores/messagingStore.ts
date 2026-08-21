@@ -203,8 +203,11 @@ export const useMessagingStore = defineStore('messaging', () => {
           messages.value.push(msg)
         }
       }
-    } catch (e) {
-      // silent
+    } catch (e: any) {
+      if (e?.response?.status === 404) {
+        activeChannelId.value = null
+        messages.value = []
+      }
     }
   }
 

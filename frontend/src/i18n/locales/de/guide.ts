@@ -1,0 +1,45 @@
+export default {
+  title: 'Nachhilfe Betriebs-Handbuch',
+  subtitle: 'Ihr umfassender Leitfaden für den täglichen Nachhilfebetrieb.',
+  searchPlaceholder: 'Handbuch durchsuchen (z.B. Abrechnung, BuT-Gutscheine, Anwesenheit)...',
+  systemStatus: 'Systemdienste',
+  operational100: '100% Betriebsbereit',
+  launchTourButton: 'Interaktive Tour starten 🎯',
+  dailyRoutines: 'Tägliche Betriebsabläufe & Checklisten',
+  faqTitle: 'Häufig gestellte Fragen & Praxiswissen',
+  allGuides: 'Alle Anleitungen',
+  categories: {
+    all: 'Alle Anleitungen',
+    calendar: 'Stundenplan & Unterricht',
+    attendance: 'Anwesenheit',
+    reminders: 'Erinnerungen & SMS',
+    payrolls: 'Honorarabrechnung',
+    invoices: 'Rechnungen & Finanzen',
+    students: 'Schüler & BuT-Pakete',
+    teachers: 'Lehrkräfte & Personal',
+    reports: 'Berichte & Druck',
+    admin: 'Einstellungen & Sicherheit',
+  },
+  routines: {
+    morning: {
+      timing: 'Morgenroutine',
+      title: 'Tagesbeginn',
+      summary: 'Stundenplan für heutige Stunden prüfen und Türtabellen für die Klassenräume ausdrucken.',
+    },
+    midday: {
+      timing: 'Mittagsroutine',
+      title: 'Anwesenheitserfassung',
+      summary: 'Beendete Stunden öffnen, Schüler als anwesend/abwesend markieren und Stunden abbuchen.',
+    },
+    evening: {
+      timing: 'Abendroutine',
+      title: 'Morgen-Vorschau',
+      summary: 'Prüfen, ob 24h-Erinnerungen versendet wurden und Terminüberschneidungen auflösen.',
+    },
+    monthly: {
+      timing: 'Monatsroutine',
+      title: 'Honorare & Rechnungen',
+      summary: 'Lehrerstunden prüfen, Honorare genehmigen & versiegeln und PDF-Abrechnungen exportieren.',
+    },
+  },
+}

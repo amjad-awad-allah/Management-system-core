@@ -11,15 +11,25 @@
             margin: 0;
             padding: 15px;
         }
-        .header {
+        .header-table {
+            width: 100%;
             border-bottom: 2px solid #059669;
             padding-bottom: 10px;
             margin-bottom: 15px;
+        }
+        .header-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
         }
         .header h1 {
             font-size: 18px;
             color: #047857;
             margin: 0 0 5px 0;
+        }
+        .logo-img {
+            max-height: 48px;
+            max-width: 160px;
         }
         .summary-box {
             background-color: #f0fdf4;
@@ -78,12 +88,22 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Honorar-Abrechnung (Freigegeben)</h1>
-        <div style="font-size: 11px; color: #475569;">
-            Abrechnungszeitraum: <strong>{{ $data['year_month'] }}</strong>
-        </div>
-    </div>
+    <table class="header-table">
+        <tr>
+            <td>
+                <h1>Honorar-Abrechnung (Freigegeben)</h1>
+                <div style="font-size: 11px; color: #475569;">
+                    Abrechnungszeitraum: <strong>{{ $data['year_month'] }}</strong>
+                </div>
+            </td>
+            <td style="text-align: right;">
+                @if(!empty($center['logo_base64']))
+                    <img src="{{ $center['logo_base64'] }}" alt="Logo" class="logo-img" /><br>
+                @endif
+                <strong style="font-size: 12px; color: #047857;">{{ $center['name'] ?? 'Muster Nachhilfeinstitut' }}</strong>
+            </td>
+        </tr>
+    </table>
 
     <div class="summary-box">
         <table class="summary-grid">
@@ -146,7 +166,7 @@
     </div>
 
     <div class="footer">
-        Erstellt am: {{ $data['generated_at'] }} | Nachhilfe Management System
+        Erstellt am: {{ $data['generated_at'] }} | {{ $center['name'] ?? 'Nachhilfe Management System' }}
     </div>
 </body>
 </html>

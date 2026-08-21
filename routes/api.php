@@ -13,14 +13,20 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
+        Route::patch('/user/preferences', [AuthController::class, 'updatePreferences']);
         
         // System Management (Protected by Super Admin Gate implicitly or explicit permission)
         Route::apiResource('/users', \App\Core\Presentation\Controllers\UserController::class);
         Route::apiResource('/roles', \App\Core\Presentation\Controllers\RoleController::class);
         Route::get('/permissions', [\App\Core\Presentation\Controllers\RoleController::class, 'permissions']);
         Route::get('/audit-logs', [\App\Core\Presentation\Controllers\AuditLogController::class, 'index']);
+        Route::get('/system-logs', [\App\Core\Presentation\Controllers\SystemLogController::class, 'index']);
+        Route::get('/system-logs/export', [\App\Core\Presentation\Controllers\SystemLogController::class, 'export']);
+        Route::post('/system-logs/clear', [\App\Core\Presentation\Controllers\SystemLogController::class, 'clear']);
         Route::get('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'index']);
         Route::post('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'update']);
+        Route::post('/settings/logo', [\App\Core\Presentation\Controllers\SettingController::class, 'uploadLogo']);
+        Route::delete('/settings/logo', [\App\Core\Presentation\Controllers\SettingController::class, 'deleteLogo']);
 
         // Core Notification Center & Outbox DLQ Admin
         Route::get('/notifications', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'index']);
@@ -37,6 +43,16 @@ Route::prefix('v1')->group(function () {
         Route::get('/nachhilfe/teachers/{id}/login-code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'showTeacherCode']);
         Route::post('/users/{id}/login-code/regenerate', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'regenerate']);
         Route::delete('/mobile/devices/{id}', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'revokeDevice']);
+
+        // Interactive Onboarding Guided Tours
+        Route::prefix('onboarding')->group(function () {
+            Route::get('/{tourKey?}', [\App\Core\Presentation\Controllers\OnboardingController::class, 'show']);
+            Route::post('/{tourKey}/start', [\App\Core\Presentation\Controllers\OnboardingController::class, 'start']);
+            Route::post('/{tourKey}/step', [\App\Core\Presentation\Controllers\OnboardingController::class, 'step']);
+            Route::post('/{tourKey}/complete', [\App\Core\Presentation\Controllers\OnboardingController::class, 'complete']);
+            Route::post('/{tourKey}/skip', [\App\Core\Presentation\Controllers\OnboardingController::class, 'skip']);
+            Route::post('/{tourKey}/reset', [\App\Core\Presentation\Controllers\OnboardingController::class, 'reset']);
+        });
 
         // ── Admin Chat & Messaging ─────────────────────────────────────────────
         Route::prefix('nachhilfe/chat')->group(function () {

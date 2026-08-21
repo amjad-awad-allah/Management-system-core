@@ -22,7 +22,7 @@ import Pusher from 'pusher-js'
   authorizer: (channel: any) => {
     return {
       authorize: (socketId: string, callback: Function) => {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('auth_token')
         fetch('/api/v1/broadcasting/auth', {
           method: 'POST',
           headers: {
@@ -51,9 +51,12 @@ import Pusher from 'pusher-js'
 })
 // ─────────────────────────────────────────────────────────────────────────
 
+import i18n from './i18n'
+
 const app = createApp(App)
 
 app.use(createPinia())
+app.use(i18n)
 app.use(router)
 
 app.mount('#app')

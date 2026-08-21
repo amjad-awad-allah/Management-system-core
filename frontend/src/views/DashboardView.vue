@@ -7,20 +7,20 @@
           {{ greetingMessage }}
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Here is what's happening at the center today.
+          {{ $t('dashboard.subtitle') }}
         </p>
       </div>
       
       <div class="flex flex-wrap items-center gap-3">
-        <button @click="$router.push('/lessons')" class="inline-flex items-center rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-purple-500 hover:to-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 transition-all transform hover:scale-105">
+        <button @click="$router.push('/lessons')" class="inline-flex items-center rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-purple-500 hover:to-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 transition-all transform hover:scale-105 cursor-pointer">
           <CalendarIcon class="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-          Schedule Lesson
+          {{ $t('lessons.bookLesson') }}
         </button>
       </div>
     </div>
 
     <!-- Live Center Status (Premium Feature) -->
-    <div class="bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border border-white/20 dark:border-gray-700/30 shadow-sm rounded-3xl p-6 relative overflow-hidden bg-gradient-to-br from-white/60 to-white/30 dark:from-gray-800/80 dark:to-gray-900/80 shadow-xl">
+    <div data-tour="live-status" class="bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border border-white/20 dark:border-gray-700/30 shadow-sm rounded-3xl p-6 relative overflow-hidden bg-gradient-to-br from-white/60 to-white/30 dark:from-gray-800/80 dark:to-gray-900/80 shadow-xl">
       <div class="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-purple-500/20 blur-3xl"></div>
       <div class="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-blue-500/20 blur-3xl"></div>
       
@@ -31,7 +31,7 @@
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
             </span>
-            Live Center Status
+            {{ $t('dashboard.liveCenterStatus') }}
           </h2>
         </div>
         
@@ -40,7 +40,7 @@
           <div class="bg-white/40 dark:bg-gray-800/40 rounded-2xl p-4 border border-white/20 dark:border-gray-700/30">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
               <MapPinIcon class="h-4 w-4 mr-1 text-gray-500" />
-              Rooms Status
+              {{ $t('dashboard.activeRooms') }}
             </h3>
             <div class="flex flex-wrap gap-2">
               <div v-for="room in store.liveStatus?.rooms || []" :key="room.id" 
@@ -60,7 +60,7 @@
           <div class="bg-white/40 dark:bg-gray-800/40 rounded-2xl p-4 border border-white/20 dark:border-gray-700/30">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
               <UsersIcon class="h-4 w-4 mr-1 text-gray-500" />
-              Teachers Status
+              {{ $t('dashboard.teachersStatus') }}
             </h3>
             <div class="flex flex-wrap gap-2">
               <div v-for="teacher in store.liveStatus?.teachers || []" :key="teacher.id" 
@@ -92,18 +92,26 @@
             <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-yellow-500/10 group-hover:scale-150 transition-transform duration-500"></div>
             <div class="flex items-center mb-3 relative z-10">
               <BanknotesIcon class="h-5 w-5 text-yellow-600 mr-2" />
-              <h3 class="text-base font-bold text-yellow-900 dark:text-yellow-200">Unpaid Invoices</h3>
+              <h3 class="text-base font-bold text-yellow-900 dark:text-yellow-200">{{ $t('dashboard.unpaidInvoices') }}</h3>
             </div>
-            <p class="text-xs text-yellow-700 dark:text-yellow-500 mb-3 relative z-10">{{ store.recentInvoices.length }} recent invoices pending payment.</p>
-            <p class="text-lg font-bold text-yellow-800 dark:text-yellow-300 relative z-10">€{{ store.stats.pending_balances?.toFixed(2) }}</p>
-            <button @click="$router.push('/invoices')" class="mt-2 text-xs font-semibold text-yellow-700 hover:text-yellow-800 dark:text-yellow-400 relative z-10">Collect Now &rarr;</button>
+            <p class="text-xs text-yellow-700 dark:text-yellow-500 mb-3 relative z-10">
+              {{ $t('dashboard.unpaidInvoicesDesc', { count: store.recentInvoices.length }) }}
+            </p>
+            <p class="text-lg font-bold text-yellow-800 dark:text-yellow-300 relative z-10">
+              {{ formatCurrency(store.stats.pending_balances) }}
+            </p>
+            <button @click="$router.push('/invoices')" class="mt-2 text-xs font-semibold text-yellow-700 hover:text-yellow-800 dark:text-yellow-400 relative z-10 cursor-pointer">
+              {{ $t('dashboard.collectNow') }}
+            </button>
           </div>
         </div>
 
         <!-- Revenue Chart -->
         <div class="bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border border-white/20 dark:border-gray-700/30 shadow-sm rounded-3xl p-6 hover:shadow-xl transition-shadow duration-300 relative overflow-hidden group">
           <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 relative z-10">Revenue Overview (Last 6 Months)</h2>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 relative z-10">
+            {{ $t('dashboard.revenueOverview') }}
+          </h2>
           <div class="relative z-10">
             <RevenueChart />
           </div>
@@ -118,17 +126,19 @@
           <div class="flex items-center justify-between mb-8 relative z-10">
             <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
               <ClockIcon class="h-5 w-5 mr-2 text-purple-500" />
-              Today's Timeline
+              {{ $t('dashboard.upcomingLessons') }}
             </h2>
-            <button @click="$router.push('/lessons')" class="text-xs font-medium bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1.5 rounded-full hover:bg-purple-100 transition-colors">Full Schedule</button>
+            <button @click="$router.push('/lessons')" class="text-xs font-medium bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1.5 rounded-full hover:bg-purple-100 transition-colors cursor-pointer">
+              {{ $t('dashboard.fullSchedule') }}
+            </button>
           </div>
 
           <div v-if="(store.upcomingLessons || []).length === 0" class="flex flex-col items-center justify-center py-16 text-center relative z-10">
             <div class="h-16 w-16 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-4">
               <CheckCircleIcon class="h-8 w-8 text-green-500" />
             </div>
-            <p class="text-gray-900 dark:text-white font-medium">All clear!</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">No more lessons scheduled for today.</p>
+            <p class="text-gray-900 dark:text-white font-medium">{{ $t('dashboard.allClear') }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $t('dashboard.noLessonsToday') }}</p>
           </div>
 
           <!-- Vertical Timeline implementation -->
@@ -172,7 +182,9 @@
 
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useDashboardStore } from '@/stores/dashboardStore'
+import { useFormatters } from '@/composables/useFormatters'
 import RevenueChart from '@/components/dashboard/RevenueChart.vue'
 import { 
   CalendarIcon, 
@@ -183,13 +195,15 @@ import {
   UsersIcon
 } from '@heroicons/vue/24/outline'
 
+const { t } = useI18n()
+const { formatCurrency } = useFormatters()
 const store = useDashboardStore()
 
 const greetingMessage = computed(() => {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Good Morning, Admin!'
-  if (hour < 18) return 'Good Afternoon, Admin!'
-  return 'Good Evening, Admin!'
+  if (hour < 12) return t('dashboard.greetingMorning')
+  if (hour < 18) return t('dashboard.greetingAfternoon')
+  return t('dashboard.greetingEvening')
 })
 
 onMounted(() => {

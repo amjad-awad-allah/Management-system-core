@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(\App\Core\Http\Middleware\AssignRequestIdMiddleware::class);
+        $middleware->append(\App\Core\Http\Middleware\SetLocaleMiddleware::class);
         $middleware->alias([
             'module.active' => \App\Core\Http\Middleware\EnsureModuleActive::class,
         ]);

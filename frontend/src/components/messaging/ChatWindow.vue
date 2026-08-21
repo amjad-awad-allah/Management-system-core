@@ -74,7 +74,7 @@
         </div>
 
         <div v-if="visibleMessages.length === 0" class="text-center py-12 text-gray-400 dark:text-gray-600">
-          <p class="text-sm">No messages yet. Say hello! 👋</p>
+          <p class="text-sm">{{ $t('messaging.noMessages') }}</p>
         </div>
 
         <!-- Scroll anchor -->
@@ -116,7 +116,7 @@
         <textarea
           v-model="messageBody"
           @keydown.enter.prevent="handleEnter"
-          placeholder="Type a message… (Enter to send, Shift+Enter for new line)"
+          :placeholder="$t('messaging.typeMessage')"
           rows="1"
           class="flex-1 resize-none rounded-xl bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-white/10 focus:border-purple-500 focus:outline-none px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 transition-colors max-h-32 overflow-y-auto"
           style="field-sizing: content;"
@@ -127,6 +127,7 @@
           @click="handleSend"
           :disabled="isSending || (!messageBody.trim() && !selectedFile)"
           class="flex-shrink-0 p-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all shadow-lg hover:shadow-purple-500/25 cursor-pointer"
+          :title="$t('messaging.send')"
         >
           <svg v-if="isSending" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

@@ -28,6 +28,10 @@
             color: #666;
             margin: 5px 0 0 0;
         }
+        .logo-img {
+            max-height: 50px;
+            max-width: 170px;
+        }
         .info-grid {
             width: 100%;
             margin-bottom: 25px;
@@ -108,8 +112,11 @@
                     <h1 class="header-title">STUNDENNACHWEIS</h1>
                     <p class="header-subtitle">Lernförderung &mdash; Bildung und Teilhabe (BuT)</p>
                 </td>
-                <td style="text-align: right; font-size: 12pt; font-weight: bold; color: #581c87;">
-                    SmartDirex Learning Center
+                <td style="text-align: right; vertical-align: middle;">
+                    @if(!empty($center['logo_base64']))
+                        <img src="{{ $center['logo_base64'] }}" alt="Logo" class="logo-img" /><br>
+                    @endif
+                    <strong style="font-size: 12pt; color: #581c87;">{{ $center['name'] ?? 'Muster Nachhilfeinstitut' }}</strong>
                 </td>
             </tr>
         </table>
@@ -195,7 +202,7 @@
             <td style="width: 10%;"></td>
             <td class="signature-box">
                 <div class="signature-line">
-                    SmartDirex Learning Center / Stempel & Unterschrift
+                    {{ $center['name'] ?? 'Muster Nachhilfeinstitut' }} / Stempel & Unterschrift
                 </div>
             </td>
         </tr>

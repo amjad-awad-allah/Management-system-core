@@ -1,7 +1,9 @@
 <template>
   <div class="space-y-6 h-full flex flex-col">
     <div class="flex items-center justify-between shrink-0">
-      <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Teachers</h1>
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+        {{ $t('teachers.title') }}
+      </h1>
       <div class="flex items-center gap-4">
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -11,14 +13,14 @@
             v-model="searchInput"
             @input="onSearchInput"
             type="text"
-            placeholder="Search teachers..."
+            :placeholder="$t('teachers.searchPlaceholder')"
             class="block w-64 rounded-xl border border-gray-300 dark:border-gray-700 py-2 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-purple-600 sm:text-sm dark:bg-gray-800 dark:text-white shadow-sm"
             style="padding-left: 2.5rem !important;"
           />
         </div>
-        <button @click="openCreateSlideOver" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition-colors flex items-center gap-2">
+        <button @click="openCreateSlideOver" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition-colors flex items-center gap-2 cursor-pointer">
           <PlusIcon class="w-5 h-5" />
-          Add Teacher
+          {{ $t('teachers.addTeacher') }}
         </button>
       </div>
     </div>
@@ -33,11 +35,17 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
           <thead class="bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-sm">
             <tr>
-              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-6">Name</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Contact</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-6">
+                {{ $t('teachers.name') }}
+              </th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {{ $t('teachers.contact') }}
+              </th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {{ $t('common.status') }}
+              </th>
               <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                <span class="sr-only">Actions</span>
+                <span class="sr-only">{{ $t('common.actions') }}</span>
               </th>
             </tr>
           </thead>
@@ -67,8 +75,12 @@
               </td>
               <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <div class="flex items-center justify-end space-x-4">
-                  <button @click.stop="openEditSlideOver(teacher)" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">Edit</button>
-                  <button @click.stop="confirmDeleteTeacher(teacher)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                  <button @click.stop="openEditSlideOver(teacher)" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 cursor-pointer">
+                    {{ $t('common.edit') }}
+                  </button>
+                  <button @click.stop="confirmDeleteTeacher(teacher)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 cursor-pointer">
+                    {{ $t('common.delete') }}
+                  </button>
                 </div>
               </td>
             </tr>
@@ -79,29 +91,27 @@
       <!-- Pagination -->
       <div class="border-t border-gray-200 dark:border-gray-800 px-4 py-3 sm:px-6 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
         <div class="flex-1 flex justify-between sm:hidden">
-          <button @click="changePage(store.currentPage - 1)" :disabled="store.currentPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">Previous</button>
-          <button @click="changePage(store.currentPage + 1)" :disabled="!store.meta || store.currentPage === store.meta.last_page" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">Next</button>
+          <button @click="changePage(store.currentPage - 1)" :disabled="store.currentPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 cursor-pointer">
+            {{ $t('common.previous') }}
+          </button>
+          <button @click="changePage(store.currentPage + 1)" :disabled="!store.meta || store.currentPage === store.meta.last_page" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 cursor-pointer">
+            {{ $t('common.next') }}
+          </button>
         </div>
         <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p class="text-sm text-gray-700 dark:text-gray-300">
-              Showing
-              <span class="font-medium">{{ store.meta?.from || 0 }}</span>
-              to
-              <span class="font-medium">{{ store.meta?.to || 0 }}</span>
-              of
-              <span class="font-medium">{{ store.meta?.total || 0 }}</span>
-              results
+              {{ $t('common.pagination', { from: store.meta?.from || 0, to: store.meta?.to || 0, total: store.meta?.total || 0 }) }}
             </p>
           </div>
           <div>
             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-              <button @click="changePage(store.currentPage - 1)" :disabled="store.currentPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
-                <span class="sr-only">Previous</span>
+              <button @click="changePage(store.currentPage - 1)" :disabled="store.currentPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 cursor-pointer">
+                <span class="sr-only">{{ $t('common.previous') }}</span>
                 &laquo;
               </button>
-              <button @click="changePage(store.currentPage + 1)" :disabled="!store.meta || store.currentPage === store.meta.last_page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
-                <span class="sr-only">Next</span>
+              <button @click="changePage(store.currentPage + 1)" :disabled="!store.meta || store.currentPage === store.meta.last_page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 cursor-pointer">
+                <span class="sr-only">{{ $t('common.next') }}</span>
                 &raquo;
               </button>
             </nav>
@@ -118,6 +128,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PlusIcon } from '@heroicons/vue/20/solid'
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 import { useTeachersStore } from '@/stores/teachersStore'
@@ -126,6 +137,7 @@ import CreateTeacherSlideOver from '@/components/teachers/CreateTeacherSlideOver
 import EditTeacherSlideOver from '@/components/teachers/EditTeacherSlideOver.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 
+const { t } = useI18n()
 const store = useTeachersStore()
 const createSlideOver = ref<InstanceType<typeof CreateTeacherSlideOver> | null>(null)
 const editSlideOver = ref<InstanceType<typeof EditTeacherSlideOver> | null>(null)
@@ -159,10 +171,10 @@ function openEditSlideOver(teacher: Teacher) {
 
 function confirmDeleteTeacher(teacher: Teacher) {
   confirmModal.value?.open(
-    'Delete Teacher',
-    `Are you sure you want to delete ${teacher.name}? This action cannot be undone.`,
-    'Delete',
-    'Cancel',
+    t('teachers.deleteTeacherTitle'),
+    t('teachers.deleteTeacherDesc', { name: teacher.name }),
+    t('common.delete'),
+    t('common.cancel'),
     async () => {
       await store.deleteTeacher(teacher.id)
     }

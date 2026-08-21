@@ -24,10 +24,10 @@
           teacher.status === 'active' ? 'bg-green-50 text-green-700 ring-green-600/20' : 'bg-red-50 text-red-700 ring-red-600/10',
           'inline-flex items-center rounded-xl px-3 py-1.5 text-sm font-medium ring-1 ring-inset'
         ]">
-          {{ teacher.status === 'active' ? 'Active' : 'Inactive' }}
+          {{ teacher.status === 'active' ? $t('common.active') : $t('common.inactive') }}
         </span>
-        <button @click="openEditSlideOver" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors">
-          Edit Profile
+        <button @click="openEditSlideOver" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors cursor-pointer">
+          {{ $t('students.editProfile') }}
         </button>
       </div>
     </div>
@@ -39,14 +39,14 @@
         
         <!-- Contact Info -->
         <div class="glass-panel rounded-2xl p-6">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Contact Information</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ $t('teachers.contact') }}</h2>
           <div class="space-y-4">
             <div>
-              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Email</p>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">{{ $t('teachers.email') }}</p>
               <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ teacher.email || 'N/A' }}</p>
             </div>
             <div>
-              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Phone</p>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">{{ $t('teachers.phone') }}</p>
               <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ teacher.phone || 'N/A' }}</p>
             </div>
           </div>
@@ -55,11 +55,11 @@
         <!-- Subjects -->
         <div class="glass-panel rounded-2xl p-6">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Assigned Subjects</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('teachers.subjects') }}</h2>
           </div>
           
           <div v-if="!teacher.subjects || teacher.subjects.length === 0" class="text-center py-6 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-            No subjects assigned yet.
+            {{ $t('students.noSubjects') }}
           </div>
           
           <div v-else class="flex flex-wrap gap-2">

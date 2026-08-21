@@ -68,15 +68,18 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+
+const { t } = useI18n()
 
 const isOpen = ref(false)
 const state = reactive({
   title: '',
   message: '',
-  confirmText: 'Confirm',
-  cancelText: 'Cancel'
+  confirmText: '',
+  cancelText: ''
 })
 
 let resolvePromise: ((value: boolean) => void) | null = null
@@ -84,14 +87,14 @@ let resolvePromise: ((value: boolean) => void) | null = null
 function open(
   title: string,
   message: string,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText?: string,
+  cancelText?: string,
   onConfirm?: () => Promise<void> | void
 ) {
   state.title = title
   state.message = message
-  state.confirmText = confirmText
-  state.cancelText = cancelText
+  state.confirmText = confirmText || t('common.confirm')
+  state.cancelText = cancelText || t('common.cancel')
   isOpen.value = true
 
   if (onConfirm) {

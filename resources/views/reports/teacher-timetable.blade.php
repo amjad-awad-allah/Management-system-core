@@ -11,36 +11,46 @@
             margin: 0;
             padding: 15px;
         }
-        .header {
+        .header-table {
+            width: 100%;
             border-bottom: 2px solid #2563eb;
             padding-bottom: 10px;
             margin-bottom: 15px;
+        }
+        .header-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
         }
         .header h1 {
             font-size: 18px;
             color: #1e3a8a;
             margin: 0 0 5px 0;
         }
+        .logo-img {
+            max-height: 48px;
+            max-width: 160px;
+        }
         .meta {
             font-size: 10px;
             color: #64748b;
         }
-        table {
+        table.timetable {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
         }
-        th, td {
+        table.timetable th, table.timetable td {
             border: 1px solid #cbd5e1;
             padding: 8px;
             text-align: left;
         }
-        th {
+        table.timetable th {
             background-color: #f1f5f9;
             color: #1e293b;
             font-weight: bold;
         }
-        tr:nth-child(even) {
+        table.timetable tr:nth-child(even) {
             background-color: #f8fafc;
         }
         .badge {
@@ -64,16 +74,26 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Wöchentlicher Stundenplan (Lehrkraft)</h1>
-        <div class="meta">
-            <strong>Lehrkraft:</strong> {{ $data['teacher_name'] }} |
-            <strong>Zeitraum:</strong> {{ $data['start_date'] }} bis {{ $data['end_date'] }} |
-            <strong>Gesamtzahl Unterrichtseinheiten:</strong> {{ $data['total_lessons'] }}
-        </div>
-    </div>
+    <table class="header-table">
+        <tr>
+            <td>
+                <h1>Wöchentlicher Stundenplan (Lehrkraft)</h1>
+                <div class="meta">
+                    <strong>Lehrkraft:</strong> {{ $data['teacher_name'] }} |
+                    <strong>Zeitraum:</strong> {{ $data['start_date'] }} bis {{ $data['end_date'] }} |
+                    <strong>Gesamtzahl Einheiten:</strong> {{ $data['total_lessons'] }}
+                </div>
+            </td>
+            <td style="text-align: right;">
+                @if(!empty($center['logo_base64']))
+                    <img src="{{ $center['logo_base64'] }}" alt="Logo" class="logo-img" /><br>
+                @endif
+                <strong style="font-size: 12px; color: #1e3a8a;">{{ $center['name'] ?? 'Muster Nachhilfeinstitut' }}</strong>
+            </td>
+        </tr>
+    </table>
 
-    <table>
+    <table class="timetable">
         <thead>
             <tr>
                 <th>Datum</th>
@@ -94,7 +114,7 @@
                     <td>{{ $lesson['student_count'] }} Schüler</td>
                     <td>
                         <span class="badge status-{{ strtolower($lesson['status']) }}">
-                            {{ $lesson['status'] }}
+                            {{ $lesson['status'] === 'scheduled' ? 'Geplant' : ($lesson['status'] === 'completed' ? 'Abgeschlossen' : ($lesson['status'] === 'cancelled' ? 'Abgesagt' : $lesson['status'])) }}
                         </span>
                     </td>
                 </tr>
@@ -107,7 +127,7 @@
     </table>
 
     <div class="footer">
-        Erstellt am: {{ $data['generated_at'] }} | Nachhilfe Management System
+        Erstellt am: {{ $data['generated_at'] }} | {{ $center['name'] ?? 'Nachhilfe Management System' }}
     </div>
 </body>
 </html>

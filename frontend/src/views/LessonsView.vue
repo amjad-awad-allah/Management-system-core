@@ -2,12 +2,16 @@
   <div class="space-y-4 h-full flex flex-col">
     <div class="flex items-center justify-between shrink-0">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Lessons & Calendar</h1>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Operational Scheduling Engine & Conflict Detector</p>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+          {{ $t('lessons.title') }}
+        </h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          {{ $t('lessons.conflictWarning') }}
+        </p>
       </div>
-      <button @click="openSlideOver()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition-colors flex items-center gap-2">
+      <button @click="openSlideOver()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition-colors flex items-center gap-2 cursor-pointer">
         <PlusIcon class="w-4 h-4" />
-        Schedule Lesson
+        {{ $t('lessons.bookLesson') }}
       </button>
     </div>
     

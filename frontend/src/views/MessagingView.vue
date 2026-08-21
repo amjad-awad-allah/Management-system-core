@@ -12,7 +12,7 @@
         <div class="p-4 border-b border-gray-200 dark:border-white/10 space-y-3">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <span>Messages</span>
+              <span>{{ $t('messaging.title') }}</span>
             </h2>
             <!-- WhatsApp Action Icons -->
             <div class="flex items-center gap-1">
@@ -20,7 +20,7 @@
               <button
                 @click="isCreateGroupModalOpen = true"
                 class="p-2 rounded-xl bg-purple-100 dark:bg-purple-600/30 hover:bg-purple-600 text-purple-600 dark:text-purple-300 hover:text-white transition-all shadow-sm cursor-pointer"
-                title="Create New Group"
+                :title="$t('messaging.createGroup')"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
@@ -30,7 +30,7 @@
               <button
                 @click="isCreateDirectModalOpen = true"
                 class="p-2 rounded-xl bg-blue-100 dark:bg-blue-600/30 hover:bg-blue-600 text-blue-600 dark:text-blue-300 hover:text-white transition-all shadow-sm cursor-pointer"
-                title="New Direct Message"
+                :title="$t('messaging.newDirect')"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -50,7 +50,7 @@
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               ]"
             >
-              My Chats
+              {{ $t('messaging.myChats') }}
               <span v-if="totalUnread > 0" class="ml-1 bg-purple-500 text-white text-[10px] rounded-full px-1.5 py-0.5 font-bold">
                 {{ totalUnread }}
               </span>
@@ -64,7 +64,7 @@
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               ]"
             >
-              All Chats
+              {{ $t('messaging.allChats') }}
               <span v-if="observerUnread > 0 && activeScope !== 'all'" class="ml-1 bg-gray-400 dark:bg-gray-600 text-gray-900 dark:text-gray-200 text-[10px] rounded-full px-1.5 py-0.5 font-bold">
                 {{ observerUnread }}
               </span>
@@ -81,7 +81,7 @@
             <input
               v-model="channelSearchQuery"
               type="text"
-              placeholder="Search chats..."
+              :placeholder="$t('messaging.searchChats')"
               class="w-full rounded-xl bg-white dark:bg-gray-800/60 border border-gray-300 dark:border-white/10 focus:border-purple-500 focus:outline-none py-2 pr-3 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors shadow-sm"
               style="padding-left: 2.25rem !important;"
             />
@@ -98,11 +98,11 @@
             <svg class="w-12 h-12 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <p class="text-xs text-gray-500 dark:text-gray-400">No conversations found</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('messaging.noChannels') }}</p>
             <div class="flex gap-2">
-              <button @click="isCreateGroupModalOpen = true" class="text-purple-600 dark:text-purple-400 hover:underline text-xs font-semibold cursor-pointer">Create Group</button>
+              <button @click="isCreateGroupModalOpen = true" class="text-purple-600 dark:text-purple-400 hover:underline text-xs font-semibold cursor-pointer">{{ $t('messaging.createGroup') }}</button>
               <span class="text-gray-400">•</span>
-              <button @click="isCreateDirectModalOpen = true" class="text-blue-600 dark:text-blue-400 hover:underline text-xs font-semibold cursor-pointer">New Message</button>
+              <button @click="isCreateDirectModalOpen = true" class="text-blue-600 dark:text-blue-400 hover:underline text-xs font-semibold cursor-pointer">{{ $t('messaging.newDirect') }}</button>
             </div>
           </div>
 
@@ -176,15 +176,15 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-gray-900 dark:text-gray-300">Welcome to Instant Messaging</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">Select a conversation from the sidebar or start a new group with teachers and students</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-300">{{ $t('messaging.welcome') }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">{{ $t('messaging.welcomeSubtitle') }}</p>
           </div>
           <div class="flex gap-3">
             <button @click="isCreateGroupModalOpen = true" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all shadow cursor-pointer">
-              + Create Group
+              + {{ $t('messaging.createGroup') }}
             </button>
             <button @click="isCreateDirectModalOpen = true" class="px-4 py-2 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-transparent text-xs font-semibold transition-all shadow-sm cursor-pointer">
-              New Direct Message
+              {{ $t('messaging.newDirect') }}
             </button>
           </div>
         </div>

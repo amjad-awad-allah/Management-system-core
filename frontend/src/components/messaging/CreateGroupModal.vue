@@ -14,8 +14,8 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-gray-900 dark:text-white">Create New Group</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Select members and enter a group name to start</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-white">{{ $t('messaging.createGroup') }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('messaging.groupSubtitle') }}</p>
           </div>
         </div>
         <button @click="$emit('close')" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
@@ -31,15 +31,15 @@
         <!-- Group Name Input -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Group Name *</label>
-            <span v-if="groupNameError" class="text-xs text-red-500 font-medium">Required field</span>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{{ $t('messaging.groupName') }} *</label>
+            <span v-if="groupNameError" class="text-xs text-red-500 font-medium">{{ groupNameError }}</span>
           </div>
           <input
             ref="groupNameInput"
             v-model="groupName"
             @input="clearGroupNameError"
             type="text"
-            placeholder="e.g., Mathematics Group / Teachers Inquiry"
+            :placeholder="$t('messaging.groupNamePlaceholder')"
             :class="[
               'w-full rounded-xl bg-gray-100 dark:bg-gray-800/80 border px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all outline-none',
               groupNameError
@@ -59,14 +59,14 @@
         <div v-if="selectedUsers.length > 0" class="space-y-1.5">
           <div class="flex items-center justify-between">
             <label class="block text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
-              Selected Members ({{ selectedUsers.length }})
+              {{ $t('messaging.selectedMembers') }} ({{ selectedUsers.length }})
             </label>
             <button
               type="button"
               @click="selectedParticipantIds = []"
               class="text-[11px] text-red-500 hover:text-red-700 dark:hover:text-red-400 font-medium cursor-pointer"
             >
-              Clear All
+              {{ $t('messaging.clearAll') }}
             </button>
           </div>
           <div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-purple-50/50 dark:bg-gray-800/40 rounded-xl border border-purple-100 dark:border-white/5">
@@ -87,7 +87,7 @@
 
         <!-- Search Bar -->
         <div>
-          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">Search Members</label>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">{{ $t('messaging.searchMembers') }}</label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,7 +97,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search by name or email..."
+              :placeholder="$t('messaging.searchPlaceholder')"
               class="w-full rounded-xl bg-gray-100 dark:bg-gray-800/80 border border-gray-300 dark:border-white/10 focus:border-purple-500 focus:outline-none py-2.5 pr-4 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
               style="padding-left: 2.75rem !important;"
             />
@@ -108,11 +108,11 @@
         <div>
           <div v-if="isLoadingUsers" class="text-center py-8">
             <div class="w-7 h-7 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <p class="text-xs text-gray-500 dark:text-gray-400">Loading members list...</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('common.loading') }}</p>
           </div>
 
           <div v-else-if="!hasResults" class="text-center py-8 text-gray-500 text-sm border border-dashed border-gray-300 dark:border-white/10 rounded-xl">
-            No members found matching search
+            {{ $t('common.noData') }}
           </div>
 
           <div v-else class="space-y-4">
@@ -127,7 +127,7 @@
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isStaffExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Management & Staff ({{ filteredStaff.length }})</span>
+                  <span>Mitarbeiter & Verwaltung ({{ filteredStaff.length }})</span>
                 </div>
                 <button
                   type="button"
@@ -137,7 +137,7 @@
                     ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 hover:bg-amber-200'
                     : 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20'"
                 >
-                  {{ isSectionAllSelected(filteredStaff) ? 'Deselect All' : `Select All (${filteredStaff.length})` }}
+                  {{ isSectionAllSelected(filteredStaff) ? $t('messaging.clearAll') : `${$t('common.all')} (${filteredStaff.length})` }}
                 </button>
               </div>
               <div v-show="isStaffExpanded" class="space-y-1.5">
@@ -183,7 +183,7 @@
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isTeachersExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Teachers ({{ filteredTeachers.length }})</span>
+                  <span>{{ $t('teachers.title') }} ({{ filteredTeachers.length }})</span>
                 </div>
                 <button
                   type="button"
@@ -193,7 +193,7 @@
                     ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 hover:bg-purple-200'
                     : 'text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20'"
                 >
-                  {{ isSectionAllSelected(filteredTeachers) ? 'Deselect All' : `Select All (${filteredTeachers.length})` }}
+                  {{ isSectionAllSelected(filteredTeachers) ? $t('messaging.clearAll') : `${$t('common.all')} (${filteredTeachers.length})` }}
                 </button>
               </div>
               <div v-show="isTeachersExpanded" class="space-y-1.5">
@@ -239,7 +239,7 @@
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isStudentsExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Students ({{ filteredStudents.length }})</span>
+                  <span>{{ $t('students.title') }} ({{ filteredStudents.length }})</span>
                 </div>
                 <button
                   type="button"
@@ -249,7 +249,7 @@
                     ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 hover:bg-blue-200'
                     : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'"
                 >
-                  {{ isSectionAllSelected(filteredStudents) ? 'Deselect All' : `Select All (${filteredStudents.length})` }}
+                  {{ isSectionAllSelected(filteredStudents) ? $t('messaging.clearAll') : `${$t('common.all')} (${filteredStudents.length})` }}
                 </button>
               </div>
               <div v-show="isStudentsExpanded" class="space-y-1.5">
@@ -301,14 +301,14 @@
       <!-- Footer -->
       <div class="px-6 py-4 border-t border-gray-200 dark:border-white/10 flex items-center justify-between flex-shrink-0 bg-gray-50 dark:bg-gray-900/80">
         <span class="text-xs text-gray-500 dark:text-gray-400">
-          <strong class="text-gray-900 dark:text-white">{{ selectedParticipantIds.length }}</strong> member(s) selected
+          <strong class="text-gray-900 dark:text-white">{{ selectedParticipantIds.length }}</strong> {{ $t('messaging.selectedMembers') }}
         </span>
         <div class="flex gap-2">
           <button
             @click="$emit('close')"
             class="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </button>
           <button
             @click="handleCreate"
@@ -319,8 +319,8 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            <span v-if="isCreating">Creating…</span>
-            <span v-else>Create Group</span>
+            <span v-if="isCreating">{{ $t('common.save') }}…</span>
+            <span v-else>{{ $t('messaging.createGroup') }}</span>
           </button>
         </div>
       </div>

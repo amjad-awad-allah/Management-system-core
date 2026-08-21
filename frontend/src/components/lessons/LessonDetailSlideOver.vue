@@ -1,10 +1,10 @@
 <template>
-  <SlideOver v-model="isOpen" title="Lesson Details">
+  <SlideOver v-model="isOpen" :title="$t('lessons.title')">
     <div v-if="lesson" class="space-y-6">
       
       <!-- Lesson Info -->
       <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Time & Date</h3>
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ $t('common.date') }} & {{ $t('common.time') }}</h3>
         <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {{ lesson.date }} ({{ lesson.start_time.substring(0,5) }} - {{ lesson.end_time.substring(0,5) }})
         </p>
@@ -12,23 +12,23 @@
 
       <!-- Teacher Info -->
       <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Teacher</h3>
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ $t('teachers.title') }}</h3>
         <div class="flex items-center gap-3 mt-2">
           <div class="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-sm">
             {{ lesson.teacher?.name?.[0] || 'T' }}
           </div>
-          <span class="font-medium text-gray-900 dark:text-gray-100">{{ lesson.teacher?.name || 'Unassigned' }}</span>
+          <span class="font-medium text-gray-900 dark:text-gray-100">{{ lesson.teacher?.name || '-' }}</span>
         </div>
       </div>
 
       <!-- Students List -->
       <div>
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Students ({{ lesson.students?.length || 0 }})</h3>
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ $t('students.title') }} ({{ lesson.students?.length || 0 }})</h3>
         </div>
         
         <div v-if="!lesson.students || lesson.students.length === 0" class="text-center py-6 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/30 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-          No students assigned to this lesson.
+          {{ $t('common.noData') }}
         </div>
         
         <ul v-else class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -38,17 +38,17 @@
                 {{ getStudentFullName(student)[0] }}
               </div>
               <span class="font-medium text-gray-900 dark:text-gray-100">{{ getStudentFullName(student) }}</span>
-              <button @click="$router.push(`/students/${student.id}`)" class="ml-auto text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 px-2.5 py-1.5 rounded-lg transition-colors">
-                View Profile
+              <button @click="$router.push(`/students/${student.id}`)" class="ml-auto text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer">
+                {{ $t('students.actions.viewProfile') }}
               </button>
             </div>
             
             <!-- Attendance Controls -->
             <div class="flex gap-2 justify-end transition-all duration-200">
-              <button @click="markAttendance(student, 'present')" :class="[getStudentAttendance(student) === 'present' ? 'ring-2 ring-green-500 bg-green-100 dark:bg-green-900/60 font-semibold' : 'bg-green-50 hover:bg-green-100 dark:bg-green-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-green-700 dark:text-green-400 transition-all">Present</button>
-              <button @click="markAttendance(student, 'late')" :class="[getStudentAttendance(student) === 'late' ? 'ring-2 ring-yellow-500 bg-yellow-100 dark:bg-yellow-900/60 font-semibold' : 'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-yellow-700 dark:text-yellow-400 transition-all">Late</button>
-              <button @click="markAttendance(student, 'absent_excused')" :class="[getStudentAttendance(student) === 'absent_excused' ? 'ring-2 ring-gray-500 bg-gray-200 dark:bg-gray-700 font-semibold' : 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-gray-700 dark:text-gray-300 transition-all">Excused</button>
-              <button @click="markAttendance(student, 'absent_unexcused')" :class="[getStudentAttendance(student) === 'absent_unexcused' ? 'ring-2 ring-red-500 bg-red-100 dark:bg-red-900/60 font-semibold' : 'bg-red-50 hover:bg-red-100 dark:bg-red-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-red-700 dark:text-red-400 transition-all">Absent</button>
+              <button @click="markAttendance(student, 'present')" :class="[getStudentAttendance(student) === 'present' ? 'ring-2 ring-green-500 bg-green-100 dark:bg-green-900/60 font-semibold' : 'bg-green-50 hover:bg-green-100 dark:bg-green-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-green-700 dark:text-green-400 transition-all cursor-pointer">{{ $t('lessons.attendanceStatus.present') }}</button>
+              <button @click="markAttendance(student, 'late')" :class="[getStudentAttendance(student) === 'late' ? 'ring-2 ring-yellow-500 bg-yellow-100 dark:bg-yellow-900/60 font-semibold' : 'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-yellow-700 dark:text-yellow-400 transition-all cursor-pointer">{{ $t('lessons.attendanceStatus.late') }}</button>
+              <button @click="markAttendance(student, 'absent_excused')" :class="[getStudentAttendance(student) === 'absent_excused' ? 'ring-2 ring-gray-500 bg-gray-200 dark:bg-gray-700 font-semibold' : 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-gray-700 dark:text-gray-300 transition-all cursor-pointer">{{ $t('lessons.attendanceStatus.absent_excused') }}</button>
+              <button @click="markAttendance(student, 'absent_unexcused')" :class="[getStudentAttendance(student) === 'absent_unexcused' ? 'ring-2 ring-red-500 bg-red-100 dark:bg-red-900/60 font-semibold' : 'bg-red-50 hover:bg-red-100 dark:bg-red-900/30 opacity-70 hover:opacity-100']" class="text-xs px-2 py-1 rounded text-red-700 dark:text-red-400 transition-all cursor-pointer">{{ $t('lessons.attendanceStatus.absent_unexcused') }}</button>
             </div>
           </li>
         </ul>
@@ -58,11 +58,11 @@
     
     <template #footer>
       <div class="flex gap-3 w-full">
-        <button @click="editLesson" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors text-center">
-          Edit Lesson
+        <button @click="editLesson" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors text-center cursor-pointer">
+          {{ $t('lessons.editLesson') }}
         </button>
-        <button @click="close" class="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors text-center">
-          Close
+        <button @click="close" class="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors text-center cursor-pointer">
+          {{ $t('common.close') }}
         </button>
       </div>
     </template>
@@ -88,6 +88,8 @@ function open(l: any) {
   isOpen.value = true
 }
 
+defineExpose({ open })
+
 function close() {
   isOpen.value = false
 }
@@ -99,31 +101,16 @@ function editLesson() {
   }
 }
 
-function getStudentFullName(student: any): string {
-  if (!student) return 'Student'
-  if (student.first_name || student.last_name) {
-    return `${student.first_name || ''} ${student.last_name || ''}`.trim()
-  }
-  return student.name || 'Student'
+function getStudentFullName(student: any) {
+  return `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Unnamed Student'
 }
 
-function getStudentAttendance(student: any): string {
-  if (student.attendance) return student.attendance
-  if (lesson.value?.lesson_students) {
-    const ls = lesson.value.lesson_students.find((item: any) => item.student_id === student.id)
-    return ls?.attendance?.status || ''
-  }
-  return ''
+function getStudentAttendance(student: any) {
+  return student.pivot?.status || 'present'
 }
 
 async function markAttendance(student: any, status: string) {
-  const pivotId = student.pivot?.id || student.pivot_id || lesson.value?.lesson_students?.find((item: any) => item.student_id === student.id)?.id
-  if (!pivotId) return
-  const success = await lessonsStore.markAttendance(pivotId, { status })
-  if (success) {
-    student.attendance = status
-  }
+  if (!lesson.value) return
+  await lessonsStore.markAttendance(student.pivot?.id, { status })
 }
-
-defineExpose({ open, close })
 </script>

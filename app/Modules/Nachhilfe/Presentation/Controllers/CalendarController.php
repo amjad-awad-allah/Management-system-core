@@ -3,6 +3,7 @@
 namespace App\Modules\Nachhilfe\Presentation\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Core\Services\CenterSettingsService;
 use App\Modules\Nachhilfe\Application\Services\ConflictDetectionService;
 use App\Modules\Nachhilfe\Application\Services\HolidayService;
 use App\Modules\Nachhilfe\Infrastructure\Models\Holiday;
@@ -17,7 +18,8 @@ class CalendarController extends Controller
 
     public function __construct(
         private readonly HolidayService $holidayService,
-        private readonly ConflictDetectionService $conflictDetectionService
+        private readonly ConflictDetectionService $conflictDetectionService,
+        private readonly CenterSettingsService $centerSettings
     ) {}
 
     /**
@@ -38,7 +40,7 @@ class CalendarController extends Controller
         $now = Carbon::now($this->timezone);
         $startDate = $validated['start_date'] ?? $now->copy()->startOfWeek(Carbon::MONDAY)->toDateString();
         $endDate = $validated['end_date'] ?? $now->copy()->endOfWeek(Carbon::SUNDAY)->toDateString();
-        $state = $validated['state'] ?? 'NW';
+        $state = !empty($validated['state']) ? strtoupper($validated['state']) : $this->centerSettings->getCenterBundesland();
 
         // 1. Query lessons within date range
         $query = Lesson::with(['room', 'subject', 'teacher', 'students', 'lessonStudents.attendance'])

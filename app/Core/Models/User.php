@@ -3,6 +3,7 @@
 namespace App\Core\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasLocalePreference
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, HasUlids, HasRoles, \App\Core\Models\Traits\Auditable;
@@ -30,7 +31,16 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'preferred_locale',
     ];
+
+    /**
+     * Get the user's preferred locale for notifications & mailables.
+     */
+    public function preferredLocale(): string
+    {
+        return $this->preferred_locale ?? config('localization.default_locale', 'de');
+    }
 
     /**
      * The attributes that should be hidden for serialization.

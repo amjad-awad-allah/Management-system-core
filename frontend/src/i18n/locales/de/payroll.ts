@@ -1,0 +1,21 @@
+export default {
+  title: 'Honorarabrechnungen',
+  subtitle: 'Berechnung und kryptografische Versiegelung von Dozentenhonoraren.',
+  generate: 'Honorare generieren',
+  generateMonthly: 'Monatliche Honorare generieren',
+  generateModalTitle: 'Honorarabrechnungen generieren',
+  teacher: 'Lehrkraft',
+  period: 'Abrechnungsmonat',
+  totalHours: 'Unterrichtsstunden',
+  totalAmount: 'Auszahlungsbetrag',
+  hashSignature: 'Kryptografische Signatur (SHA-256)',
+  approveAndSeal: 'Abrechnung genehmigen & versiegeln',
+  downloadPdf: 'Honorarabrechnung (PDF)',
+  status: {
+    draft: 'Entwurf',
+    processing: 'In Bearbeitung',
+    approved: 'Genehmigt & Versiegelt',
+    paid: 'Ausgezahlt',
+    void: 'Ungültig',
+  },
+}

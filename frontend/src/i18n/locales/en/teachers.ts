@@ -1,0 +1,20 @@
+export default {
+  title: 'Teachers & Instructors',
+  subtitle: 'Manage teachers, teaching qualifications, and hourly rates.',
+  searchPlaceholder: 'Search teachers...',
+  addTeacher: 'Add Teacher',
+  editTeacher: 'Edit Teacher',
+  name: 'Name',
+  contact: 'Contact',
+  email: 'Email Address',
+  phone: 'Phone Number',
+  hourlyRate: 'Hourly Rate',
+  subjects: 'Subjects',
+  availability: 'Availability',
+  deleteTeacherTitle: 'Delete Teacher',
+  deleteTeacherDesc: 'Are you sure you want to delete {name}? This action cannot be undone.',
+  status: {
+    active: 'Active',
+    inactive: 'Inactive',
+  },
+}

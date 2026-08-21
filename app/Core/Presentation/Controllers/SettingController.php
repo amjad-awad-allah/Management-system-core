@@ -2,52 +2,100 @@
 
 namespace App\Core\Presentation\Controllers;
 
-use Illuminate\Http\Request;
+use App\Core\Enums\GermanBundesland;
+use App\Core\Services\CenterSettingsService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
 {
+    public function __construct(
+        private readonly CenterSettingsService $centerSettings
+    ) {}
+
     /**
-     * Get all general settings.
+     * Get center branding and system settings.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $settings = DB::table('settings')->pluck('value', 'key');
-        return response()->json($settings);
+        $payload = $this->centerSettings->getSettingsPayload($request->user());
+        return response()->json($payload);
     }
 
     /**
-     * Update/Upsert settings.
+     * Update/Upsert center or system settings.
      */
     public function update(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager']) && !$user->can('manage-settings'))) {
+            return response()->json(['message' => 'Unauthorized to modify center settings.'], 403);
+        }
+
         $validated = $request->validate([
             'settings' => 'required|array',
             'settings.*.key' => 'required|string',
             'settings.*.value' => 'nullable|string',
         ]);
 
-        foreach ($validated['settings'] as $setting) {
-            $exists = DB::table('settings')->where('key', $setting['key'])->exists();
-            if ($exists) {
-                DB::table('settings')->where('key', $setting['key'])->update([
-                    'value' => $setting['value'],
-                    'updated_at' => now()
-                ]);
-            } else {
-                DB::table('settings')->insert([
-                    'id' => (string) Str::ulid(),
-                    'key' => $setting['key'],
-                    'value' => $setting['value'],
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
+        // Validate Bundesland code if present in the payload
+        foreach ($validated['settings'] as $item) {
+            if ($item['key'] === 'center_bundesland' && !empty($item['value'])) {
+                if (!in_array(strtoupper($item['value']), GermanBundesland::values(), true)) {
+                    return response()->json([
+                        'message' => 'Invalid German Bundesland code.',
+                        'errors' => ['center_bundesland' => ['The selected Bundesland is invalid.']],
+                    ], 422);
+                }
             }
         }
 
-        return response()->json(['message' => 'Settings updated successfully']);
+        $this->centerSettings->updateSettings($validated['settings'], $user);
+
+        return response()->json([
+            'message' => 'Settings updated successfully.',
+            'data' => $this->centerSettings->getSettingsPayload($user),
+        ]);
+    }
+
+    /**
+     * Upload a new center logo.
+     */
+    public function uploadLogo(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager']) && !$user->can('manage-settings'))) {
+            return response()->json(['message' => 'Unauthorized to upload center logo.'], 403);
+        }
+
+        $request->validate([
+            'logo' => 'required|file|image|mimes:png,jpg,jpeg,webp|max:3072',
+        ]);
+
+        $logoUrl = $this->centerSettings->uploadLogo($request->file('logo'), $user);
+
+        return response()->json([
+            'message' => 'Logo uploaded successfully.',
+            'logo_url' => $logoUrl,
+        ]);
+    }
+
+    /**
+     * Remove the center logo.
+     */
+    public function deleteLogo(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager']) && !$user->can('manage-settings'))) {
+            return response()->json(['message' => 'Unauthorized to delete center logo.'], 403);
+        }
+
+        $this->centerSettings->deleteLogo($user);
+
+        return response()->json([
+            'message' => 'Logo removed successfully.',
+        ]);
     }
 }

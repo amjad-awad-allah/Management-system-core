@@ -14,8 +14,8 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-gray-900 dark:text-white">New Direct Message</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Select a person to start messaging directly</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-white">{{ $t('messaging.newDirect') }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('messaging.directSubtitle') }}</p>
           </div>
         </div>
         <button @click="$emit('close')" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
@@ -38,7 +38,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search by name or email..."
+            :placeholder="$t('messaging.searchPlaceholder')"
             class="w-full rounded-xl bg-gray-100 dark:bg-gray-800/80 border border-gray-300 dark:border-white/10 focus:border-blue-500 focus:outline-none py-2.5 pr-4 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
             style="padding-left: 2.75rem !important;"
           />
@@ -48,11 +48,11 @@
         <div>
           <div v-if="isLoadingUsers" class="text-center py-8">
             <div class="w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <p class="text-xs text-gray-500 dark:text-gray-400">Loading contacts list...</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('common.loading') }}</p>
           </div>
 
           <div v-else-if="!hasResults" class="text-center py-8 text-gray-500 text-sm border border-dashed border-gray-300 dark:border-white/10 rounded-xl">
-            No contacts found matching search
+            {{ $t('common.noData') }}
           </div>
 
           <div v-else class="space-y-4">
@@ -67,7 +67,7 @@
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isStaffExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Management & Staff ({{ filteredStaff.length }})</span>
+                  <span>Mitarbeiter & Verwaltung ({{ filteredStaff.length }})</span>
                 </div>
               </div>
               <div v-show="isStaffExpanded" class="space-y-1.5">
@@ -86,7 +86,7 @@
                       <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email || 'Staff' }}</p>
                     </div>
                   </div>
-                  <span class="text-xs font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">Start Chat &rarr;</span>
+                  <span class="text-xs font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">{{ $t('messaging.newDirect') }} &rarr;</span>
                 </div>
               </div>
             </div>
@@ -101,7 +101,7 @@
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isTeachersExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Teachers ({{ filteredTeachers.length }})</span>
+                  <span>{{ $t('teachers.title') }} ({{ filteredTeachers.length }})</span>
                 </div>
               </div>
               <div v-show="isTeachersExpanded" class="space-y-1.5">
@@ -120,7 +120,7 @@
                       <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email || 'Teacher' }}</p>
                     </div>
                   </div>
-                  <span class="text-xs font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">Start Chat &rarr;</span>
+                  <span class="text-xs font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">{{ $t('messaging.newDirect') }} &rarr;</span>
                 </div>
               </div>
             </div>
@@ -135,7 +135,7 @@
                   <svg :class="['w-3.5 h-3.5 transition-transform duration-200', isStudentsExpanded ? 'rotate-90' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Students ({{ filteredStudents.length }})</span>
+                  <span>{{ $t('students.title') }} ({{ filteredStudents.length }})</span>
                 </div>
               </div>
               <div v-show="isStudentsExpanded" class="space-y-1.5">
@@ -154,7 +154,7 @@
                       <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email || 'Student' }}</p>
                     </div>
                   </div>
-                  <span class="text-xs font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">Start Chat &rarr;</span>
+                  <span class="text-xs font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">{{ $t('messaging.newDirect') }} &rarr;</span>
                 </div>
               </div>
             </div>

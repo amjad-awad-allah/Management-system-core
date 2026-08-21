@@ -28,8 +28,12 @@
             <DialogPanel class="relative mr-16 flex w-full max-w-xs flex-1">
               <!-- Sidebar content -->
               <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 px-6 pb-4 shadow-2xl">
-                <div class="flex h-16 shrink-0 items-center">
-                  <span class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">Nachhilfe Admin</span>
+                <div class="flex h-16 shrink-0 items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-white/90 dark:bg-white/10 dark:ring-1 dark:ring-white/20 p-1 flex items-center justify-center shadow-sm overflow-hidden backdrop-blur-sm flex-shrink-0">
+                    <img v-if="settingsStore.centerLogoUrl" :src="settingsStore.centerLogoUrl" alt="Logo" class="max-w-full max-h-full object-contain" />
+                    <span v-else class="text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">{{ settingsStore.centerName ? settingsStore.centerName[0]?.toUpperCase() : 'N' }}</span>
+                  </div>
+                  <span class="text-base font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent truncate">{{ settingsStore.centerName }}</span>
                 </div>
                 <nav class="flex flex-1 flex-col">
                   <ul role="list" class="flex flex-1 flex-col gap-y-7">
@@ -47,7 +51,7 @@
                             @click="uiStore.setSidebarOpen(false)"
                           >
                             <component :is="item.icon" class="h-6 w-6 shrink-0" aria-hidden="true" />
-                            {{ item.name }}
+                            {{ item.key ? $t(item.key) : item.name }}
                             <span
                               v-if="item.name === 'Messages' && messagingStore.totalUnread > 0"
                               class="ml-auto bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
@@ -70,8 +74,12 @@
     <!-- Static Sidebar for desktop -->
     <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
       <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl px-6 pb-4">
-        <div class="flex h-16 shrink-0 items-center">
-          <span class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">Nachhilfe Admin</span>
+        <div class="flex h-16 shrink-0 items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/90 dark:bg-white/10 dark:ring-1 dark:ring-white/20 p-1 flex items-center justify-center shadow-sm overflow-hidden backdrop-blur-sm flex-shrink-0">
+            <img v-if="settingsStore.centerLogoUrl" :src="settingsStore.centerLogoUrl" alt="Logo" class="max-w-full max-h-full object-contain" />
+            <span v-else class="text-base font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">{{ settingsStore.centerName ? settingsStore.centerName[0]?.toUpperCase() : 'N' }}</span>
+          </div>
+          <span class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent truncate">{{ settingsStore.centerName }}</span>
         </div>
         <nav class="flex flex-1 flex-col">
           <ul role="list" class="flex flex-1 flex-col gap-y-7">
@@ -80,6 +88,7 @@
                 <li v-for="item in navigation" :key="item.name">
                   <router-link
                     :to="item.href"
+                    :data-tour="item.dataTour"
                     :class="[
                       $route.path === item.href
                         ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 shadow-sm'
@@ -88,7 +97,7 @@
                     ]"
                   >
                     <component :is="item.icon" class="h-6 w-6 shrink-0" aria-hidden="true" />
-                    {{ item.name }}
+                    {{ item.key ? $t(item.key) : item.name }}
                     <span
                       v-if="item.name === 'Messages' && messagingStore.totalUnread > 0"
                       class="ml-auto bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
@@ -112,9 +121,16 @@
           <Bars3Icon class="h-6 w-6" aria-hidden="true" />
         </button>
 
-        <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 justify-end items-center">
+        <div class="flex flex-1 gap-x-3 lg:gap-x-4 self-stretch justify-end items-center">
+          <!-- Language Switcher -->
+          <LanguageSwitcher />
+
           <!-- Theme Toggle -->
-          <button @click="uiStore.toggleDarkMode()" class="p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button
+            @click="uiStore.toggleDarkMode"
+            class="p-2 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+            aria-label="Toggle theme"
+          >
             <SunIcon v-if="uiStore.isDarkMode" class="w-6 h-6" />
             <MoonIcon v-else class="w-6 h-6" />
           </button>
@@ -240,6 +256,9 @@
         </router-view>
       </main>
     </div>
+
+    <!-- Interactive Role-Aware Onboarding Tour -->
+    <OnboardingTour />
   </div>
 </template>
 
@@ -264,13 +283,17 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useUiStore } from '@/stores/uiStore'
 import { useMessagingStore } from '@/stores/messagingStore'
+import { useSettingsStore } from '@/stores/settingsStore'
 import { useRouter } from 'vue-router'
 import api from '@/api'
 import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import OnboardingTour from '@/components/common/OnboardingTour.vue'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const uiStore = useUiStore()
 const messagingStore = useMessagingStore()
+const settingsStore = useSettingsStore()
 const router = useRouter()
 
 // ─── Notification Bell ─────────────────────────────────────────────────────────
@@ -358,6 +381,8 @@ function handleClickOutside(event: MouseEvent) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  // Prefetch center settings & branding on load
+  settingsStore.fetchSettings()
   // Prefetch notifications count on load
   fetchGlobalNotifications()
   // Prefetch messaging channels on load
@@ -380,17 +405,17 @@ async function handleLogout() {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Messages', href: '/messaging', icon: ChatBubbleOvalLeftEllipsisIcon },
-  { name: 'Students', href: '/students', icon: UsersIcon },
-  { name: 'Teachers', href: '/teachers', icon: AcademicCapIcon },
-  { name: 'Invoices', href: '/invoices', icon: CurrencyDollarIcon },
-  { name: 'Payrolls', href: '/payrolls', icon: CurrencyEuroIcon },
-  { name: 'Lessons', href: '/lessons', icon: BookOpenIcon },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
-  { name: 'Users', href: '/users', icon: UsersIcon },
-  { name: 'Roles', href: '/roles', icon: ShieldCheckIcon },
-  { name: 'Audit Logs', href: '/audit-logs', icon: ClipboardDocumentListIcon },
-  { name: 'User Guide', href: '/guide', icon: QuestionMarkCircleIcon },
+  { name: 'Dashboard', key: 'nav.dashboard', href: '/', icon: HomeIcon, dataTour: 'dashboard-nav' },
+  { name: 'Messages', key: 'nav.messages', href: '/messaging', icon: ChatBubbleOvalLeftEllipsisIcon, dataTour: 'messaging-nav' },
+  { name: 'Students', key: 'nav.students', href: '/students', icon: UsersIcon, dataTour: 'students-nav' },
+  { name: 'Teachers', key: 'nav.teachers', href: '/teachers', icon: AcademicCapIcon, dataTour: 'teachers-nav' },
+  { name: 'Invoices', key: 'nav.invoices', href: '/invoices', icon: CurrencyDollarIcon, dataTour: 'billing-nav' },
+  { name: 'Payrolls', key: 'nav.payrolls', href: '/payrolls', icon: CurrencyEuroIcon },
+  { name: 'Lessons', key: 'nav.lessons', href: '/lessons', icon: BookOpenIcon, dataTour: 'schedule-nav' },
+  { name: 'Settings', key: 'nav.settings', href: '/settings', icon: Cog6ToothIcon },
+  { name: 'Users', key: 'nav.users', href: '/users', icon: UsersIcon },
+  { name: 'Roles', key: 'nav.roles', href: '/roles', icon: ShieldCheckIcon },
+  { name: 'Audit Logs', key: 'nav.auditLogs', href: '/audit-logs', icon: ClipboardDocumentListIcon },
+  { name: 'User Guide', key: 'nav.userGuide', href: '/guide', icon: QuestionMarkCircleIcon, dataTour: 'guide-nav' },
 ]
 </script>

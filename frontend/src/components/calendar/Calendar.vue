@@ -6,21 +6,21 @@
       <div class="flex items-center space-x-3">
         <button
           @click="store.jumpToToday()"
-          class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 bg-purple-50/50 dark:bg-purple-950/40 hover:bg-purple-100 transition-colors shadow-xs"
+          class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 bg-purple-50/50 dark:bg-purple-950/40 hover:bg-purple-100 transition-colors shadow-xs cursor-pointer"
         >
-          Today
+          {{ $t('common.today') }}
         </button>
         <div class="flex items-center space-x-1 border border-gray-200 dark:border-gray-700 rounded-xl p-0.5">
           <button
             @click="store.previousPeriod()"
-            class="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            class="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
             title="Previous"
           >
             <ChevronLeftIcon class="w-5 h-5" />
           </button>
           <button
             @click="store.nextPeriod()"
-            class="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            class="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
             title="Next"
           >
             <ChevronRightIcon class="w-5 h-5" />
@@ -34,16 +34,16 @@
       <!-- Live Summary Pills -->
       <div class="hidden lg:flex items-center space-x-2 text-xs font-medium">
         <span class="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-          Scheduled: {{ store.summary.scheduled }}
+          {{ $t('lessons.scheduled') }}: {{ store.summary.scheduled }}
         </span>
         <span v-if="store.summary.in_progress > 0" class="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 animate-pulse">
-          ⚡ Live: {{ store.summary.in_progress }}
+          ⚡ {{ $t('lessons.live') }}: {{ store.summary.in_progress }}
         </span>
         <span class="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-          Completed: {{ store.summary.completed }}
+          {{ $t('lessons.completed') }}: {{ store.summary.completed }}
         </span>
         <span v-if="store.summary.conflicts > 0" class="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-bold">
-          🔴 Conflicts: {{ store.summary.conflicts }}
+          🔴 {{ $t('lessons.conflicts') }}: {{ store.summary.conflicts }}
         </span>
       </div>
 
@@ -57,7 +57,7 @@
             store.viewMode === mode.id
               ? 'bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 shadow-sm font-bold'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 font-medium',
-            'px-3 py-1.5 text-xs rounded-lg transition-all capitalize'
+            'px-3 py-1.5 text-xs rounded-lg transition-all capitalize cursor-pointer'
           ]"
         >
           {{ mode.label }}
@@ -69,7 +69,7 @@
     <div class="flex flex-wrap items-center gap-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-3 rounded-2xl border border-gray-100 dark:border-gray-700 text-xs">
       <div class="flex items-center space-x-1.5 text-gray-500 font-semibold uppercase tracking-wider text-[10px]">
         <FunnelIcon class="w-3.5 h-3.5 text-purple-500" />
-        <span>Filters:</span>
+        <span>{{ $t('common.filter') }}:</span>
       </div>
 
       <!-- Teacher Filter -->
@@ -78,7 +78,7 @@
         @change="store.fetchCalendar()"
         class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 py-1.5 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500"
       >
-        <option value="">All Teachers</option>
+        <option value="">{{ $t('lessons.filterTeacher') }}</option>
         <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
       </select>
 
@@ -88,7 +88,7 @@
         @change="store.fetchCalendar()"
         class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 py-1.5 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500"
       >
-        <option value="">All Rooms</option>
+        <option value="">{{ $t('lessons.filterRoom') }}</option>
         <option v-for="r in rooms" :key="r.id" :value="r.id">{{ r.name }}</option>
       </select>
 
@@ -98,7 +98,7 @@
         @change="store.fetchCalendar()"
         class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 py-1.5 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500"
       >
-        <option value="">All Subjects</option>
+        <option value="">{{ $t('lessons.filterSubject') }}</option>
         <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</option>
       </select>
 
@@ -108,18 +108,18 @@
         @change="store.fetchCalendar()"
         class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-2.5 py-1.5 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500"
       >
-        <option value="">All Statuses</option>
-        <option value="scheduled">Scheduled</option>
-        <option value="completed">Completed</option>
-        <option value="cancelled">Cancelled</option>
+        <option value="">{{ $t('common.status') }}</option>
+        <option value="scheduled">{{ $t('lessons.scheduled') }}</option>
+        <option value="completed">{{ $t('lessons.completed') }}</option>
+        <option value="cancelled">{{ $t('common.cancel') }}</option>
       </select>
 
       <button
         v-if="store.filterTeacherId || store.filterRoomId || store.filterSubjectId || store.filterStatus"
         @click="clearFilters()"
-        class="text-purple-600 hover:text-purple-700 dark:text-purple-400 font-semibold underline underline-offset-2 ml-auto"
+        class="text-purple-600 hover:text-purple-700 dark:text-purple-400 font-semibold underline underline-offset-2 ml-auto cursor-pointer"
       >
-        Clear Filters
+        {{ $t('common.cancel') }}
       </button>
     </div>
 
@@ -155,7 +155,7 @@
         <!-- Days Header (Mon -> Sun) -->
         <div class="grid grid-cols-8 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 shrink-0">
           <div class="py-2.5 text-center text-[11px] font-bold uppercase text-gray-400 border-r border-gray-200 dark:border-gray-700">
-            Time
+            {{ $t('common.time') }}
           </div>
           <div
             v-for="day in weekDays"
@@ -302,9 +302,9 @@
 
       <!-- ================= 4. RESOURCE / ROOM MATRIX VIEW ================= -->
       <div v-else-if="store.viewMode === 'resource'" class="flex-1 flex flex-col overflow-x-auto min-w-[800px] p-4">
-        <div class="text-sm font-bold text-gray-500 mb-2">Classroom Matrix View</div>
+        <div class="text-sm font-bold text-gray-500 mb-2">{{ $t('settings.rooms') }}</div>
         <div class="grid grid-cols-6 border-b font-bold text-xs py-2 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-          <div>Room</div>
+          <div>{{ $t('settings.rooms') }}</div>
           <div v-for="day in weekDays.slice(0, 5)" :key="day.dateStr">{{ day.dayName }} {{ day.dayNumber }}</div>
         </div>
         <div v-for="room in rooms" :key="room.id" class="grid grid-cols-6 border-b py-3 text-xs items-center border-gray-100 dark:border-gray-700/60">
@@ -327,6 +327,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   format,
   startOfWeek,
@@ -336,6 +337,7 @@ import {
   isToday,
   isWeekend
 } from 'date-fns'
+import { de as dateFnsDe, enUS as dateFnsEn } from 'date-fns/locale'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -344,6 +346,8 @@ import {
 } from '@heroicons/vue/20/solid'
 import { useCalendarStore, type CalendarLesson } from '@/stores/calendarStore'
 import api from '@/api'
+
+const { t, locale } = useI18n()
 
 const emit = defineEmits<{
   (e: 'lesson-click', lesson: CalendarLesson): void
@@ -360,12 +364,14 @@ const subjects = ref<Array<{ id: string; name: string }>>([])
 
 const timeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-const viewModeOptions = [
-  { id: 'week', label: 'Week' },
-  { id: 'day', label: 'Day' },
-  { id: 'month', label: 'Month' },
-  { id: 'resource', label: 'Rooms' }
-]
+const currentLocaleObj = computed(() => locale.value === 'de' ? dateFnsDe : dateFnsEn)
+
+const viewModeOptions = computed(() => [
+  { id: 'week', label: t('lessons.viewWeek') },
+  { id: 'day', label: t('lessons.viewDay') },
+  { id: 'month', label: t('lessons.viewMonth') },
+  { id: 'resource', label: t('lessons.viewResource') }
+])
 
 onMounted(async () => {
   store.fetchCalendar()
@@ -392,12 +398,14 @@ async function loadDropdownData() {
 }
 
 const formattedPeriodTitle = computed(() => {
+  const opt = { locale: currentLocaleObj.value }
   if (store.viewMode === 'week' || store.viewMode === 'resource') {
-    return `Week of ${format(store.selectedDate, 'MMM d, yyyy')}`
+    const formatted = format(store.selectedDate, 'd. MMM yyyy', opt)
+    return locale.value === 'de' ? `Woche vom ${formatted}` : `Week of ${formatted}`
   } else if (store.viewMode === 'day') {
-    return format(store.selectedDate, 'MMMM d, yyyy')
+    return format(store.selectedDate, 'PPP', opt)
   }
-  return format(store.selectedDate, 'MMMM yyyy')
+  return format(store.selectedDate, 'MMMM yyyy', opt)
 })
 
 const weekDays = computed(() => {
@@ -411,8 +419,8 @@ const weekDays = computed(() => {
     return {
       date,
       dateStr,
-      dayName: format(date, 'EEE'),
-      dayNumber: format(date, 'd'),
+      dayName: format(date, 'EEE', { locale: currentLocaleObj.value }),
+      dayNumber: format(date, 'd', { locale: currentLocaleObj.value }),
       isToday: isToday(date),
       isWeekend: isWeekend(date),
       holiday
@@ -431,7 +439,7 @@ const monthDays = computed(() => {
     return {
       date,
       dateStr,
-      dayNumber: format(date, 'd'),
+      dayNumber: format(date, 'd', { locale: currentLocaleObj.value }),
       isSameMonth: isSameMonth(date, store.selectedDate),
       holiday
     }
