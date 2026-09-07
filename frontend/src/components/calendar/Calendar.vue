@@ -273,28 +273,61 @@
       </div>
 
       <!-- ================= 3. MONTH VIEW ================= -->
-      <div v-else-if="store.viewMode === 'month'" class="flex-1 grid grid-cols-7 grid-rows-5 gap-px bg-gray-200 dark:bg-gray-700">
-        <div
-          v-for="day in monthDays"
-          :key="day.dateStr"
-          @click="handleSlotClick(day.dateStr, '09:00')"
-          :class="[
-            day.isSameMonth ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-900/50 text-gray-400',
-            'p-2 flex flex-col cursor-pointer hover:bg-purple-50/30 min-h-[100px]'
-          ]"
-        >
-          <div class="flex items-center justify-between text-xs font-semibold mb-1">
-            <span>{{ day.dayNumber }}</span>
-            <span v-if="day.holiday" class="text-[9px] text-rose-600 font-bold">🚩 {{ day.holiday.name }}</span>
+      <div v-else-if="store.viewMode === 'month'" class="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar">
+        <!-- Month Weekday Header -->
+        <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700 bg-gray-50/90 dark:bg-gray-800/90 sticky top-0 z-10 font-bold text-xs text-gray-600 dark:text-gray-300">
+          <div
+            v-for="(header, i) in monthWeekdayHeaders"
+            :key="i"
+            class="py-2.5 text-center border-r border-gray-200/60 dark:border-gray-700/60 last:border-r-0"
+          >
+            {{ header }}
           </div>
-          <div class="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
-            <div
-              v-for="lesson in getLessonsForDay(day.dateStr)"
-              :key="lesson.id"
-              @click.stop="emit('lesson-click', lesson)"
-              :class="[getLessonStatusClasses(lesson), 'px-1.5 py-0.5 rounded text-[10px] font-medium truncate']"
-            >
-              {{ lesson.start_time.substring(0,5) }} {{ lesson.subject?.name }}
+        </div>
+
+        <!-- Month Days Grid -->
+        <div class="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-gray-200 dark:bg-gray-700 min-h-[550px]">
+          <div
+            v-for="day in monthDays"
+            :key="day.dateStr"
+            @click="handleSlotClick(day.dateStr, '09:00')"
+            :class="[
+              day.isSameMonth ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-900/60 text-gray-400 dark:text-gray-500',
+              day.isToday ? 'ring-2 ring-inset ring-purple-500 bg-purple-50/20 dark:bg-purple-950/20' : '',
+              'p-2 flex flex-col cursor-pointer hover:bg-purple-50/40 dark:hover:bg-purple-900/20 min-h-[110px] transition-colors relative group'
+            ]"
+          >
+            <!-- Date & Holiday Header -->
+            <div class="flex items-center justify-between text-xs font-semibold mb-1">
+              <span
+                :class="[
+                  day.isToday ? 'w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-xs' : 'font-bold text-gray-800 dark:text-gray-200'
+                ]"
+              >
+                {{ day.dayNumber }}
+              </span>
+              <span v-if="day.holiday" class="text-[9px] text-rose-600 dark:text-rose-400 font-bold truncate max-w-[100px]" :title="day.holiday.name">
+                🚩 {{ day.holiday.name }}
+              </span>
+              <span v-else-if="getLessonsForDay(day.dateStr).length > 0" class="text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                {{ getLessonsForDay(day.dateStr).length }}
+              </span>
+            </div>
+
+            <!-- Lessons List in Month Cell -->
+            <div class="flex-1 overflow-y-auto space-y-1 custom-scrollbar max-h-[85px]">
+              <div
+                v-for="lesson in getLessonsForDay(day.dateStr)"
+                :key="lesson.id"
+                @click.stop="emit('lesson-click', lesson)"
+                :class="[
+                  getLessonStatusClasses(lesson),
+                  'px-1.5 py-0.5 rounded-lg text-[10px] font-semibold truncate border shadow-2xs hover:scale-[1.02] transition-transform cursor-pointer'
+                ]"
+                :title="`${lesson.start_time.substring(0,5)} - ${lesson.end_time.substring(0,5)}: ${lesson.subject?.name || ''} (${lesson.teacher?.name || ''})`"
+              >
+                <span class="font-bold">{{ lesson.start_time.substring(0,5) }}</span> {{ lesson.subject?.name }}
+              </div>
             </div>
           </div>
         </div>
@@ -332,6 +365,8 @@ import {
   format,
   startOfWeek,
   endOfWeek,
+  startOfMonth,
+  endOfMonth,
   eachDayOfInterval,
   isSameMonth,
   isToday,
@@ -428,9 +463,15 @@ const weekDays = computed(() => {
   })
 })
 
+const monthWeekdayHeaders = computed(() => {
+  return weekDays.value.map(d => d.dayName)
+})
+
 const monthDays = computed(() => {
-  const start = startOfWeek(store.selectedDate, { weekStartsOn: 1 })
-  const end = endOfWeek(store.selectedDate, { weekStartsOn: 1 })
+  const monthStart = startOfMonth(store.selectedDate)
+  const monthEnd = endOfMonth(store.selectedDate)
+  const start = startOfWeek(monthStart, { weekStartsOn: 1 })
+  const end = endOfWeek(monthEnd, { weekStartsOn: 1 })
   const interval = eachDayOfInterval({ start, end })
 
   return interval.map(date => {
@@ -441,6 +482,8 @@ const monthDays = computed(() => {
       dateStr,
       dayNumber: format(date, 'd', { locale: currentLocaleObj.value }),
       isSameMonth: isSameMonth(date, store.selectedDate),
+      isToday: isToday(date),
+      isWeekend: isWeekend(date),
       holiday
     }
   })
