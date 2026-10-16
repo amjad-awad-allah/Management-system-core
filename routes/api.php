@@ -83,7 +83,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('mobile')->group(function () {
         // Mobile Auth (public)
         Route::post('/login', [\App\Core\Http\Controllers\MobileAuthController::class, 'login']);
-        Route::post('/auth/code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'loginByCode']);
+        Route::post('/auth/code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'loginByCode'])->middleware('throttle:5,1');
 
         Route::middleware('auth:sanctum')->group(function () {
             // Mobile Auth (protected)

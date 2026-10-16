@@ -8,6 +8,7 @@ use App\Core\Models\UserMobileDevice;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -19,10 +20,27 @@ class LoginCodeController extends Controller
      */
     public function show(string $userId): JsonResponse
     {
+        $currentUser = auth()->user();
+        if (!$currentUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $isPrivileged = $currentUser->hasRole(['Super Admin', 'Admin', 'Center Manager'])
+            || $currentUser->can('manage users');
+
+        if (!$isPrivileged && $currentUser->id !== $userId) {
+            return response()->json(['message' => 'Unauthorized access to user login code.'], 403);
+        }
+
         $user = User::findOrFail($userId);
-        
+
+        if ($user->hasRole('Super Admin') && !$currentUser->hasRole('Super Admin')) {
+            return response()->json(['message' => 'Unauthorized access to Super Admin login code.'], 403);
+        }
+
         $loginCode = UserLoginCode::where('user_id', $userId)
             ->where('status', 'active')
+            ->where('expires_at', '>', now())
             ->first();
 
         if (!$loginCode) {
@@ -32,6 +50,7 @@ class LoginCodeController extends Controller
                 'user_id' => $userId,
                 'code' => $code,
                 'status' => 'active',
+                'expires_at' => now()->addHours(24),
                 'created_by' => auth()->id()
             ]);
         }
@@ -105,6 +124,18 @@ class LoginCodeController extends Controller
      */
     public function regenerate(Request $request, string $userId): JsonResponse
     {
+        $admin = auth()->user();
+        if (!$admin) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $isPrivileged = $admin->hasRole(['Super Admin', 'Admin', 'Center Manager'])
+            || $admin->can('manage users');
+
+        if (!$isPrivileged && $admin->id !== $userId) {
+            return response()->json(['message' => 'Unauthorized to regenerate login code.'], 403);
+        }
+
         $request->validate([
             'admin_password' => 'required|string'
         ]);
@@ -117,6 +148,10 @@ class LoginCodeController extends Controller
         }
 
         $user = User::findOrFail($userId);
+
+        if ($user->hasRole('Super Admin') && !$admin->hasRole('Super Admin')) {
+            return response()->json(['message' => 'Unauthorized to regenerate Super Admin login code.'], 403);
+        }
 
         // 1. Revoke existing active codes
         UserLoginCode::where('user_id', $userId)
@@ -136,6 +171,7 @@ class LoginCodeController extends Controller
             'user_id' => $userId,
             'code' => $code,
             'status' => 'active',
+            'expires_at' => now()->addHours(24),
             'created_by' => $admin->id
         ]);
 
@@ -150,8 +186,24 @@ class LoginCodeController extends Controller
      */
     public function revokeDevice(Request $request, string $deviceId): JsonResponse
     {
-        $device = UserMobileDevice::findOrFail($deviceId);
+        $currentUser = auth()->user();
+        if (!$currentUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $device = UserMobileDevice::with('user')->findOrFail($deviceId);
         
+        $isPrivileged = $currentUser->hasRole(['Super Admin', 'Admin', 'Center Manager'])
+            || $currentUser->can('manage users');
+
+        if ($device->user && $device->user->hasRole('Super Admin') && !$currentUser->hasRole('Super Admin')) {
+            return response()->json(['message' => 'Unauthorized to revoke Super Admin device.'], 403);
+        }
+
+        if (!$isPrivileged && $device->user_id !== $currentUser->id) {
+            return response()->json(['message' => 'Unauthorized to revoke this device.'], 403);
+        }
+
         // Revoke the specific token
         if ($device->token_id) {
             $device->user->tokens()->where('id', $device->token_id)->delete();
@@ -173,33 +225,74 @@ class LoginCodeController extends Controller
             'device_id' => 'nullable|string'
         ]);
 
-        $loginCode = UserLoginCode::where('code', $request->code)
-            ->where('status', 'active')
-            ->first();
+        $authResult = DB::transaction(function () use ($request) {
+            $loginCode = UserLoginCode::where('code', $request->code)
+                ->where('status', 'active')
+                ->lockForUpdate()
+                ->first();
 
-        if (!$loginCode) {
+            if (!$loginCode) {
+                return ['status' => 'invalid'];
+            }
+
+            if (!$loginCode->expires_at || $loginCode->expires_at->isPast()) {
+                return ['status' => 'expired'];
+            }
+
+            $user = $loginCode->user;
+            if (!$user) {
+                return ['status' => 'user_not_found'];
+            }
+
+            // Allowlist mobile authentication: only Student and Teacher permitted
+            if (!$user->hasAnyRole(['Student', 'Teacher'])) {
+                return ['status' => 'unauthorized_role'];
+            }
+
+            // Atomic single-use consumption: mark code used within the same transaction
+            $loginCode->update([
+                'status' => 'used',
+                'last_used_at' => now(),
+            ]);
+
+            $tokenResult = $user->createToken('mobile_auth_token');
+
+            UserMobileDevice::create([
+                'id' => (string) Str::ulid(),
+                'user_id' => $user->id,
+                'device_name' => $request->device_name,
+                'device_id' => $request->device_id,
+                'token_id' => $tokenResult->accessToken->id
+            ]);
+
+            return [
+                'status' => 'success',
+                'access_token' => $tokenResult->plainTextToken,
+                'user' => $user,
+            ];
+        });
+
+        if ($authResult['status'] === 'expired') {
             throw ValidationException::withMessages([
-                'code' => ['Scanned login code is invalid or has been revoked.']
+                'code' => ['Scanned login code has expired. Please request a new code.']
             ]);
         }
 
-        // Update last used timestamp
-        $loginCode->update(['last_used_at' => now()]);
+        if ($authResult['status'] === 'unauthorized_role') {
+            throw ValidationException::withMessages([
+                'code' => ['This account is not authorized for mobile application login.']
+            ]);
+        }
 
-        $user = $loginCode->user;
-        $tokenResult = $user->createToken('mobile_auth_token');
+        if ($authResult['status'] !== 'success') {
+            throw ValidationException::withMessages([
+                'code' => ['Scanned login code is invalid or has already been used.']
+            ]);
+        }
 
-        // Register device session
-        UserMobileDevice::create([
-            'id' => (string) Str::ulid(),
-            'user_id' => $user->id,
-            'device_name' => $request->device_name,
-            'device_id' => $request->device_id,
-            'token_id' => $tokenResult->accessToken->id
-        ]);
-
+        $user = $authResult['user'];
         return response()->json([
-            'access_token' => $tokenResult->plainTextToken,
+            'access_token' => $authResult['access_token'],
             'token_type' => 'Bearer',
             'user' => [
                 'id' => $user->id,

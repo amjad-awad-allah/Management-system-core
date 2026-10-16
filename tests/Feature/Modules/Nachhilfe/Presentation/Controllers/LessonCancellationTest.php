@@ -27,6 +27,7 @@ class LessonCancellationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
 
         $this->adminUser = User::forceCreate([
             'id' => (string) Str::ulid(),
@@ -34,6 +35,7 @@ class LessonCancellationTest extends TestCase
             'email' => 'admin_cancel_' . Str::random(5) . '@test.com',
             'password' => 'password',
         ]);
+        $this->adminUser->assignRole('Super Admin');
 
         $this->student = Student::create([
             'id' => (string) Str::ulid(),

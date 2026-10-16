@@ -43,25 +43,45 @@ class CalendarController extends Controller
         $state = !empty($validated['state']) ? strtoupper($validated['state']) : $this->centerSettings->getCenterBundesland();
 
         // 1. Query lessons within date range
-        $query = Lesson::with(['room', 'subject', 'teacher', 'students', 'lessonStudents.attendance'])
+        $query = Lesson::with(['room', 'subject', 'teacher', 'students'])
             ->whereBetween('date', [$startDate, $endDate])
             ->orderBy('date', 'asc')
             ->orderBy('start_time', 'asc');
 
         // Role-Based Isolation Boundary
         $user = $request->user();
-        if ($user && $user->hasRole('Teacher')) {
-            $teacher = \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::where('user_id', $user->id)->first();
-            if ($teacher) {
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $canManage = $user->hasAnyRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])
+            || $user->can('manage lessons')
+            || $user->can('manage nachhilfe');
+
+        if (!$canManage) {
+            if ($user->hasRole('Teacher')) {
+                $teacher = \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::where('user_id', $user->id)->first();
+                if (!$teacher) {
+                    abort(403, 'Teacher profile not found.');
+                }
                 $query->where('teacher_id', $teacher->id);
-            }
-        } elseif ($user && $user->hasRole('Student')) {
-            $student = \App\Modules\Nachhilfe\Infrastructure\Models\Student::where('user_id', $user->id)->first();
-            if ($student) {
-                $query->whereHas('students', function ($q) use ($student) {
-                    $q->where('student_id', $student->id);
+                $query->with(['lessonStudents.attendance']);
+            } elseif ($user->hasRole('Student')) {
+                $studentIds = \App\Modules\Nachhilfe\Infrastructure\Models\Student::where('user_id', $user->id)->pluck('id');
+                if ($studentIds->isEmpty()) {
+                    abort(403, 'Student profile not found.');
+                }
+                $query->whereHas('students', function ($q) use ($studentIds) {
+                    $q->whereIn('student_id', $studentIds);
                 });
+                $query->with([
+                    'lessonStudents' => fn($q) => $q->whereIn('student_id', $studentIds)->with('attendance'),
+                ]);
+            } else {
+                abort(403, 'Unauthorized access to operational calendar.');
             }
+        } else {
+            $query->with(['lessonStudents.attendance']);
         }
 
         if (!empty($validated['teacher_id'])) {
@@ -128,6 +148,28 @@ class CalendarController extends Controller
             $lessonData['conflict_types'] = $conflictInfo['conflict_types'];
             $lessonData['conflict_details'] = $conflictInfo['conflict_details'];
 
+            $canSeeTeacherSensitive = $user && ($user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) || $user->can('manage nachhilfe') || $user->can('manage billing'));
+            $canSeeStudentSensitive = $user && ($user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin', 'Receptionist']) || $user->can('manage students'));
+
+            if (!$canSeeTeacherSensitive && isset($lessonData['teacher']) && is_array($lessonData['teacher'])) {
+                unset($lessonData['teacher']['hourly_rate']);
+            }
+
+            if (!$canSeeStudentSensitive && isset($lessonData['students']) && is_array($lessonData['students'])) {
+                foreach ($lessonData['students'] as &$studentData) {
+                    unset(
+                        $studentData['parent_phone_1'],
+                        $studentData['parent_phone_2'],
+                        $studentData['parent_email'],
+                        $studentData['parent_name'],
+                        $studentData['address'],
+                        $studentData['birth_date'],
+                        $studentData['notes']
+                    );
+                }
+                unset($studentData);
+            }
+
             $processedLessons[] = $lessonData;
         }
 
@@ -162,6 +204,10 @@ class CalendarController extends Controller
      */
     public function storeHoliday(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage settings') && !$user->can('manage-settings') && !$user->can('manage nachhilfe'))) {
+            abort(403, 'Unauthorized to create holidays.');
+        }
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:public,school,center',

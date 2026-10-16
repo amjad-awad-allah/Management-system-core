@@ -8,14 +8,33 @@ use Illuminate\Support\Str;
 
 class StudentPackageController
 {
-    public function index(string $studentId)
+    public function index(Request $request, string $studentId)
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(403);
+        }
+
+        if ($user->hasRole('Student')) {
+            $student = \App\Modules\Nachhilfe\Infrastructure\Models\Student::where('user_id', $user->id)->first();
+            if (!$student || $student->id !== $studentId) {
+                abort(403, 'Unauthorized to view this student packages.');
+            }
+        } elseif (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage students') && !$user->can('manage billing')) {
+            abort(403, 'Unauthorized.');
+        }
+
         $packages = StudentPackage::where('student_id', $studentId)->get();
         return response()->json($packages);
     }
 
     public function store(Request $request)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage billing') && !$user->can('manage students'))) {
+            abort(403, 'Unauthorized to assign packages.');
+        }
+
         $validated = $request->validate([
             'student_id' => 'required|string',
             'package_id' => 'nullable|string',

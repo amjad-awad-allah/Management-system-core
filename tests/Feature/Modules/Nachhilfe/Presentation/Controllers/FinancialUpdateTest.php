@@ -13,6 +13,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     cache()->flush();
+    $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
     DB::table('module_settings')->updateOrInsert(
         ['module' => 'Nachhilfe'],
         ['id' => Str::ulid()->toString(), 'enabled' => true]
@@ -26,6 +27,7 @@ test('can update invoice details and toggle paid status', function () {
         'email' => 'admin@test.com',
         'password' => 'secret'
     ]);
+    $user->assignRole('Super Admin');
 
     $student = new Student();
     $student->id = (string) Str::ulid();
@@ -82,6 +84,7 @@ test('can update teacher payroll details', function () {
         'email' => 'admin2@test.com',
         'password' => 'secret'
     ]);
+    $user->assignRole('Super Admin');
 
     $teacher = new Teacher();
     $teacher->id = (string) Str::ulid();

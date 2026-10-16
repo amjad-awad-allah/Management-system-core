@@ -12,7 +12,30 @@ class StudentController
 {
     public function index(\Illuminate\Http\Request $request): AnonymousResourceCollection
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $canManage = $user->hasRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])
+            || $user->can('manage students');
+
         $query = Student::with(['subjects', 'teachers', 'packages']);
+
+        if (!$canManage) {
+            if ($user->hasRole('Teacher')) {
+                $teacher = \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::where('user_id', $user->id)->first();
+                if (!$teacher) {
+                    abort(403, 'Teacher profile not found.');
+                }
+                $query->where(function ($q) use ($teacher) {
+                    $q->whereHas('teachers', fn($t) => $t->where('teachers.id', $teacher->id))
+                      ->orWhereHas('lessons', fn($l) => $l->where('teacher_id', $teacher->id));
+                });
+            } else {
+                abort(403, 'Unauthorized access to student records.');
+            }
+        }
         
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
@@ -26,14 +49,51 @@ class StudentController
         return StudentResource::collection($students);
     }
 
-    public function show(string $id): StudentResource
+    public function show(\Illuminate\Http\Request $request, string $id): StudentResource
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
         $student = Student::withTrashed()->with(['subjects', 'teachers', 'packages'])->findOrFail($id);
+
+        $canManage = $user->hasRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])
+            || $user->can('manage students');
+
+        if (!$canManage) {
+            if ($user->hasRole('Teacher')) {
+                $teacher = \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::where('user_id', $user->id)->first();
+                if (!$teacher) {
+                    abort(403, 'Teacher profile not found.');
+                }
+                $teaches = $student->teachers()->where('teachers.id', $teacher->id)->exists()
+                    || \App\Modules\Nachhilfe\Infrastructure\Models\LessonStudent::where('student_id', $id)
+                        ->whereHas('lesson', fn($q) => $q->where('teacher_id', $teacher->id))
+                        ->exists();
+
+                if (!$teaches) {
+                    abort(403, 'You do not teach this student.');
+                }
+            } elseif ($user->hasRole('Student')) {
+                if ($student->user_id !== $user->id) {
+                    abort(403, 'Unauthorized access to student profile.');
+                }
+            } else {
+                abort(403, 'Unauthorized access to student profile.');
+            }
+        }
+
         return new StudentResource($student);
     }
 
     public function store(CreateStudentRequest $request, CreateStudentAction $action): \Illuminate\Http\JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist']) && !$user->can('manage students'))) {
+            abort(403, 'Unauthorized to create students.');
+        }
+
         $validated = $request->validated();
         $student = $action->execute(
             firstName: $validated['first_name'],
@@ -54,6 +114,11 @@ class StudentController
 
     public function update(\Illuminate\Http\Request $request, string $id): StudentResource
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist']) && !$user->can('manage students'))) {
+            abort(403, 'Unauthorized to update students.');
+        }
+
         $student = Student::findOrFail($id);
         
         $validated = $request->validate([
@@ -74,7 +139,7 @@ class StudentController
         $student->update($updateData);
 
         if (isset($validated['parent_email'])) {
-            $user = \App\Core\Models\User::firstOrCreate(
+            $userModel = \App\Core\Models\User::firstOrCreate(
                 ['email' => $validated['parent_email']],
                 [
                     'name' => $validated['parent_name'] ?? ($student->first_name . ' Parent'),
@@ -82,13 +147,13 @@ class StudentController
                 ]
             );
             
-            if (!$user->hasRole('Student')) {
+            if (!$userModel->hasRole('Student')) {
                 // Ensure Student role exists or create it
                 $role = \App\Core\Models\Role::firstOrCreate(['name' => 'Student']);
-                $user->assignRole($role);
+                $userModel->assignRole($role);
             }
 
-            $student->update(['user_id' => $user->id]);
+            $student->update(['user_id' => $userModel->id]);
         }
 
         if ($request->has('subject_ids')) {
@@ -98,17 +163,38 @@ class StudentController
         return new StudentResource($student->load(['subjects', 'teachers', 'packages']));
     }
 
-    public function destroy(string $id): \Illuminate\Http\Response
+    public function destroy(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\Response
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Admin', 'Center Manager']) && !$user->can('manage students'))) {
+            abort(403, 'Unauthorized to delete students.');
+        }
+
         $student = Student::findOrFail($id);
         $student->delete();
         
         return response()->noContent();
     }
 
-    public function statement(string $id): \Illuminate\Http\JsonResponse
+    public function statement(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
         $student = Student::findOrFail($id);
+
+        $canManage = $user->hasRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])
+            || $user->can('manage students') || $user->can('manage billing');
+
+        if (!$canManage) {
+            if ($user->hasRole('Student') && $student->user_id === $user->id) {
+                // Allowed for student owner
+            } else {
+                abort(403, 'Unauthorized access to student statement.');
+            }
+        }
         
         // Fetch subscription usages for this student
         $usages = \App\Modules\Nachhilfe\Infrastructure\Models\SubscriptionUsage::with(['lesson.subject', 'lesson.teacher', 'subscription.package'])
@@ -123,9 +209,41 @@ class StudentController
 
     public function timeline(string $id, \App\Modules\Nachhilfe\Application\Queries\GetStudentTimelineQuery $query, \Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
         $student = Student::findOrFail($id);
+
+        $canManage = $user->hasRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])
+            || $user->can('manage students');
+
+        if (!$canManage) {
+            if ($user->hasRole('Teacher')) {
+                $teacher = \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::where('user_id', $user->id)->first();
+                if (!$teacher) {
+                    abort(403, 'Teacher profile not found.');
+                }
+                $teaches = $student->teachers()->where('teachers.id', $teacher->id)->exists()
+                    || \App\Modules\Nachhilfe\Infrastructure\Models\LessonStudent::where('student_id', $id)
+                        ->whereHas('lesson', fn($q) => $q->where('teacher_id', $teacher->id))
+                        ->exists();
+
+                if (!$teaches) {
+                    abort(403, 'You do not teach this student.');
+                }
+            } elseif ($user->hasRole('Student')) {
+                if ($student->user_id !== $user->id) {
+                    abort(403, 'Unauthorized access to student timeline.');
+                }
+            } else {
+                abort(403, 'Unauthorized access to student timeline.');
+            }
+        }
+
         $page = (int) $request->input('page', 1);
         $type = $request->query('type');
-        return response()->json($query->execute($student, $request->user(), $page, 15, $type));
+        return response()->json($query->execute($student, $user, $page, 15, $type));
     }
 }

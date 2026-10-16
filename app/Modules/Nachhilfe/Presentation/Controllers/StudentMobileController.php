@@ -26,7 +26,12 @@ class StudentMobileController
             return response()->json(['data' => []]);
         }
 
-        $query = Lesson::with(['room', 'subject', 'teacher', 'lessonStudents.attendance'])
+        $query = Lesson::with([
+            'room:id,name',
+            'subject:id,name',
+            'teacher' => fn($q) => $q->select(['id', 'name', 'email', 'qualification']),
+            'lessonStudents' => fn($q) => $q->whereIn('student_id', $studentIds)->with('attendance'),
+        ])
             ->whereHas('students', function ($q) use ($studentIds) {
                 $q->whereIn('student_id', $studentIds);
             })
@@ -41,7 +46,15 @@ class StudentMobileController
             $query->where('status', $request->query('status'));
         }
 
-        return response()->json($query->paginate());
+        $paginator = $query->paginate();
+        $paginator->through(function ($lesson) {
+            if ($lesson->teacher) {
+                $lesson->teacher->makeHidden(['hourly_rate', 'phone']);
+            }
+            return $lesson;
+        });
+
+        return response()->json($paginator);
     }
 
     public function subscriptions(Request $request)

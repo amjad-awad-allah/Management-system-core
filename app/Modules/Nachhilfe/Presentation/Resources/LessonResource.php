@@ -27,23 +27,32 @@ class LessonResource extends JsonResource
             'duration_minutes' => $this->duration_minutes,
             'status' => $this->status,
             'notes' => $this->notes,
-            'students' => $this->whenLoaded('students', function () {
-                return $this->students->map(function ($student) {
-                    $attendanceStatus = null;
-                    if ($this->relationLoaded('lessonStudents')) {
-                        $ls = $this->lessonStudents->firstWhere('student_id', $student->id);
-                        $attendanceStatus = $ls?->attendance?->status;
-                    }
+            'students' => $this->whenLoaded('students', function () use ($request) {
+                $user = $request->user();
+                $isStudent = $user && $user->hasRole('Student') && !$user->hasAnyRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist', 'Teacher']);
+                $currentStudentId = null;
+                if ($isStudent) {
+                    $currentStudentId = \App\Modules\Nachhilfe\Infrastructure\Models\Student::where('user_id', $user->id)->value('id');
+                }
 
-                    return [
-                        'id' => $student->id,
-                        'pivot_id' => $student->pivot->id,
-                        'name' => $student->first_name . ' ' . $student->last_name,
-                        'package_id' => $student->pivot->package_id,
-                        'hours_consumed' => $student->pivot->hours_consumed,
-                        'attendance' => $attendanceStatus,
-                    ];
-                });
+                return $this->students
+                    ->when($isStudent && $currentStudentId, fn($collection) => $collection->where('id', $currentStudentId))
+                    ->map(function ($student) {
+                        $attendanceStatus = null;
+                        if ($this->relationLoaded('lessonStudents')) {
+                            $ls = $this->lessonStudents->firstWhere('student_id', $student->id);
+                            $attendanceStatus = $ls?->attendance?->status;
+                        }
+
+                        return [
+                            'id' => $student->id,
+                            'pivot_id' => $student->pivot->id,
+                            'name' => $student->first_name . ' ' . $student->last_name,
+                            'package_id' => $student->pivot->package_id,
+                            'hours_consumed' => $student->pivot->hours_consumed,
+                            'attendance' => $attendanceStatus,
+                        ];
+                    })->values();
             }),
             'created_at' => $this->created_at,
         ];

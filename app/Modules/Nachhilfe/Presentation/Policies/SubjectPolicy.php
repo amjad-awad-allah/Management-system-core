@@ -13,8 +13,16 @@ class SubjectPolicy
 
     public function create(User $user): bool
     {
-        // Require specific permission or just true for now
-        // return $user->hasPermissionTo('create subjects');
-        return true;
+        return $user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) || $user->can('manage nachhilfe');
+    }
+
+    public function update(User $user, \App\Modules\Nachhilfe\Infrastructure\Models\SubjectModel $subject): bool
+    {
+        return $user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) || $user->can('manage nachhilfe');
+    }
+
+    public function delete(User $user, \App\Modules\Nachhilfe\Infrastructure\Models\SubjectModel $subject): bool
+    {
+        return $user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) || $user->can('manage nachhilfe');
     }
 }

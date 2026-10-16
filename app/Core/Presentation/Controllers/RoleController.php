@@ -10,20 +10,46 @@ use Illuminate\Http\JsonResponse;
 
 class RoleController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole('Super Admin') && !$user->can('manage roles'))) {
+            abort(403, 'Unauthorized to list roles.');
+        }
+
         $roles = Role::with('permissions')->get();
         return response()->json(['data' => $roles]);
     }
 
-    public function permissions(): JsonResponse
+    public function permissions(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole('Super Admin') && !$user->can('manage roles'))) {
+            abort(403, 'Unauthorized to list permissions.');
+        }
+
         $permissions = Permission::all();
         return response()->json(['data' => $permissions]);
     }
 
+    public function show(Request $request, string $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole('Super Admin') && !$user->can('manage roles'))) {
+            abort(403, 'Unauthorized to view this role.');
+        }
+
+        $role = Role::with('permissions')->findOrFail($id);
+        return response()->json(['data' => $role]);
+    }
+
     public function store(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole('Super Admin') && !$user->can('manage roles'))) {
+            abort(403, 'Unauthorized to create roles.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:roles,name',
             'permissions' => 'array',
@@ -44,6 +70,11 @@ class RoleController extends Controller
 
     public function update(Request $request, string $id): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole('Super Admin') && !$user->can('manage roles'))) {
+            abort(403, 'Unauthorized to update roles.');
+        }
+
         $role = Role::findOrFail($id);
         
         if ($role->name === 'Super Admin') {
@@ -71,8 +102,13 @@ class RoleController extends Controller
         ]);
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole('Super Admin') && !$user->can('manage roles'))) {
+            abort(403, 'Unauthorized to delete roles.');
+        }
+
         $role = Role::findOrFail($id);
 
         if ($role->name === 'Super Admin') {

@@ -35,6 +35,8 @@ class SubjectController extends Controller
 
     public function update(\Illuminate\Http\Request $request, SubjectModel $subject)
     {
+        Gate::authorize('update', $subject);
+
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -47,6 +49,8 @@ class SubjectController extends Controller
 
     public function destroy(SubjectModel $subject)
     {
+        Gate::authorize('delete', $subject);
+
         $subject->delete();
         return response()->noContent();
     }

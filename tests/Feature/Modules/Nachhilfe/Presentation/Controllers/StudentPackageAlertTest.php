@@ -223,6 +223,37 @@ test('timeline security boundaries block teachers and allow parents', function (
     $teacherRole = Role::firstOrCreate(['name' => 'Teacher']);
     $teacherUser->assignRole($teacherRole);
 
+    $teacherModel = Teacher::create([
+        'id' => (string) Str::ulid(),
+        'user_id' => $teacherUser->id,
+        'name' => 'Teacher Account',
+        'email' => $teacherUser->email,
+    ]);
+
+    $room = \App\Modules\Nachhilfe\Infrastructure\Models\Room::create([
+        'id' => (string) Str::ulid(),
+        'name' => 'Room 1',
+        'capacity' => 10,
+    ]);
+
+    $lesson = Lesson::create([
+        'id' => (string) Str::ulid(),
+        'teacher_id' => $teacherModel->id,
+        'room_id' => $room->id,
+        'subject_id' => $this->subjectId,
+        'type' => 'individual',
+        'date' => now()->toDateString(),
+        'start_time' => '10:00',
+        'end_time' => '11:00',
+        'status' => 'scheduled'
+    ]);
+
+    LessonStudent::create([
+        'id' => (string) Str::ulid(),
+        'lesson_id' => $lesson->id,
+        'student_id' => $this->student->id,
+    ]);
+
     // 2. Setup notification in db
     $groupId = (string) Str::ulid();
     $package = new StudentPackage();
@@ -260,7 +291,7 @@ test('timeline security boundaries block teachers and allow parents', function (
         ->getJson("/api/v1/nachhilfe/students/{$this->student->id}/timeline");
 
     $responseTeacher->assertStatus(200);
-    $teacherEventTypes = collect($responseTeacher->json())->pluck('type');
+    $teacherEventTypes = collect($responseTeacher->json()['data'])->pluck('type');
     expect($teacherEventTypes->contains('notification'))->toBeFalse();
 });
 

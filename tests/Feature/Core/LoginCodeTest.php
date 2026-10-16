@@ -26,6 +26,9 @@ class LoginCodeTest extends TestCase
             'password' => bcrypt('adminpass123'),
         ]);
 
+        $adminRole = \App\Core\Models\Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $this->admin->assignRole($adminRole);
+
         \App\Core\Models\Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'web']);
         \App\Core\Models\Role::firstOrCreate(['name' => 'Teacher', 'guard_name' => 'web']);
 

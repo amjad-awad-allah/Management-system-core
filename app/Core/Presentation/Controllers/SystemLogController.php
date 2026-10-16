@@ -17,6 +17,11 @@ class SystemLogController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Admin']) && !$user->can('manage settings') && !$user->can('manage-settings'))) {
+            return response()->json(['message' => 'Unauthorized to view system logs.'], 403);
+        }
+
         $filters = [
             'period' => $request->query('period', '24h'),
             'level' => $request->query('level', 'all'),
@@ -32,6 +37,11 @@ class SystemLogController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Admin']) && !$user->can('manage settings') && !$user->can('manage-settings'))) {
+            abort(403, 'Unauthorized to export system logs.');
+        }
+
         $period = $request->query('period', '24h');
         $format = strtolower($request->query('format', 'txt'));
         if (!in_array($format, ['txt', 'json', 'log'])) {
@@ -63,7 +73,7 @@ class SystemLogController extends Controller
         $user = $request->user();
 
         // Ensure user is authorized to clear system logs (Admin / Super Admin)
-        if (!$user || (!$user->hasRole('Super Admin') && !$user->hasRole('Admin') && !$user->can('manage settings'))) {
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Admin']) && !$user->can('manage settings') && !$user->can('manage-settings'))) {
             return response()->json(['message' => 'Unauthorized to clear system logs.'], 403);
         }
 

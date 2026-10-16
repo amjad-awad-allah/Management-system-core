@@ -15,6 +15,11 @@ class PackageController
 
     public function store(Request $request)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage nachhilfe') && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to create packages.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -38,6 +43,11 @@ class PackageController
 
     public function update(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage nachhilfe') && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to update packages.');
+        }
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
@@ -52,8 +62,13 @@ class PackageController
         return response()->json($package);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage nachhilfe') && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to delete packages.');
+        }
+
         $package = Package::findOrFail($id);
         $package->delete();
         return response()->json(null, 204);

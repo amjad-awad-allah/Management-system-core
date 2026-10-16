@@ -22,6 +22,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
     DB::table('settings')->updateOrInsert(
         ['key' => 'modules.Nachhilfe.enabled'],
         ['id' => (string) Str::ulid(), 'value' => 'true']
@@ -30,6 +31,7 @@ beforeEach(function () {
 
 test('can list lessons', function () {
     $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't3@t.com', 'password' => 'p']);
+    $user->assignRole('Center Manager');
 
     $response = $this->actingAs($user, 'sanctum')->getJson('/api/v1/nachhilfe/lessons');
 
@@ -81,6 +83,7 @@ test('can book a lesson', function () {
 
 test('can filter lessons by student and teacher', function () {
     $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't5@t.com', 'password' => 'p']);
+    $user->assignRole('Center Manager');
     
     $student1 = Student::create(['id' => Str::ulid()->toString(), 'first_name' => 'S1', 'last_name' => 'L1', 'birth_date' => '2010-01-01', 'level' => 'Grade 10']);
     $student2 = Student::create(['id' => Str::ulid()->toString(), 'first_name' => 'S2', 'last_name' => 'L2', 'birth_date' => '2010-01-01', 'level' => 'Grade 10']);

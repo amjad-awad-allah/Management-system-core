@@ -31,6 +31,11 @@ class TeacherController
 
     public function store(CreateTeacherRequest $request, CreateTeacherAction $action): \Illuminate\Http\JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage nachhilfe'))) {
+            abort(403, 'Unauthorized to create teachers.');
+        }
+
         $validated = $request->validated();
         $teacher = $action->execute(
             name: $validated['name'],
@@ -47,6 +52,11 @@ class TeacherController
 
     public function update(\Illuminate\Http\Request $request, string $id): TeacherResource
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage nachhilfe'))) {
+            abort(403, 'Unauthorized to update teachers.');
+        }
+
         $teacher = Teacher::findOrFail($id);
         
         $validated = $request->validate([
@@ -64,12 +74,12 @@ class TeacherController
 
         if (isset($validated['email'])) {
             if ($teacher->user_id) {
-                $user = \App\Core\Models\User::find($teacher->user_id);
-                if ($user && $user->email !== $validated['email']) {
-                    $user->update(['email' => $validated['email']]);
+                $userModel = \App\Core\Models\User::find($teacher->user_id);
+                if ($userModel && $userModel->email !== $validated['email']) {
+                    $userModel->update(['email' => $validated['email']]);
                 }
             } else {
-                $user = \App\Core\Models\User::firstOrCreate(
+                $userModel = \App\Core\Models\User::firstOrCreate(
                     ['email' => $validated['email']],
                     [
                         'name' => $validated['name'] ?? $teacher->name,
@@ -77,12 +87,12 @@ class TeacherController
                     ]
                 );
                 
-                if (!$user->hasRole('Teacher')) {
+                if (!$userModel->hasRole('Teacher')) {
                     $role = \App\Core\Models\Role::firstOrCreate(['name' => 'Teacher']);
-                    $user->assignRole($role);
+                    $userModel->assignRole($role);
                 }
                 
-                $teacher->update(['user_id' => $user->id]);
+                $teacher->update(['user_id' => $userModel->id]);
             }
         }
 
@@ -93,8 +103,13 @@ class TeacherController
         return new TeacherResource($teacher->load(['subjects', 'students']));
     }
 
-    public function destroy(string $id): \Illuminate\Http\Response
+    public function destroy(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\Response
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage nachhilfe'))) {
+            abort(403, 'Unauthorized to delete teachers.');
+        }
+
         $teacher = Teacher::findOrFail($id);
         $teacher->delete();
         

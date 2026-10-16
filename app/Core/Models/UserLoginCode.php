@@ -10,6 +10,15 @@ class UserLoginCode extends Model
 {
     use HasUlids;
 
+    protected static function booted(): void
+    {
+        static::creating(function (UserLoginCode $code) {
+            if (empty($code->expires_at)) {
+                $code->expires_at = now()->addHours(24);
+            }
+        });
+    }
+
     protected $table = 'user_login_codes';
 
     protected $fillable = [
@@ -18,11 +27,13 @@ class UserLoginCode extends Model
         'code',
         'status',
         'last_used_at',
+        'expires_at',
         'created_by'
     ];
 
     protected $casts = [
-        'last_used_at' => 'datetime'
+        'last_used_at' => 'datetime',
+        'expires_at' => 'datetime'
     ];
 
     public function user(): BelongsTo

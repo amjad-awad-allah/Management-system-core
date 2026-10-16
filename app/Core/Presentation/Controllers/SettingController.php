@@ -30,7 +30,7 @@ class SettingController extends Controller
     public function update(Request $request): JsonResponse
     {
         $user = $request->user();
-        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager']) && !$user->can('manage-settings'))) {
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage settings') && !$user->can('manage-settings'))) {
             return response()->json(['message' => 'Unauthorized to modify center settings.'], 403);
         }
 
@@ -66,7 +66,7 @@ class SettingController extends Controller
     public function uploadLogo(Request $request): JsonResponse
     {
         $user = $request->user();
-        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager']) && !$user->can('manage-settings'))) {
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage settings') && !$user->can('manage-settings'))) {
             return response()->json(['message' => 'Unauthorized to upload center logo.'], 403);
         }
 
@@ -115,7 +115,7 @@ class SettingController extends Controller
     public function deleteLogo(Request $request): JsonResponse
     {
         $user = $request->user();
-        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager']) && !$user->can('manage-settings'))) {
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage settings') && !$user->can('manage-settings'))) {
             return response()->json(['message' => 'Unauthorized to delete center logo.'], 403);
         }
 

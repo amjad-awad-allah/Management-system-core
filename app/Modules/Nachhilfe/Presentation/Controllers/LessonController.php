@@ -20,6 +20,15 @@ class LessonController extends Controller
 
     public function index(\Illuminate\Http\Request $request)
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $canManage = $user->hasRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])
+            || $user->can('manage lessons')
+            || $user->can('manage nachhilfe');
+
         $query = Lesson::with([
             'teacher' => fn($q) => $q->withTrashed(),
             'room', 
@@ -27,6 +36,26 @@ class LessonController extends Controller
             'students' => fn($q) => $q->withTrashed(), 
             'lessonStudents.attendance'
         ])->latest('date');
+
+        if (!$canManage) {
+            if ($user->hasRole('Teacher')) {
+                $teacher = \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::where('user_id', $user->id)->first();
+                if (!$teacher) {
+                    return LessonResource::collection(new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15));
+                }
+                $query->where('teacher_id', $teacher->id);
+            } elseif ($user->hasRole('Student')) {
+                $student = \App\Modules\Nachhilfe\Infrastructure\Models\Student::where('user_id', $user->id)->first();
+                if (!$student) {
+                    return LessonResource::collection(new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15));
+                }
+                $query->whereHas('students', function ($q) use ($student) {
+                    $q->where('student_id', $student->id);
+                });
+            } else {
+                abort(403, 'Unauthorized access to lessons.');
+            }
+        }
 
         if ($request->has('teacher_id')) {
             $query->where('teacher_id', $request->query('teacher_id'));
@@ -307,6 +336,22 @@ class LessonController extends Controller
 
     public function updateStatus(Request $request, Lesson $lesson): \Illuminate\Http\JsonResponse
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $isManager = $user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin', 'Receptionist']) || $user->can('manage lessons');
+        $isAssignedTeacher = false;
+        $teacher = \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::where('user_id', $user->id)->first();
+        if ($teacher && $teacher->id === $lesson->teacher_id) {
+            $isAssignedTeacher = true;
+        }
+
+        if (!$isManager && !$isAssignedTeacher) {
+            abort(403, 'Unauthorized to update lesson status.');
+        }
+
         app(\App\Modules\Nachhilfe\Domain\Services\LessonModificationGuard::class)->checkCanModify($lesson);
 
         $validated = $request->validate([

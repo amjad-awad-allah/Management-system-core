@@ -43,7 +43,9 @@ test('can list subjects', function () {
 });
 
 test('can create a subject', function () {
+    $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
     $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 't2@t.com', 'password' => 'p']);
+    $user->assignRole('Center Manager');
 
     $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/nachhilfe/subjects', [
         'name' => 'Chemistry',

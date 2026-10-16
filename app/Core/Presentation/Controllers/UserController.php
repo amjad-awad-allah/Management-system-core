@@ -12,14 +12,35 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole('Super Admin') && !$user->can('manage users'))) {
+            abort(403, 'Unauthorized to list users.');
+        }
+
         $users = User::with('roles')->orderBy('created_at', 'desc')->get();
         return response()->json(['data' => $users]);
     }
 
+    public function show(Request $request, string $id): JsonResponse
+    {
+        $currentUser = $request->user();
+        if (!$currentUser || ((string) $currentUser->id !== $id && !$currentUser->hasRole('Super Admin') && !$currentUser->can('manage users'))) {
+            abort(403, 'Unauthorized to view this user.');
+        }
+
+        $user = User::with('roles')->findOrFail($id);
+        return response()->json(['data' => $user]);
+    }
+
     public function store(Request $request): JsonResponse
     {
+        $currentUser = $request->user();
+        if (!$currentUser || (!$currentUser->hasRole('Super Admin') && !$currentUser->can('manage users'))) {
+            abort(403, 'Unauthorized to create users.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -27,6 +48,10 @@ class UserController extends Controller
             'roles' => 'array',
             'roles.*' => 'exists:roles,name'
         ]);
+
+        if (!empty($validated['roles']) && in_array('Super Admin', $validated['roles']) && !$currentUser->hasRole('Super Admin')) {
+            abort(403, 'Only Super Admin can assign the Super Admin role.');
+        }
 
         $user = User::create([
             'name' => $validated['name'],
@@ -46,7 +71,16 @@ class UserController extends Controller
 
     public function update(Request $request, string $id): JsonResponse
     {
+        $currentUser = $request->user();
+        if (!$currentUser || (!$currentUser->hasRole('Super Admin') && !$currentUser->can('manage users'))) {
+            abort(403, 'Unauthorized to update users.');
+        }
+
         $user = User::findOrFail($id);
+
+        if ($user->hasRole('Super Admin') && !$currentUser->hasRole('Super Admin')) {
+            abort(403, 'Only Super Admin can modify a Super Admin account.');
+        }
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -55,6 +89,10 @@ class UserController extends Controller
             'roles' => 'array',
             'roles.*' => 'exists:roles,name'
         ]);
+
+        if (!empty($validated['roles']) && in_array('Super Admin', $validated['roles']) && !$currentUser->hasRole('Super Admin')) {
+            abort(403, 'Only Super Admin can assign the Super Admin role.');
+        }
 
         if (isset($validated['name'])) {
             $user->name = $validated['name'];
@@ -80,11 +118,20 @@ class UserController extends Controller
         ]);
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
+        $currentUser = $request->user();
+        if (!$currentUser || (!$currentUser->hasRole('Super Admin') && !$currentUser->can('manage users'))) {
+            abort(403, 'Unauthorized to delete users.');
+        }
+
         $user = User::findOrFail($id);
+
+        if ($user->hasRole('Super Admin') && !$currentUser->hasRole('Super Admin')) {
+            abort(403, 'Only Super Admin can delete a Super Admin account.');
+        }
         
-        if ($user->id === auth()->id()) {
+        if ($user->id === $currentUser->id) {
             return response()->json(['message' => 'Cannot delete yourself'], 400);
         }
 

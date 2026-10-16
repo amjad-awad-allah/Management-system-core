@@ -18,6 +18,11 @@ class RoomController extends Controller
 
     public function store(Request $request)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage nachhilfe'))) {
+            abort(403, 'Unauthorized to create rooms.');
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1'
@@ -31,6 +36,11 @@ class RoomController extends Controller
 
     public function update(Request $request, Room $room)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage nachhilfe'))) {
+            abort(403, 'Unauthorized to update rooms.');
+        }
+
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'capacity' => 'sometimes|required|integer|min:1'
@@ -41,8 +51,13 @@ class RoomController extends Controller
         return new RoomResource($room);
     }
 
-    public function destroy(Room $room)
+    public function destroy(Request $request, Room $room)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) && !$user->can('manage nachhilfe'))) {
+            abort(403, 'Unauthorized to delete rooms.');
+        }
+
         $room->delete();
         return response()->noContent();
     }

@@ -12,8 +12,29 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
-        $invoices = Invoice::with('student')
-            ->when($request->student_id, fn($q, $sid) => $q->where('student_id', $sid))
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $canManageBilling = $user->hasRole(['Super Admin', 'Center Manager']) || $user->can('manage billing');
+
+        $query = Invoice::with('student');
+
+        if (!$canManageBilling) {
+            $student = Student::where('user_id', $user->id)->first();
+            if ($student) {
+                $query->where('student_id', $student->id);
+            } else {
+                abort(403, 'Unauthorized access to invoices.');
+            }
+        } else {
+            if ($request->student_id) {
+                $query->where('student_id', $request->student_id);
+            }
+        }
+
+        $invoices = $query
             ->when($request->month, fn($q, $m) => $q->where('month', $m))
             ->when($request->date, fn($q, $d) => $q->whereDate('created_at', $d))
             ->when($request->from_date && $request->to_date, fn($q) => $q->whereBetween('created_at', [
@@ -32,14 +53,31 @@ class InvoiceController extends Controller
         return response()->json($invoices);
     }
 
-    public function show(Invoice $invoice)
+    public function show(Request $request, Invoice $invoice)
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $canManageBilling = $user->hasRole(['Super Admin', 'Center Manager']) || $user->can('manage billing');
+        $isOwner = $invoice->student && (string) $invoice->student->user_id === (string) $user->id;
+
+        if (!$canManageBilling && !$isOwner) {
+            abort(403, 'Unauthorized access to this invoice.');
+        }
+
         $invoice->load(['student', 'items.lesson.subject']);
         return response()->json($invoice);
     }
 
     public function generate(Request $request, InvoiceGeneratorService $service)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to generate invoices.');
+        }
+
         $request->validate([
             'student_id' => 'required|exists:students,id',
             'month' => 'required|date_format:Y-m',
@@ -110,6 +148,11 @@ class InvoiceController extends Controller
 
     public function update(Request $request, Invoice $invoice)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to update invoices.');
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:draft,unpaid,paid,void',
             'total_amount' => 'required|numeric|min:0|max:99999999.99',
@@ -136,6 +179,11 @@ class InvoiceController extends Controller
 
     public function updateStatus(Request $request, Invoice $invoice)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to update invoice status.');
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:draft,unpaid,paid,void'
         ]);
@@ -155,8 +203,13 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function destroy(Invoice $invoice)
+    public function destroy(Request $request, Invoice $invoice)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to delete invoices.');
+        }
+
         $invoice->items()->delete();
         $invoice->delete();
 

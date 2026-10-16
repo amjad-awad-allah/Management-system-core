@@ -11,6 +11,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     cache()->flush(); // Clear EnsureModuleActive cache
+    $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
     DB::table('module_settings')->insert([
         'id' => Str::ulid()->toString(),
         'module' => 'Nachhilfe',
@@ -20,6 +21,7 @@ beforeEach(function () {
 
 test('can create a teacher', function () {
     $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 'tr1@t.com', 'password' => 'p']);
+    $user->assignRole('Super Admin');
 
     $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/nachhilfe/teachers', [
         'user_id' => (string) Str::ulid(),

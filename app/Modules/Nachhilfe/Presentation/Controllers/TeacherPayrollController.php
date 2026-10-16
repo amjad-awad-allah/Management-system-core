@@ -12,6 +12,11 @@ class TeacherPayrollController extends Controller
 {
     public function summary(Request $request, \App\Modules\Nachhilfe\Application\Services\PayrollCalculationService $service)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to view payroll summary.');
+        }
+
         $validated = $request->validate([
             'month' => 'required|date_format:Y-m',
         ]);
@@ -22,11 +27,16 @@ class TeacherPayrollController extends Controller
 
     public function approve(Request $request, \App\Modules\Nachhilfe\Application\Services\PayrollCalculationService $service)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to approve payroll.');
+        }
+
         $validated = $request->validate([
             'month' => 'required|date_format:Y-m',
         ]);
 
-        $userId = $request->user()?->id ?? (string) \Illuminate\Support\Str::ulid();
+        $userId = $user->id;
         $summary = $service->approvePayroll($validated['month'], $userId);
 
         return response()->json([
@@ -37,8 +47,29 @@ class TeacherPayrollController extends Controller
 
     public function index(Request $request)
     {
-        $payrolls = TeacherPayroll::with('teacher')
-            ->when($request->teacher_id, fn($q, $tid) => $q->where('teacher_id', $tid))
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $canManageBilling = $user->hasRole(['Super Admin', 'Center Manager']) || $user->can('manage billing');
+
+        $query = TeacherPayroll::with('teacher');
+
+        if (!$canManageBilling) {
+            $teacher = Teacher::where('user_id', $user->id)->first();
+            if ($teacher) {
+                $query->where('teacher_id', $teacher->id);
+            } else {
+                abort(403, 'Unauthorized access to payrolls.');
+            }
+        } else {
+            if ($request->teacher_id) {
+                $query->where('teacher_id', $request->teacher_id);
+            }
+        }
+
+        $payrolls = $query
             ->when($request->month, fn($q, $m) => $q->where('month', $m))
             ->when($request->date, fn($q, $d) => $q->whereDate('created_at', $d))
             ->when($request->from_date && $request->to_date, fn($q) => $q->whereBetween('created_at', [
@@ -56,14 +87,31 @@ class TeacherPayrollController extends Controller
         return response()->json($payrolls);
     }
 
-    public function show(TeacherPayroll $payroll)
+    public function show(Request $request, TeacherPayroll $payroll)
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $canManageBilling = $user->hasRole(['Super Admin', 'Center Manager']) || $user->can('manage billing');
+        $isOwner = $payroll->teacher && (string) $payroll->teacher->user_id === (string) $user->id;
+
+        if (!$canManageBilling && !$isOwner) {
+            abort(403, 'Unauthorized access to this payroll record.');
+        }
+
         $payroll->load(['teacher', 'items.lesson.subject', 'items.lesson.room']);
         return response()->json($payroll);
     }
 
     public function generate(Request $request, PayrollGeneratorService $service)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to generate payroll.');
+        }
+
         $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
             'month' => 'required|date_format:Y-m',
@@ -127,6 +175,11 @@ class TeacherPayrollController extends Controller
 
     public function update(Request $request, TeacherPayroll $payroll)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to update payroll.');
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:Draft,Processing,Paid,Void',
             'total_amount' => 'required|numeric|min:0|max:99999999.99',
@@ -144,6 +197,11 @@ class TeacherPayrollController extends Controller
 
     public function updateStatus(Request $request, TeacherPayroll $payroll)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to update payroll status.');
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:Draft,Processing,Paid,Void'
         ]);
@@ -157,8 +215,13 @@ class TeacherPayrollController extends Controller
         ]);
     }
 
-    public function destroy(TeacherPayroll $payroll)
+    public function destroy(Request $request, TeacherPayroll $payroll)
     {
+        $user = $request->user();
+        if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
+            abort(403, 'Unauthorized to delete payroll.');
+        }
+
         $payroll->items()->delete();
         $payroll->delete();
 

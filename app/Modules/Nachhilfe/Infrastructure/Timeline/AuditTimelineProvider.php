@@ -11,6 +11,7 @@ use App\Modules\Nachhilfe\Infrastructure\Models\Attendance;
 use App\Modules\Nachhilfe\Infrastructure\Models\StudentDocument;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Core\Support\AuditSensitiveDataRedactor;
 
 class AuditTimelineProvider implements TimelineProviderInterface
 {
@@ -125,8 +126,8 @@ class AuditTimelineProvider implements TimelineProviderInterface
                     'event' => $log->event,
                     'auditable_type' => $log->auditable_type,
                     'user' => $log->user_name,
-                    'old_values' => json_decode($log->old_values, true),
-                    'new_values' => json_decode($log->new_values, true),
+                    'old_values' => AuditSensitiveDataRedactor::redact(json_decode($log->old_values, true)),
+                    'new_values' => AuditSensitiveDataRedactor::redact(json_decode($log->new_values, true)),
                 ]
             ];
         }

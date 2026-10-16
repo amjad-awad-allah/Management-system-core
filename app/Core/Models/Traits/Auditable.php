@@ -32,6 +32,24 @@ trait Auditable
             return;
         }
 
+        $hidden = method_exists($this, 'getHidden') ? $this->getHidden() : [];
+        if (is_array($oldValues)) {
+            foreach ($hidden as $key) {
+                if (array_key_exists($key, $oldValues)) {
+                    $oldValues[$key] = '[REDACTED]';
+                }
+            }
+            $oldValues = \App\Core\Support\AuditSensitiveDataRedactor::redact($oldValues);
+        }
+        if (is_array($newValues)) {
+            foreach ($hidden as $key) {
+                if (array_key_exists($key, $newValues)) {
+                    $newValues[$key] = '[REDACTED]';
+                }
+            }
+            $newValues = \App\Core\Support\AuditSensitiveDataRedactor::redact($newValues);
+        }
+
         DB::table('audit_logs')->insert([
             'id' => (string) Str::ulid(),
             'user_id' => auth()->id(),

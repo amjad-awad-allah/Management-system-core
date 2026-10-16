@@ -16,10 +16,12 @@ beforeEach(function () {
         'module' => 'Nachhilfe',
         'enabled' => true,
     ]);
+    $this->adminRole = \App\Core\Models\Role::firstOrCreate(['name' => 'Super Admin']);
 });
 
 test('can create a student', function () {
     $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 's1@t.com', 'password' => 'p']);
+    $user->assignRole($this->adminRole);
 
     $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/nachhilfe/students', [
         'first_name' => 'John',
@@ -42,6 +44,7 @@ test('can create a student', function () {
 
 test('can list students', function () {
     $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 's2@t.com', 'password' => 'p']);
+    $user->assignRole($this->adminRole);
     
     $student = new Student();
     $student->id = (string) Str::ulid();
@@ -61,6 +64,7 @@ test('can list students', function () {
 
 test('can view a soft-deleted student', function () {
     $user = User::forceCreate(['id' => (string) Str::ulid(), 'name' => 'T', 'email' => 's3@t.com', 'password' => 'p']);
+    $user->assignRole($this->adminRole);
     
     $student = new Student();
     $student->id = (string) Str::ulid();

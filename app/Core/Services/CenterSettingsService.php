@@ -108,8 +108,11 @@ class CenterSettingsService
 
         $canManage = false;
         if ($user) {
-            $canManage = $user->hasAnyRole(['Super Admin', 'Center Manager']) || $user->can('manage-settings');
+            $canManage = $user->hasAnyRole(['Super Admin', 'Center Manager', 'Admin']) || $user->can('manage settings') || $user->can('manage-settings');
         }
+
+        $safePublicKeys = ['center_name', 'center_bundesland', 'center_logo_path'];
+        $filteredRaw = $canManage ? $raw : array_intersect_key($raw, array_flip($safePublicKeys));
 
         return [
             'center' => [
@@ -119,7 +122,7 @@ class CenterSettingsService
                 'logo_url' => $this->getCenterLogoUrl(),
             ],
             'available_bundeslaender' => GermanBundesland::toArray(),
-            'raw_settings' => $raw,
+            'raw_settings' => $filteredRaw,
             'permissions' => [
                 'can_manage' => $canManage,
             ],
@@ -266,6 +269,14 @@ class CenterSettingsService
     }
 
     /**
+     * Determine if a setting key is considered sensitive.
+     */
+    public static function isSensitiveKey(string $key): bool
+    {
+        return \App\Core\Support\AuditSensitiveDataRedactor::isSensitiveKey($key);
+    }
+
+    /**
      * Record an entry in audit_logs.
      *
      * @param array<string, mixed> $values
@@ -280,6 +291,10 @@ class CenterSettingsService
             $newValues = array_key_exists('new', $values) 
                 ? $values['new'] 
                 : array_map(fn($v) => is_array($v) ? ($v['new'] ?? null) : null, $values);
+
+            // Recursively redact sensitive values before persisting to audit_logs
+            $oldValues = \App\Core\Support\AuditSensitiveDataRedactor::redact($oldValues);
+            $newValues = \App\Core\Support\AuditSensitiveDataRedactor::redact($newValues);
 
             DB::table('audit_logs')->insert([
                 'id' => (string) Str::ulid(),
