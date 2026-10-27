@@ -10,11 +10,21 @@ use Illuminate\Validation\ValidationException;
 
 class AdminNotificationController extends Controller
 {
+    private function authorizeAdmin(Request $request): void
+    {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Admin', 'Center Manager']) && !$user->can('manage settings'))) {
+            abort(403, 'Unauthorized access to notification outbox.');
+        }
+    }
+
     /**
      * List Outbox / DLQ items with filters.
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'status' => 'nullable|string|in:pending,processing,sent,failed,dead',
             'channel' => 'nullable|string|in:in_app,reverb,whatsapp,email,chat',
@@ -47,6 +57,8 @@ class AdminNotificationController extends Controller
      */
     public function retry(string $id, Request $request): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         /** @var NotificationOutbox|null $outbox */
         $outbox = NotificationOutbox::find($id);
 

@@ -23,6 +23,14 @@ class ChatController extends Controller
         private readonly CreateSurveyAction  $createSurveyAction,
     ) {}
 
+    private function authorizeAdmin(Request $request): void
+    {
+        $user = $request->user();
+        if (!$user || (!$user->hasAnyRole(['Super Admin', 'Admin', 'Center Manager']) && !$user->can('manage nachhilfe'))) {
+            abort(403, 'Unauthorized access to chat management.');
+        }
+    }
+
     // ──────────────────────────────────────────────────────────
     // Channels
     // ──────────────────────────────────────────────────────────
@@ -34,6 +42,8 @@ class ChatController extends Controller
      */
     public function indexChannels(Request $request): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $scope = $request->query('scope', 'all');
 
         $query = ChatChannel::withTrashed(false)
@@ -76,6 +86,8 @@ class ChatController extends Controller
      */
     public function archivedChannels(Request $request): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $channels = ChatChannel::onlyTrashed()
             ->with(['participants.user'])
             ->latest()
@@ -89,6 +101,8 @@ class ChatController extends Controller
      */
     public function storeChannel(Request $request): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'type'            => 'required|in:direct,group,survey',
             'name'            => 'nullable|string|max:255',
@@ -114,8 +128,10 @@ class ChatController extends Controller
     /**
      * GET /chat/channels/{id}
      */
-    public function showChannel(string $id): JsonResponse
+    public function showChannel(Request $request, string $id): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $channel = ChatChannel::with(['participants.user', 'surveys'])->findOrFail($id);
         return response()->json($channel);
     }
@@ -123,8 +139,10 @@ class ChatController extends Controller
     /**
      * DELETE /chat/channels/{id}  → soft delete (archive)
      */
-    public function destroyChannel(string $id): JsonResponse
+    public function destroyChannel(Request $request, string $id): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $channel = ChatChannel::findOrFail($id);
         $channel->delete(); // SoftDeletes
 
@@ -140,6 +158,8 @@ class ChatController extends Controller
      */
     public function indexMessages(Request $request, string $id): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $channel = ChatChannel::findOrFail($id);
 
         $messages = ChatMessage::where('channel_id', $channel->id)
@@ -156,6 +176,8 @@ class ChatController extends Controller
      */
     public function storeMessage(Request $request, string $id): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $channel = ChatChannel::findOrFail($id);
 
         $request->validate([
@@ -182,6 +204,8 @@ class ChatController extends Controller
      */
     public function destroyMessage(Request $request, string $id): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $message = ChatMessage::findOrFail($id);
         $message->update(['is_deleted' => true]);
 
@@ -193,8 +217,12 @@ class ChatController extends Controller
      */
     public function markRead(Request $request, string $id): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
+        $channel = ChatChannel::findOrFail($id);
+
         $participant = ChatParticipant::firstOrCreate(
-            ['channel_id' => $id, 'user_id' => $request->user()->id],
+            ['channel_id' => $channel->id, 'user_id' => $request->user()->id],
             ['role' => 'observer', 'joined_at' => now()]
         );
 
@@ -210,9 +238,23 @@ class ChatController extends Controller
     /**
      * GET /chat/messages/{id}/attachment
      */
-    public function downloadAttachment(string $id): mixed
+    public function downloadAttachment(Request $request, string $id): mixed
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
         $message = ChatMessage::findOrFail($id);
+
+        $isPrivileged = $user->hasAnyRole(['Super Admin', 'Admin', 'Center Manager']) || $user->can('manage nachhilfe');
+        $isParticipant = ChatParticipant::where('channel_id', $message->channel_id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (!$isPrivileged && !$isParticipant) {
+            abort(403, 'Unauthorized: You do not have access to this attachment.');
+        }
 
         if (!$message->hasAttachment()) {
             return response()->json(['message' => 'No attachment.'], 404);
@@ -241,6 +283,8 @@ class ChatController extends Controller
      */
     public function indexSurveys(Request $request): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $surveys = Survey::with('questions')->latest()->paginate(20);
         return response()->json($surveys);
     }
@@ -250,6 +294,8 @@ class ChatController extends Controller
      */
     public function storeSurvey(Request $request): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'channel_id' => 'required|string|exists:chat_channels,id',
             'title' => 'required|string|max:255',
@@ -277,8 +323,10 @@ class ChatController extends Controller
     /**
      * GET /chat/surveys/{id}
      */
-    public function showSurvey(string $id): JsonResponse
+    public function showSurvey(Request $request, string $id): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $survey = Survey::with(['questions', 'responses.user'])->findOrFail($id);
         return response()->json($survey);
     }
@@ -286,8 +334,10 @@ class ChatController extends Controller
     /**
      * GET /chat/surveys/{id}/responses
      */
-    public function surveyResponses(string $id): JsonResponse
+    public function surveyResponses(Request $request, string $id): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         $survey = Survey::findOrFail($id);
         $responses = $survey->responses()->with('user')->get();
         return response()->json($responses);

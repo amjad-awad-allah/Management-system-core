@@ -37,8 +37,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/notifications/read-all', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'markAllAsRead']);
         Route::get('/notifications/preferences', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'getPreferences']);
         Route::post('/notifications/preferences', [\App\Core\Presentation\Controllers\NotificationCenterController::class, 'updatePreferences']);
-        Route::get('/admin/notifications/outbox', [\App\Core\Presentation\Controllers\AdminNotificationController::class, 'index']);
-        Route::post('/admin/notifications/outbox/{id}/retry', [\App\Core\Presentation\Controllers\AdminNotificationController::class, 'retry']);
+        Route::middleware(['role:Super Admin|Admin|Center Manager'])->group(function () {
+            Route::get('/admin/notifications/outbox', [\App\Core\Presentation\Controllers\AdminNotificationController::class, 'index']);
+            Route::post('/admin/notifications/outbox/{id}/retry', [\App\Core\Presentation\Controllers\AdminNotificationController::class, 'retry']);
+        });
 
         // Mobile Login Codes & Session Management
         Route::get('/users/{id}/login-code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'show']);
@@ -58,7 +60,9 @@ Route::prefix('v1')->group(function () {
         });
 
         // ── Admin Chat & Messaging ─────────────────────────────────────────────
-        Route::prefix('nachhilfe/chat')->group(function () {
+        Route::prefix('nachhilfe/chat')
+            ->middleware(['role:Super Admin|Admin|Center Manager'])
+            ->group(function () {
             // Channels
             Route::get('/channels', [\App\Modules\Nachhilfe\Presentation\Controllers\ChatController::class, 'indexChannels']);
             Route::post('/channels', [\App\Modules\Nachhilfe\Presentation\Controllers\ChatController::class, 'storeChannel']);

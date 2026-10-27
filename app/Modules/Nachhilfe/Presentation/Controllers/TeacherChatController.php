@@ -155,10 +155,13 @@ class TeacherChatController extends Controller
 
     public function markRead(Request $request, string $id): JsonResponse
     {
-        $participant = ChatParticipant::firstOrCreate(
-            ['channel_id' => $id, 'user_id' => $request->user()->id],
-            ['role' => 'member', 'joined_at' => now()]
-        );
+        $this->resolveTeacher($request);
+
+        $participant = ChatParticipant::where('channel_id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        abort_unless($participant, 403, 'Unauthorized: You are not a participant in this channel.');
 
         $participant->update(['last_read_at' => now()]);
 
