@@ -23,15 +23,19 @@ class PayrollService
                 return; // Already processed
             }
 
-            $teacher = $lesson->teacher;
+            $teacher = !empty($lesson->teacher_id)
+                ? \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::where('id', $lesson->teacher_id)->lockForUpdate()->first()
+                : $lesson->teacher;
             if (!$teacher) {
                 return; // Lesson has no teacher? Edge case.
             }
 
             $lessonMonth = Carbon::parse($lesson->date)->format('Y-m');
-            $hours = round($lesson->duration_minutes / 60, 2);
-            $hourlyRate = $teacher->hourly_rate ?? 0;
-            $amount = $hours * $hourlyRate;
+            $exactHours = ((int) $lesson->duration_minutes) / 60;
+            $hours = round($exactHours, 2);
+            $hourlyRate = (float) ($teacher->hourly_rate ?? 0);
+            // Earned pay is calculated from actual duration in minutes, not from rounded display hours
+            $amount = round($exactHours * $hourlyRate, 2);
 
             // Find or Create Payroll for that month
             $payroll = TeacherPayroll::firstOrCreate(
@@ -59,10 +63,12 @@ class PayrollService
                 'amount' => $amount,
             ]);
 
-            // Update payroll totals
-            $payroll->total_completed_lessons += 1;
-            $payroll->total_hours += $hours;
-            $payroll->total_amount += $amount;
+            // Update payroll totals from actual lesson durations and rounded item amounts
+            $allItems = $payroll->items()->with('lesson')->get();
+            $totalMinutes = $allItems->sum(fn($item) => (int) ($item->lesson?->duration_minutes ?? round(((float) $item->hours) * 60)));
+            $payroll->total_completed_lessons = $allItems->count();
+            $payroll->total_hours = round($totalMinutes / 60, 2);
+            $payroll->total_amount = round((float) $allItems->sum('amount'), 2);
             $payroll->save();
         });
     }

@@ -38,6 +38,10 @@ class LoginCodeController extends Controller
             return response()->json(['message' => 'Unauthorized access to Super Admin login code.'], 403);
         }
 
+        if ($user->hasRole('Admin') && !$currentUser->hasAnyRole(['Super Admin', 'Admin'])) {
+            return response()->json(['message' => 'Unauthorized access to Admin login code.'], 403);
+        }
+
         $loginCode = UserLoginCode::where('user_id', $userId)
             ->where('status', 'active')
             ->where('expires_at', '>', now())
@@ -68,10 +72,32 @@ class LoginCodeController extends Controller
      */
     public function showStudentCode(string $studentId): JsonResponse
     {
+        $currentUser = auth()->user();
+        if (!$currentUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         $student = \App\Modules\Nachhilfe\Infrastructure\Models\Student::findOrFail($studentId);
-        
+
+        $isPrivileged = $currentUser->hasAnyRole(['Super Admin', 'Admin', 'Center Manager'])
+            || $currentUser->can('manage students')
+            || $currentUser->can('manage nachhilfe');
+
+        $isSelf = $student->user_id && (string) $currentUser->id === (string) $student->user_id;
+
+        if (!$isPrivileged && !$isSelf) {
+            return response()->json(['message' => 'Unauthorized access to student login code.'], 403);
+        }
+
         if (!$student->user_id) {
             $email = $student->parent_email ?: ('student_' . $student->id . '@nachhilfe.local');
+            $existingUser = User::where('email', $email)->first();
+
+            // Prevent administrative account linking and privilege escalation
+            if ($existingUser && $existingUser->hasAnyRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])) {
+                $email = 'student_' . $student->id . '@nachhilfe.local';
+            }
+
             $user = User::firstOrCreate(
                 ['email' => $email],
                 [
@@ -96,10 +122,32 @@ class LoginCodeController extends Controller
      */
     public function showTeacherCode(string $teacherId): JsonResponse
     {
+        $currentUser = auth()->user();
+        if (!$currentUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         $teacher = \App\Modules\Nachhilfe\Infrastructure\Models\Teacher::findOrFail($teacherId);
-        
+
+        $isPrivileged = $currentUser->hasAnyRole(['Super Admin', 'Admin', 'Center Manager'])
+            || $currentUser->can('manage nachhilfe')
+            || $currentUser->can('manage users');
+
+        $isSelf = $teacher->user_id && (string) $currentUser->id === (string) $teacher->user_id;
+
+        if (!$isPrivileged && !$isSelf) {
+            return response()->json(['message' => 'Unauthorized access to teacher login code.'], 403);
+        }
+
         if (!$teacher->user_id) {
             $email = $teacher->email ?: ('teacher_' . $teacher->id . '@nachhilfe.local');
+            $existingUser = User::where('email', $email)->first();
+
+            // Prevent administrative account linking and privilege escalation
+            if ($existingUser && $existingUser->hasAnyRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])) {
+                $email = 'teacher_' . $teacher->id . '@nachhilfe.local';
+            }
+
             $user = User::firstOrCreate(
                 ['email' => $email],
                 [
@@ -151,6 +199,10 @@ class LoginCodeController extends Controller
 
         if ($user->hasRole('Super Admin') && !$admin->hasRole('Super Admin')) {
             return response()->json(['message' => 'Unauthorized to regenerate Super Admin login code.'], 403);
+        }
+
+        if ($user->hasRole('Admin') && !$admin->hasAnyRole(['Super Admin', 'Admin'])) {
+            return response()->json(['message' => 'Unauthorized to regenerate Admin login code.'], 403);
         }
 
         // 1. Revoke existing active codes
@@ -236,12 +288,18 @@ class LoginCodeController extends Controller
             }
 
             if (!$loginCode->expires_at || $loginCode->expires_at->isPast()) {
+                $loginCode->update(['status' => 'expired']);
                 return ['status' => 'expired'];
             }
 
             $user = $loginCode->user;
             if (!$user) {
                 return ['status' => 'user_not_found'];
+            }
+
+            // Deny mobile short code authentication for any user with administrative roles (prevent privilege escalation)
+            if ($user->hasAnyRole(['Super Admin', 'Admin', 'Center Manager', 'Receptionist'])) {
+                return ['status' => 'unauthorized_role'];
             }
 
             // Allowlist mobile authentication: only Student and Teacher permitted

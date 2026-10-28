@@ -15,6 +15,28 @@ class Teacher extends Model
 
     protected $table = 'teachers';
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Teacher $teacher) {
+            if ($teacher->isForceDeleting()) {
+                $hasProtectedPayrolls = $teacher->payrolls()
+                    ->where(function ($query) {
+                        $query->where(function ($sub) {
+                            $sub->whereNotNull('snapshot_hash')
+                                ->where('snapshot_hash', '!=', '');
+                        })
+                            ->orWhereNotNull('approved_at')
+                            ->orWhereRaw("LOWER(status) IN ('approved', 'paid', 'void')");
+                    })
+                    ->exists();
+
+                if ($hasProtectedPayrolls) {
+                    throw new \DomainException('Cannot force delete a teacher with approved, paid, void, or sealed payroll records.');
+                }
+            }
+        });
+    }
+
     protected $fillable = [
         'id', 'user_id', 'name', 'email', 'phone', 'qualification', 'hourly_rate', 'status'
     ];

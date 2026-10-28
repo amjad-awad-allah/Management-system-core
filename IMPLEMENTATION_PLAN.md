@@ -6,13 +6,28 @@ This implementation plan details the exact, step-by-step technical remediation f
 
 ## 1. Baseline Test Suite & Verification Status
 
+### Initial Baseline (Prior to Remediation)
 Prior to any code modifications, the full backend test suite was executed in the test environment (`sqlite` in-memory):
 - **Total Tests**: 214
 - **Passed**: 212
 - **Skipped**: 1 ([InvoiceControllerTest.php:L19](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/tests/Feature/InvoiceControllerTest.php#L19) - skipped due to the table collision)
 - **Failed**: 1 ([LocalizationTest.php:L76](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/tests/Feature/Core/LocalizationTest.php#L76) - default application locale returns `'en'` instead of `'de'`)
 
-All phases below are designed to maintain 100% pass rate on the 212 passing tests, fix the existing localization failure, unskip and pass the billing invoice test, and introduce exhaustive negative regression tests.
+### Latest Verification Status (Post-Phase 1B Steps 1–5)
+Steps 1–4 of the Phase 1B payroll and deletion-protection remediation have passed the available targeted automated verification in the single-process SQLite test environment. **Note:** Passing these automated suites does not establish that every production-database or multi-connection concurrency scenario has been verified, nor is the entire repository test suite fully passing yet.
+
+- **Latest Targeted Payroll, Security, Lesson, Teacher & PDF Report Verification (`Phase1BSecurityTest`, `PayrollCalculationServiceTest`, `PayrollGeneratorServiceTest`, `GeneratorIdempotencyTest`, `FinancialUpdateTest`, `LessonControllerTest`, `LessonCancellationTest`, `TeacherControllerTest`, `PdfReportServiceTest`, `DomainLogicTest`)**:
+  - **Passed**: 88 (`73` across the 6 payroll/security/PDF suites + `15` across the lesson/teacher/unit suites)
+  - **Failed**: 0
+  - **Skipped**: 0
+  - **Assertions**: 388 (`331` across the 6 payroll/security/PDF suites)
+- **Latest Full Repository Test Suite (`php artisan test --no-ansi`)**:
+  - **Passed**: 290
+  - **Failed**: 1 ([LocalizationTest.php:L76](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/tests/Feature/Core/LocalizationTest.php#L76) - pre-existing default locale issue outside payroll scope)
+  - **Skipped**: 1 ([InvoiceControllerTest.php:L19](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/tests/Feature/InvoiceControllerTest.php#L19) - pre-existing `invoices` table collision outside payroll scope)
+  - **Assertions**: 1,301
+
+All phases below are designed to maintain 100% pass rate on passing tests, fix the existing localization failure (Phase 3), unskip and pass the billing invoice test (Phase 2A), and introduce exhaustive negative regression tests.
 
 ---
 
@@ -461,11 +476,13 @@ flowchart TD
 - [ ] Run test suite to verify zero regressions.
 
 ### Phase 1B: Payroll Integrity & Approved Protection (P1)
-- [ ] Implement immutability guards in `TeacherPayrollController::update`, `updateStatus`, and `destroy` for `approved` payrolls.
-- [ ] Prevent overwriting or force-deleting `approved` payrolls in `TeacherPayrollController::generate` and `PayrollGeneratorService::generateForTeacher`.
-- [ ] Create additive non-destructive migration to widen `teacher_payrolls.status` to `VARCHAR(32)` to accommodate `'approved'` on MySQL/PostgreSQL.
-- [ ] Update `NachhilfeModuleSeeder` to compute canonical Merkle-style SHA-256 fingerprint matching `PayrollCalculationService`.
-- [ ] Run test suite to verify zero regressions.
+- [x] **Step 1 (Snapshot & Model Immutability):** Protect `approved_at`, `approved_by`, `snapshot_hash`, `snapshot_hash_version`, and financial figures on sealed/approved `TeacherPayroll` records (preserving legacy v1 SHA-256 snapshot compatibility), and unify `TeacherPayrollItem` creation/update/deletion/builder guards with `isSealedOrApproved()`.
+- [x] **Step 2 (Transition Authorization, Audit Logging & Safe Deletion):** Enforce general billing authorization and elevated voiding RBAC in `PayrollStateTransitionService`, record atomic `audit_logs` entries inside the transaction, and wrap `TeacherPayrollController::destroy()` in `DB::transaction()` with `lockForUpdate()` state re-verification.
+- [x] **Step 3 (Calculation Consistency, Teacher Locking & Manual Draft Protection):** Compute lesson pay from exact `duration_minutes`, enforce `total_amount` item-sum consistency, lock `Teacher` rows deterministically in `approvePayroll()`, and prevent `approvePayroll()` from silently overwriting manual payroll drafts.
+- [x] **Step 4 (Destructive Cascade Deletion Guards):** Integrate `LessonModificationGuard` into `Lesson::deleting` (protecting both soft deletes and instance-level force deletes) and block `Teacher::forceDelete()` when protected payroll records exist while preserving normal teacher soft deletes.
+- [ ] Verify migration `database/migrations/2026_10_27_200000_widen_teacher_payrolls_status_column.php` (`status` widened to `VARCHAR(32)`) on MySQL/PostgreSQL (migration file exists and `up()`/`down()` rollback guards are tested on in-memory SQLite in `Phase1BSecurityTest`, but execution on MySQL/PostgreSQL and live databases remains unverified).
+- [x] **P1-06 (Seeder Canonical Snapshot Hash & PDF Export Verification):** Updated `NachhilfeModuleSeeder` so each seeded payroll (`Paid`, `Approved`, `Draft`) has matching completed lessons and persisted `TeacherPayrollItem` records before computing the canonical pipe-delimited SHA-256 snapshot hash (`TeacherPayroll::calculateSnapshotHash()`), and verified end-to-end via `test_seeded_approved_payroll_passes_hash_verification_and_exports_pdf`.
+- [x] **Step 5 (Targeted Automated Regression Verification):** Verified `73 passed, 0 failed, 0 skipped (331 assertions)` across the payroll/security/PDF suites (`88 passed, 0 failed, 0 skipped, 388 assertions` including lesson/teacher/unit suites; see Section 6 for unverified production/concurrency/migration-engine items and out-of-scope follow-up items).
 
 ### Phase 1C: Billing Security & Payment Integrity (P1)
 - [ ] Restrict Billing routes in `app/Modules/Billing/Presentation/Routes/api.php` with `manage billing` permission middleware.
@@ -512,8 +529,45 @@ flowchart TD
 Every phase is independently testable and reviewable:
 - **Phase 0 Complete**: All chat IDOR and self-enrollment endpoints reject non-participants with 403; WebSocket authorization strictly enforces string ULID matching; outbox endpoints deny non-administrators.
 - **Phase 1A Complete**: Login code generation requires caller authorization; mobile code login rejects users with administrative privileges; core roles cannot be deleted.
-- **Phase 1B Complete**: Approved payrolls cannot be modified, deleted, or overwritten; database schema supports `'approved'` on all database engines; seeded payrolls generate valid PDFs without hash errors.
+- **Phase 1B Status (Steps 1–4 & P1-06 Seeder Targeted SQLite Verification Passed; P1-05 Migration Engine & Production Concurrency Pending)**: Approved payrolls cannot be modified, deleted, or overwritten via application endpoints or Eloquent model events, and seeded payrolls (`P1-06`) pass canonical pipe-delimited SHA-256 hash verification and PDF export (`73 passed, 0 failed` in payroll/security/PDF suites; `88 passed, 0 failed` across all targeted Nachhilfe suites). However, MySQL/PostgreSQL execution of `2026_10_27_200000_widen_teacher_payrolls_status_column.php` (`P1-05`), raw-SQL/bulk deletion paths outside model hooks, and multi-connection production concurrency remain pending in Section 6.
 - **Phase 1C Complete**: Billing invoice endpoints enforce authorization; payment recording is atomic, locked, and rejects overpayments.
 - **Phase 2A Complete**: Billing and Nachhilfe invoices use separate tables; `InvoiceControllerTest` is unskipped and passes; private package purchases create billing invoices reliably.
 - **Phase 2B Complete**: Attendance marking is unified across web and mobile; status rollbacks restore subscription hours.
-- **Phase 3 Complete**: Zero emitted JS files in frontend; `SystemLogService` handles large files safely; all 214+ backend tests pass with 0 failures and 0 skips.
+- **Phase 3 Complete**: Zero emitted JS files in frontend; `SystemLogService` handles large files safely; all backend tests pass with 0 failures and 0 skips.
+
+---
+
+## 6. Post-Step 5 Follow-Up Items, Known Test Issues & Unverified Risks
+
+The following items separate confirmed observations from unverified risks that remain open after the completion of Phase 1B Steps 1–5:
+
+### A. Production-Database Concurrency Verification (Unverified Risk — Future Work)
+- **Current Test Environment Limitation**: All automated tests (`87 passed` targeted; `289 passed` full suite) run against a single-process SQLite test database (`sqlite` in-memory).
+- **Unverified Behavior**: True concurrent HTTP requests and pessimistic row-level locking (`SELECT ... FOR UPDATE` via `lockForUpdate()` in `PayrollCalculationService::approvePayroll()`, `PayrollGeneratorService::generateForTeacher()`, `PayrollStateTransitionService::transition()`, and `TeacherPayrollController::destroy()`) have **not** been verified against a multi-connection production database engine.
+- **Repository Configuration Finding**: Inspection of [config/database.php:L20](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/config/database.php#L20), [.env.example:L23-L28](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/.env.example#L23-L28), and [.env:L23-L28](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/.env#L23-L28) shows `DB_CONNECTION=sqlite` as the active default, with commented MySQL connection settings (`# DB_PORT=3306`) and driver definitions for `sqlite`, `mysql`, `mariadb`, `pgsql`, and `sqlsrv`. The repository does not specify which database engine is deployed in production.
+- **Follow-Up Tasks**:
+  - [ ] Confirm the actual production database engine (e.g., MySQL/MariaDB or PostgreSQL) used in the target deployment environment.
+  - [ ] Execute multi-connection integration and concurrency tests against that database engine before claiming row-locking and concurrency behavior are fully verified.
+
+### B. Review of Deletion Paths That Bypass Model Events (Future Hardening & Usage Review)
+- **Technical Mechanism**: Raw query-builder operations (`DB::table(...)->delete()`) and bulk Eloquent query-builder deletes (`Lesson::where(...)->delete()`, `Lesson::where(...)->forceDelete()`, `Teacher::where(...)->forceDelete()`) do not fire instance-level Eloquent `deleting` lifecycle hooks. In addition, database-level `ON DELETE CASCADE` foreign keys on `teacher_payrolls.teacher_id` and `teacher_payroll_items.lesson_id` remain in the schema if parent rows are deleted directly at the SQL level.
+- **Confirmed Repository Observation**: A repository-wide search confirmed that **no** application production code (`app/`, `routes/`) executes `forceDelete()` or raw `DB::table('lessons'|'teachers')->delete()`. Direct table deletions were found only in database seeders ([NachhilfeModuleSeeder.php:L54-L60](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/database/seeders/NachhilfeModuleSeeder.php#L54-L60) and [TestDataSeeder.php:L30](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/database/seeders/TestDataSeeder.php#L30)).
+- **Classification**: Recorded as a future hardening and code-review item, **not** a confirmed production vulnerability.
+- **Follow-Up Tasks**:
+  - [ ] Review future bulk-delete or raw-SQL usage in code reviews to ensure `Lesson` and `Teacher` deletions continue to go through model instances.
+  - [ ] If schema-level foreign-key changes (`RESTRICT` vs. `CASCADE`) or custom query-builder guards are evaluated in the future, ensure they account for database-level cascading rules without unnecessarily complicating normal application or seeder workflows.
+
+### C. Existing Full-Suite Test Failure (`LocalizationTest.php` — Confirmed Separate Issue)
+- **Confirmed Observation**: [LocalizationTest.php:L76](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/tests/Feature/Core/LocalizationTest.php#L76) (`test_default_application_locale_is_german`) fails in the full test suite because `config('localization.default_locale')` and `config('app.locale')` return `'en'` instead of `'de'`.
+- **Scope**: Separate issue outside the payroll remediation scope; tracked under Phase 3 (`[P3-03]`, checklist item in Section 3).
+
+### D. Existing Skipped Test (`InvoiceControllerTest.php` — Confirmed Separate Issue)
+- **Confirmed Observation**: [InvoiceControllerTest.php:L19](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/tests/Feature/InvoiceControllerTest.php#L19) (`1 skipped` in the full test suite) is skipped due to the reported `invoices` and `invoice_items` table-name collision between the Billing and Nachhilfe modules.
+- **Scope**: Separate follow-up work outside the payroll remediation scope; tracked under Phase 2A (`[P2-01]`, checklist items in Section 3).
+
+### E. Pre-Existing Migration (`[P1-05]`) Target-Engine Verification Gap
+- **Migration `2026_10_27_200000_widen_teacher_payrolls_status_column.php`**:
+  - **Confirmed State**: The untracked file [2026_10_27_200000_widen_teacher_payrolls_status_column.php](file:///c:/Users/a.awad/Desktop/NH/Management-system-core/database/migrations/2026_10_27_200000_widen_teacher_payrolls_status_column.php) exists (created prior to Steps 1–4) and alters `teacher_payrolls.status` via `$table->string('status', 32)->default('Draft')->change()` in `up()`, while guarding `down()` with `ALLOW_UNSAFE_PAYROLL_ROLLBACK`.
+  - **Verification Limitation**: `Phase1BSecurityTest::test_migration_up_and_down_executes_cleanly_and_reverts_schema` tests `up()` and `down()` on in-memory **SQLite** only. It has **not** been executed or verified against MySQL or PostgreSQL (where strict `ENUM` truncation occurs) or any live database.
+  - **Follow-Up Task**:
+    - [ ] Verify `2026_10_27_200000_widen_teacher_payrolls_status_column.php` against the target non-SQLite database engine (MySQL/MariaDB or PostgreSQL).

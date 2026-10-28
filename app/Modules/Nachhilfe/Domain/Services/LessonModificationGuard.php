@@ -17,7 +17,12 @@ class LessonModificationGuard
     {
         $isAttachedToApprovedPayroll = $lesson->payrollItems()
             ->whereHas('payroll', function ($query) {
-                $query->where('status', 'approved');
+                $query->where(function ($sub) {
+                    $sub->whereIn('status', ['approved', 'Approved', 'paid', 'Paid'])
+                        ->orWhereNotNull('snapshot_hash')
+                        ->orWhereNotNull('approved_at');
+                })
+                ->whereNotIn('status', ['void', 'Void']);
             })
             ->exists();
 

@@ -12,6 +12,10 @@ class Lesson extends Model
 
     protected static function booted()
     {
+        static::deleting(function (Lesson $lesson) {
+            app(\App\Modules\Nachhilfe\Domain\Services\LessonModificationGuard::class)->checkCanModify($lesson);
+        });
+
         static::saved(function ($lesson) {
             // Check if relationship is loaded/available to prevent loop issues during migrations or seeding
             if ($lesson->relationLoaded('students') || $lesson->students()->exists()) {

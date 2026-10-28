@@ -100,8 +100,10 @@ test('can update teacher payroll details', function () {
     $payroll->month = '2026-07';
     $payroll->total_completed_lessons = 4;
     $payroll->total_hours = 6.00;
-    $payroll->total_amount = 150.00;
-    $payroll->status = 'Draft';
+    $payroll->total_amount = 180.00;
+    $payroll->status = 'Approved';
+    $payroll->approved_at = now();
+    $payroll->snapshot_hash = $payroll->calculateSnapshotHash();
     $payroll->save();
 
     $response = $this->actingAs($user, 'sanctum')->putJson("/api/v1/nachhilfe/payrolls/{$payroll->id}", [

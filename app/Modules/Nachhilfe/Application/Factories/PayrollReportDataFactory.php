@@ -16,47 +16,29 @@ class PayrollReportDataFactory
         $payroll = TeacherPayroll::with(['teacher', 'approver', 'items.lesson.subject'])
             ->findOrFail($payrollId);
 
-        if ($payroll->status !== 'approved') {
+        $normalizedStatus = strtolower((string) $payroll->status);
+        if (!in_array($normalizedStatus, ['approved', 'paid'], true)) {
             throw ValidationException::withMessages([
-                'payroll' => ['Cannot generate PDF report for unapproved payroll.'],
+                'payroll' => ['Cannot generate PDF report for unapproved or unpaid payroll.'],
             ]);
         }
 
-        // Recalculate canonical Merkle-style SHA-256 hash
-        $itemsSorted = $payroll->items->sortBy(fn($item) => $item->lesson_id ?? $item->id);
-
-        $itemTokens = [];
-        foreach ($itemsSorted as $item) {
-            $hStr = number_format((string) $item->hours, 2, '.', '');
-            $rStr = number_format((string) $item->hourly_rate, 2, '.', '');
-            $aStr = number_format((string) $item->amount, 2, '.', '');
-            $lId = $item->lesson_id ?? $item->id;
-
-            $itemTokens[] = "{$lId}:{$hStr}:{$rStr}:{$aStr}";
+        if (empty($payroll->snapshot_hash)) {
+            throw ValidationException::withMessages([
+                'payroll' => ['Cannot generate PDF report: Payroll has no sealed snapshot hash. Legacy records require explicit re-sealing before report generation.'],
+            ]);
         }
 
-        $totHoursStr = number_format((string) $payroll->total_hours, 2, '.', '');
-        $totAmountStr = number_format((string) $payroll->total_amount, 2, '.', '');
-        $approvedAtIso = $payroll->approved_at ? Carbon::parse($payroll->approved_at->toDateTimeString(), $this->timezone)->toIso8601String() : '';
+        // Centralized canonical Merkle-style SHA-256 hash recalculation and constant-time verification
+        $recalculatedHash = $payroll->calculateSnapshotHash($this->timezone);
 
-        $canonicalString = implode('|', [
-            'v1',
-            $payroll->month,
-            $payroll->teacher_id,
-            (string) $payroll->total_completed_lessons,
-            $totHoursStr,
-            $totAmountStr,
-            $approvedAtIso,
-            implode(',', $itemTokens),
-        ]);
-
-        $recalculatedHash = hash('sha256', $canonicalString);
-
-        if ($recalculatedHash !== $payroll->snapshot_hash) {
+        if (!hash_equals((string) $payroll->snapshot_hash, $recalculatedHash)) {
             throw ValidationException::withMessages([
                 'tamper_gate' => ['Integrity Violation: Payroll snapshot hash mismatch detected. PDF generation blocked.'],
             ]);
         }
+
+        $itemsSorted = $payroll->items->sortBy(fn($item) => (string) ($item->lesson_id ?? $item->id));
 
         $itemsData = [];
         foreach ($itemsSorted as $item) {
@@ -78,8 +60,8 @@ class PayrollReportDataFactory
             yearMonth: (string) $payroll->month,
             status: (string) $payroll->status,
             totalCompletedLessons: (string) $payroll->total_completed_lessons,
-            totalHours: $totHoursStr,
-            totalAmount: $totAmountStr,
+            totalHours: number_format((float) $payroll->total_hours, 2, '.', ''),
+            totalAmount: number_format((float) $payroll->total_amount, 2, '.', ''),
             approvedAt: $payroll->approved_at ? Carbon::parse($payroll->approved_at)->format('d.m.Y H:i') : null,
             approverName: (string) ($payroll->approver?->name ?? 'System Admin'),
             snapshotHash: (string) $payroll->snapshot_hash,

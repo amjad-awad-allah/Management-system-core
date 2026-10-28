@@ -295,11 +295,50 @@ class NachhilfeModuleSeeder extends Seeder
 
         // 10. Seed Multi-Status Lessons
         $now = Carbon::now('Europe/Berlin');
+        $prevMonthStart = $now->copy()->startOfMonth()->subMonth();
+        $prevMonth = $prevMonthStart->format('Y-m');
+        $prevMonthDate1 = $prevMonthStart->copy()->addDays(9);
+        $prevMonthDate2 = $prevMonthStart->copy()->addDays(11);
+
         $monday = $now->copy()->startOfWeek(Carbon::MONDAY);
         $tuesday = $monday->copy()->addDay();
         $wednesday = $monday->copy()->addDays(2);
         $thursday = $monday->copy()->addDays(3);
         $friday = $monday->copy()->addDays(4);
+
+        // Previous Month Lesson 1: Math (Herr Müller, Completed)
+        $lPrev1 = Lesson::create([
+            'id' => (string) Str::ulid(),
+            'teacher_id' => $teacher1->id,
+            'room_id' => $createdRooms[0] ?? (string) Str::ulid(),
+            'subject_id' => $createdSubjects['Mathematics'],
+            'type' => 'individual',
+            'date' => $prevMonthDate1->toDateString(),
+            'start_time' => '09:00:00',
+            'end_time' => '10:30:00',
+            'duration_minutes' => 90,
+            'status' => 'completed',
+            'notes' => 'Linear algebra and functions review completed.'
+        ]);
+        $lsPrev1 = LessonStudent::create(['id' => (string) Str::ulid(), 'lesson_id' => $lPrev1->id, 'student_id' => $studentMax->id]);
+        Attendance::create(['id' => (string) Str::ulid(), 'lesson_student_id' => $lsPrev1->id, 'status' => 'present', 'marked_by' => $teacherUser1->id]);
+
+        // Previous Month Lesson 2: German (Frau Weber, Completed)
+        $lPrev2 = Lesson::create([
+            'id' => (string) Str::ulid(),
+            'teacher_id' => $teacher2->id,
+            'room_id' => $createdRooms[1] ?? (string) Str::ulid(),
+            'subject_id' => $createdSubjects['German'],
+            'type' => 'individual',
+            'date' => $prevMonthDate2->toDateString(),
+            'start_time' => '11:00:00',
+            'end_time' => '12:30:00',
+            'duration_minutes' => 90,
+            'status' => 'completed',
+            'notes' => 'Reading comprehension and text analysis completed.'
+        ]);
+        $lsPrev2 = LessonStudent::create(['id' => (string) Str::ulid(), 'lesson_id' => $lPrev2->id, 'student_id' => $studentEmma->id]);
+        Attendance::create(['id' => (string) Str::ulid(), 'lesson_student_id' => $lsPrev2->id, 'status' => 'present', 'marked_by' => $teacherUser2->id]);
 
         // Lesson 1: Monday Math (Herr Müller, Completed)
         $l1 = Lesson::create([
@@ -420,42 +459,79 @@ class NachhilfeModuleSeeder extends Seeder
         }
 
         // 12. Seed Teacher Payrolls
+        $payroll1ApprovedAt = now()->subDays(10);
         $payroll1 = TeacherPayroll::create([
             'id' => (string) Str::ulid(),
             'teacher_id' => $teacher1->id,
-            'month' => now()->subMonth()->format('Y-m'),
-            'total_completed_lessons' => 14,
-            'total_hours' => 21.0,
-            'total_amount' => 735.00,
-            'status' => 'Paid',
-            'approved_by' => $adminUser->id,
-            'approved_at' => now()->subDays(10),
-            'snapshot_hash' => hash('sha256', "payroll-{$teacher1->id}-paid"),
+            'month' => $prevMonth,
+            'total_completed_lessons' => 1,
+            'total_hours' => 1.50,
+            'total_amount' => 52.50,
+            'status' => 'Processing',
+            'approved_by' => null,
+            'approved_at' => null,
+            'snapshot_hash' => null,
             'snapshot_hash_version' => 1,
         ]);
+        TeacherPayrollItem::create([
+            'id' => (string) Str::ulid(),
+            'payroll_id' => $payroll1->id,
+            'lesson_id' => $lPrev1->id,
+            'hours' => 1.50,
+            'hourly_rate' => 35.00,
+            'amount' => 52.50,
+        ]);
+        $payroll1->approved_by = $adminUser->id;
+        $payroll1->approved_at = $payroll1ApprovedAt;
+        $payroll1->snapshot_hash = $payroll1->calculateSnapshotHash();
+        $payroll1->status = 'Approved';
+        $payroll1->save();
+        $payroll1->update(['status' => 'Paid']);
 
+        $payroll2ApprovedAt = now()->subDays(5);
         $payroll2 = TeacherPayroll::create([
             'id' => (string) Str::ulid(),
             'teacher_id' => $teacher2->id,
-            'month' => now()->subMonth()->format('Y-m'),
-            'total_completed_lessons' => 10,
-            'total_hours' => 15.0,
-            'total_amount' => 450.00,
+            'month' => $prevMonth,
+            'total_completed_lessons' => 1,
+            'total_hours' => 1.50,
+            'total_amount' => 45.00,
             'status' => 'Processing',
-            'approved_by' => $adminUser->id,
-            'approved_at' => now()->subDays(5),
-            'snapshot_hash' => hash('sha256', "payroll-{$teacher2->id}-approved"),
+            'approved_by' => null,
+            'approved_at' => null,
+            'snapshot_hash' => null,
             'snapshot_hash_version' => 1,
         ]);
+        TeacherPayrollItem::create([
+            'id' => (string) Str::ulid(),
+            'payroll_id' => $payroll2->id,
+            'lesson_id' => $lPrev2->id,
+            'hours' => 1.50,
+            'hourly_rate' => 30.00,
+            'amount' => 45.00,
+        ]);
+        $payroll2->approved_by = $adminUser->id;
+        $payroll2->approved_at = $payroll2ApprovedAt;
+        $payroll2->snapshot_hash = $payroll2->calculateSnapshotHash();
+        $payroll2->status = 'Approved';
+        $payroll2->save();
 
         $payroll3 = TeacherPayroll::create([
             'id' => (string) Str::ulid(),
             'teacher_id' => $teacher1->id,
-            'month' => now()->format('Y-m'),
-            'total_completed_lessons' => 4,
-            'total_hours' => 6.0,
-            'total_amount' => 210.00,
+            'month' => $monday->format('Y-m'),
+            'total_completed_lessons' => 1,
+            'total_hours' => 1.50,
+            'total_amount' => 52.50,
             'status' => 'Draft',
+        ]);
+        TeacherPayrollItem::create([
+            'id' => (string) Str::ulid(),
+            'payroll_id' => $payroll3->id,
+            'lesson_id' => $l1->id,
+            'hours' => 1.50,
+            'hourly_rate' => 35.00,
+            'amount' => 52.50,
         ]);
 
         // 13. Seed Invoices

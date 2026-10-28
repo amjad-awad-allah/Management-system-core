@@ -187,8 +187,10 @@ test('Tampered payroll triggers Hash Mismatch gate and blocks PDF export', funct
     $service->approvePayroll('2026-08', $this->adminUser->id);
 
     $payroll = TeacherPayroll::where('month', '2026-08')->first();
-    // Tamper with snapshot hash
-    $payroll->update(['snapshot_hash' => 'invalid_tampered_hash_string']);
+    // Simulate database-level tampering with snapshot hash to verify PDF export integrity gate
+    \Illuminate\Support\Facades\DB::table('teacher_payrolls')
+        ->where('id', $payroll->id)
+        ->update(['snapshot_hash' => 'invalid_tampered_hash_string']);
 
     $response = $this->actingAs($this->adminUser)
         ->getJson("/api/v1/nachhilfe/reports/payroll/{$payroll->id}");

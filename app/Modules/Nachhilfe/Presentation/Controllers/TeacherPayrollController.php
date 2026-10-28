@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Nachhilfe\Infrastructure\Models\TeacherPayroll;
 use Illuminate\Http\Request;
 use App\Modules\Nachhilfe\Domain\Services\PayrollGeneratorService;
+use App\Modules\Nachhilfe\Domain\Services\PayrollStateTransitionService;
 use App\Modules\Nachhilfe\Infrastructure\Models\Teacher;
 
 class TeacherPayrollController extends Controller
@@ -105,7 +106,7 @@ class TeacherPayrollController extends Controller
         return response()->json($payroll);
     }
 
-    public function generate(Request $request, PayrollGeneratorService $service)
+    public function generate(Request $request, PayrollGeneratorService $service, PayrollStateTransitionService $transitionService)
     {
         $user = $request->user();
         if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
@@ -116,7 +117,7 @@ class TeacherPayrollController extends Controller
             'teacher_id' => 'required|exists:teachers,id',
             'month' => 'required|date_format:Y-m',
             'total_amount' => 'nullable|numeric|min:0|max:99999999.99',
-            'status' => 'nullable|in:Draft,Processing,Paid,Void',
+            'status' => 'nullable|in:Draft,Processing,draft,processing',
         ]);
 
         $teacher = Teacher::findOrFail($request->teacher_id);
@@ -124,31 +125,44 @@ class TeacherPayrollController extends Controller
         try {
             // Check if user passed an explicit manual amount (or if they want manual creation)
             if ($request->has('total_amount') && $request->input('total_amount') !== null) {
-                // Delete draft payroll if exists
-                $existingPayroll = TeacherPayroll::where('teacher_id', $teacher->id)
-                    ->where('month', $request->month)
-                    ->first();
-                
-                if ($existingPayroll) {
-                    if (in_array($existingPayroll->status, ['Paid', 'Void'])) {
-                        return response()->json(['message' => 'A finalized payroll already exists for this month.'], 409);
+                return \Illuminate\Support\Facades\DB::transaction(function () use ($teacher, $request) {
+                    // Pessimistically lock the Teacher record to serialize concurrent generation for this teacher
+                    Teacher::where('id', $teacher->id)->lockForUpdate()->first();
+
+                    $existingPayroll = TeacherPayroll::where('teacher_id', $teacher->id)
+                        ->where('month', $request->month)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($existingPayroll) {
+                        if ($existingPayroll->isSealedOrApproved()) {
+                            return response()->json(['message' => 'A finalized payroll already exists for this month.'], 409);
+                        }
+
+                        $existingStatusLower = strtolower((string) $existingPayroll->status);
+                        if (!in_array($existingStatusLower, ['draft', 'processing'], true)) {
+                            return response()->json([
+                                'message' => "Cannot replace payroll with non-draft status '{$existingPayroll->status}'."
+                            ], 409);
+                        }
+
+                        $existingPayroll->items()->delete();
+                        $existingPayroll->delete();
                     }
-                    $existingPayroll->items()->delete();
-                    $existingPayroll->forceDelete();
-                }
 
-                $status = $request->input('status', 'Draft');
-                $payroll = TeacherPayroll::create([
-                    'teacher_id' => $teacher->id,
-                    'month' => $request->month,
-                    'total_amount' => $request->total_amount,
-                    'status' => $status,
-                ]);
+                    $status = $request->input('status', 'Draft');
+                    $payroll = TeacherPayroll::create([
+                        'teacher_id' => $teacher->id,
+                        'month' => $request->month,
+                        'total_amount' => $request->total_amount,
+                        'status' => $status,
+                    ]);
 
-                return response()->json([
-                    'message' => 'Manual payroll created successfully',
-                    'payroll' => $payroll
-                ], 201);
+                    return response()->json([
+                        'message' => 'Manual payroll created successfully',
+                        'payroll' => $payroll
+                    ], 201);
+                });
             }
 
             // Otherwise, auto-generate based on lessons
@@ -158,10 +172,14 @@ class TeacherPayrollController extends Controller
                 return response()->json(['message' => 'No lessons taught this month.'], 404);
             }
 
-            // If a status was explicitly requested for the generated payroll, update it
+            // If a status was explicitly requested for the generated payroll, transition via domain service
             if ($request->has('status') && $request->input('status') !== null) {
-                $payroll->status = $request->status;
-                $payroll->save();
+                $payroll = $transitionService->transition(
+                    $payroll,
+                    $request->status,
+                    $user,
+                    ['ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]
+                );
             }
 
             return response()->json([
@@ -173,7 +191,7 @@ class TeacherPayrollController extends Controller
         }
     }
 
-    public function update(Request $request, TeacherPayroll $payroll)
+    public function update(Request $request, TeacherPayroll $payroll, PayrollStateTransitionService $transitionService)
     {
         $user = $request->user();
         if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
@@ -181,21 +199,35 @@ class TeacherPayrollController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => 'required|in:Draft,Processing,Paid,Void',
+            'status' => 'required|in:Draft,Processing,Approved,Paid,Void,draft,processing,approved,paid,void',
             'total_amount' => 'required|numeric|min:0|max:99999999.99',
+            'void_reason' => 'nullable|string|max:500',
         ]);
 
-        $payroll->status = $validated['status'];
-        $payroll->total_amount = $validated['total_amount'];
-        $payroll->save();
+        try {
+            $updated = $transitionService->transition(
+                $payroll,
+                $validated['status'],
+                $user,
+                [
+                    'total_amount' => $validated['total_amount'],
+                    'void_reason' => $request->input('void_reason'),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]
+            );
 
-        return response()->json([
-            'message' => 'Payroll updated successfully',
-            'payroll' => $payroll->load('teacher')
-        ]);
+            return response()->json([
+                'message' => 'Payroll updated successfully',
+                'payroll' => $updated->load('teacher')
+            ]);
+        } catch (\DomainException $e) {
+            $status = str_contains($e->getMessage(), 'Cannot modify financial figures') ? 409 : 422;
+            return response()->json(['message' => $e->getMessage()], $status);
+        }
     }
 
-    public function updateStatus(Request $request, TeacherPayroll $payroll)
+    public function updateStatus(Request $request, TeacherPayroll $payroll, PayrollStateTransitionService $transitionService)
     {
         $user = $request->user();
         if (!$user || (!$user->hasRole(['Super Admin', 'Center Manager']) && !$user->can('manage billing'))) {
@@ -203,16 +235,29 @@ class TeacherPayrollController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => 'required|in:Draft,Processing,Paid,Void'
+            'status' => 'required|in:Draft,Processing,Approved,Paid,Void,draft,processing,approved,paid,void',
+            'void_reason' => 'nullable|string|max:500',
         ]);
 
-        $payroll->status = $validated['status'];
-        $payroll->save();
+        try {
+            $updated = $transitionService->transition(
+                $payroll,
+                $validated['status'],
+                $user,
+                [
+                    'void_reason' => $request->input('void_reason'),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]
+            );
 
-        return response()->json([
-            'message' => 'Payroll status updated successfully',
-            'payroll' => $payroll
-        ]);
+            return response()->json([
+                'message' => 'Payroll status updated successfully',
+                'payroll' => $updated
+            ]);
+        } catch (\DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     public function destroy(Request $request, TeacherPayroll $payroll)
@@ -222,11 +267,24 @@ class TeacherPayrollController extends Controller
             abort(403, 'Unauthorized to delete payroll.');
         }
 
-        $payroll->items()->delete();
-        $payroll->delete();
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($payroll) {
+            /** @var TeacherPayroll $lockedPayroll */
+            $lockedPayroll = TeacherPayroll::where('id', $payroll->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        return response()->json([
-            'message' => 'Payroll deleted successfully'
-        ]);
+            if ($lockedPayroll->isSealedOrApproved()) {
+                return response()->json([
+                    'message' => 'Cannot delete an approved, paid, or void payroll record.'
+                ], 409);
+            }
+
+            $lockedPayroll->items()->delete();
+            $lockedPayroll->delete();
+
+            return response()->json([
+                'message' => 'Payroll deleted successfully'
+            ]);
+        });
     }
 }

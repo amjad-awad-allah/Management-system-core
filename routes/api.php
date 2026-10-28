@@ -7,7 +7,7 @@ use App\Core\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Broadcast;
 
 Route::prefix('v1')->group(function () {
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login');
     Route::get('/settings', [\App\Core\Presentation\Controllers\SettingController::class, 'index']);
     Route::get('/settings/logo', [\App\Core\Presentation\Controllers\SettingController::class, 'getLogo']);
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
@@ -86,7 +86,7 @@ Route::prefix('v1')->group(function () {
     // Mobile API endpoints
     Route::prefix('mobile')->group(function () {
         // Mobile Auth (public)
-        Route::post('/login', [\App\Core\Http\Controllers\MobileAuthController::class, 'login']);
+        Route::post('/login', [\App\Core\Http\Controllers\MobileAuthController::class, 'login'])->middleware('throttle:5,1');
         Route::post('/auth/code', [\App\Core\Presentation\Controllers\LoginCodeController::class, 'loginByCode'])->middleware('throttle:5,1');
 
         Route::middleware('auth:sanctum')->group(function () {

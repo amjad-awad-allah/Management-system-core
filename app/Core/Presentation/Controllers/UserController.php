@@ -49,8 +49,13 @@ class UserController extends Controller
             'roles.*' => 'exists:roles,name'
         ]);
 
-        if (!empty($validated['roles']) && in_array('Super Admin', $validated['roles']) && !$currentUser->hasRole('Super Admin')) {
-            abort(403, 'Only Super Admin can assign the Super Admin role.');
+        if (!empty($validated['roles'])) {
+            if (in_array('Super Admin', $validated['roles']) && !$currentUser->hasRole('Super Admin')) {
+                abort(403, 'Only Super Admin can assign the Super Admin role.');
+            }
+            if (in_array('Admin', $validated['roles']) && !$currentUser->hasAnyRole(['Super Admin', 'Admin'])) {
+                abort(403, 'Unauthorized to assign the Admin role.');
+            }
         }
 
         $user = User::create([
@@ -82,6 +87,10 @@ class UserController extends Controller
             abort(403, 'Only Super Admin can modify a Super Admin account.');
         }
 
+        if ($user->hasRole('Admin') && !$currentUser->hasAnyRole(['Super Admin', 'Admin'])) {
+            abort(403, 'Unauthorized to modify an Admin account.');
+        }
+
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -90,8 +99,13 @@ class UserController extends Controller
             'roles.*' => 'exists:roles,name'
         ]);
 
-        if (!empty($validated['roles']) && in_array('Super Admin', $validated['roles']) && !$currentUser->hasRole('Super Admin')) {
-            abort(403, 'Only Super Admin can assign the Super Admin role.');
+        if (!empty($validated['roles'])) {
+            if (in_array('Super Admin', $validated['roles']) && !$currentUser->hasRole('Super Admin')) {
+                abort(403, 'Only Super Admin can assign the Super Admin role.');
+            }
+            if (in_array('Admin', $validated['roles']) && !$currentUser->hasAnyRole(['Super Admin', 'Admin'])) {
+                abort(403, 'Unauthorized to assign the Admin role.');
+            }
         }
 
         if (isset($validated['name'])) {
@@ -130,8 +144,12 @@ class UserController extends Controller
         if ($user->hasRole('Super Admin') && !$currentUser->hasRole('Super Admin')) {
             abort(403, 'Only Super Admin can delete a Super Admin account.');
         }
+
+        if ($user->hasRole('Admin') && !$currentUser->hasAnyRole(['Super Admin', 'Admin'])) {
+            abort(403, 'Unauthorized to delete an Admin account.');
+        }
         
-        if ($user->id === $currentUser->id) {
+        if ((string) $user->id === (string) $currentUser->id) {
             return response()->json(['message' => 'Cannot delete yourself'], 400);
         }
 

@@ -77,6 +77,8 @@ class RoleController extends Controller
 
         $role = Role::findOrFail($id);
         
+        $coreRoles = ['Super Admin', 'Admin', 'Center Manager', 'Teacher', 'Student', 'Receptionist'];
+
         if ($role->name === 'Super Admin') {
             return response()->json(['message' => 'Cannot modify Super Admin role'], 400);
         }
@@ -87,7 +89,10 @@ class RoleController extends Controller
             'permissions.*' => 'exists:permissions,name'
         ]);
 
-        if (isset($validated['name'])) {
+        if (isset($validated['name']) && $validated['name'] !== $role->name) {
+            if (in_array($role->name, $coreRoles, true)) {
+                return response()->json(['message' => "Cannot rename core system role '{$role->name}'."], 400);
+            }
             $role->name = $validated['name'];
             $role->save();
         }
@@ -113,6 +118,15 @@ class RoleController extends Controller
 
         if ($role->name === 'Super Admin') {
             return response()->json(['message' => 'Cannot delete Super Admin role'], 400);
+        }
+
+        $coreRoles = ['Admin', 'Center Manager', 'Teacher', 'Student', 'Receptionist'];
+        if (in_array($role->name, $coreRoles, true)) {
+            return response()->json(['message' => "Cannot delete core system role '{$role->name}'."], 400);
+        }
+
+        if ($role->users()->exists()) {
+            return response()->json(['message' => 'Cannot delete role that currently has assigned users.'], 400);
         }
 
         $role->delete();

@@ -58,7 +58,13 @@ class GeneratorIdempotencyTest extends TestCase
         $this->assertEquals(1, TeacherPayroll::count());
         $this->assertNotEquals($payroll1->id, $payroll2->id); // Draft deleted and recreated
 
-        // Now finalize the payroll
+        // Now finalize the payroll through the valid approval and state-transition flow
+        $payroll2->update(['status' => 'Processing']);
+        $payroll2->approved_at = now();
+        $payroll2->approved_by = $user->id;
+        $payroll2->snapshot_hash = $payroll2->calculateSnapshotHash();
+        $payroll2->status = 'Approved';
+        $payroll2->save();
         $payroll2->update(['status' => 'Paid']);
 
         // Try generating again

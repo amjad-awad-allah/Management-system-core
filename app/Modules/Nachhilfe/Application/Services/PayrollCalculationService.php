@@ -22,7 +22,7 @@ class PayrollCalculationService
     {
         $approvedPayrolls = TeacherPayroll::with(['teacher', 'items.lesson'])
             ->where('month', $yearMonth)
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', 'Approved', 'paid', 'Paid'])
             ->get();
 
         if ($approvedPayrolls->isNotEmpty()) {
@@ -99,14 +99,18 @@ class PayrollCalculationService
             $teacher = Teacher::find($teacherId);
             if (!$teacher) continue;
 
-            $totalMinutes = $tLessons->sum('duration_minutes');
+            $totalMinutes = (int) $tLessons->sum('duration_minutes');
             $totalHours = round($totalMinutes / 60, 2);
             $hourlyRate = (float) $teacher->hourly_rate;
-            $totalPayout = round($totalHours * $hourlyRate, 2);
+            $totalPayout = 0.0;
+            foreach ($tLessons as $lesson) {
+                $exactHours = ((int) $lesson->duration_minutes) / 60;
+                $totalPayout = round($totalPayout + round($exactHours * $hourlyRate, 2), 2);
+            }
 
             $totalCompletedLessons += count($tLessons);
             $totalCenterHours += $totalHours;
-            $totalCenterPayout += $totalPayout;
+            $totalCenterPayout = round($totalCenterPayout + $totalPayout, 2);
 
             $teacherSummaries[] = [
                 'teacher_id' => $teacher->id,
@@ -137,16 +141,57 @@ class PayrollCalculationService
     public function approvePayroll(string $yearMonth, string $approvedByUserId): array
     {
         return DB::transaction(function () use ($yearMonth, $approvedByUserId) {
-            // Pessimistic locking check for idempotency
-            $existingApproved = TeacherPayroll::where('month', $yearMonth)
-                ->where('status', 'approved')
+            $startOfMonth = Carbon::createFromFormat('Y-m', $yearMonth, $this->timezone)->startOfMonth()->toDateString();
+            $endOfMonth = Carbon::createFromFormat('Y-m', $yearMonth, $this->timezone)->endOfMonth()->toDateString();
+
+            // 1. Acquire deterministic pessimistic locks on involved Teacher rows FIRST
+            //    so concurrent approval calls for an empty month serialize on the Teacher rows.
+            $monthTeacherIds = Lesson::whereBetween('date', [$startOfMonth, $endOfMonth])
+                ->pluck('teacher_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $lockedTeachers = collect();
+            if (!empty($monthTeacherIds)) {
+                $lockedTeachers = Teacher::whereIn('id', $monthTeacherIds)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+            }
+
+            // 2. Re-check existing payrolls for this month under lock AFTER acquiring Teacher locks
+            $existingPayrolls = TeacherPayroll::where('month', $yearMonth)
                 ->lockForUpdate()
                 ->get();
 
-            if ($existingApproved->isNotEmpty()) {
+            $existingApproved = $existingPayrolls->first(fn($p) => $p->isSealedOrApproved());
+            if ($existingApproved) {
                 return $this->getPayrollSummary($yearMonth);
             }
 
+            // Strictly verify that ALL existing records are explicitly lesson-generated drafts or processing.
+            // Any unknown status or manual payroll draft must NOT be bypassed or silently overwritten.
+            foreach ($existingPayrolls as $existing) {
+                $statusLower = strtolower((string) $existing->status);
+                if (!in_array($statusLower, ['draft', 'processing'], true)) {
+                    throw new \DomainException("Cannot approve payroll: existing payroll has non-draft status '{$existing->status}'.");
+                }
+
+                $itemsCount = $existing->items()->count();
+                $itemsSum = round((float) $existing->items()->sum('amount'), 2);
+                if ($itemsCount === 0 || abs((float) $existing->total_amount - $itemsSum) > 0.001) {
+                    throw ValidationException::withMessages([
+                        'payroll' => [
+                            "Cannot approve payroll for {$yearMonth}. A manual payroll draft exists for teacher {$existing->teacher_id} and cannot be automatically overwritten. Please review or remove the manual draft first."
+                        ],
+                    ]);
+                }
+            }
+
+            // 3. Validate approval preconditions BEFORE deleting any existing draft records
             $draft = $this->getPayrollSummary($yearMonth);
 
             if ($draft['unverified_lessons_count'] > 0) {
@@ -161,8 +206,11 @@ class PayrollCalculationService
                 ]);
             }
 
-            $startOfMonth = Carbon::createFromFormat('Y-m', $yearMonth, $this->timezone)->startOfMonth()->toDateString();
-            $endOfMonth = Carbon::createFromFormat('Y-m', $yearMonth, $this->timezone)->endOfMonth()->toDateString();
+            // 4. Remove existing drafts only after preconditions are verified
+            foreach ($existingPayrolls as $draftPayroll) {
+                $draftPayroll->items()->delete();
+                $draftPayroll->delete();
+            }
 
             $completedLessons = Lesson::with(['teacher'])
                 ->whereBetween('date', [$startOfMonth, $endOfMonth])
@@ -173,44 +221,36 @@ class PayrollCalculationService
             $approvedPayrolls = [];
             $approvedAt = Carbon::now($this->timezone);
 
-            foreach ($completedLessons as $teacherId => $lessons) {
+            foreach ($completedLessons->sortKeys() as $teacherId => $lessons) {
                 /** @var Teacher $teacher */
-                $teacher = Teacher::findOrFail($teacherId);
-                $totalMinutes = $lessons->sum('duration_minutes');
+                $teacher = $lockedTeachers->get($teacherId)
+                    ?? Teacher::where('id', $teacherId)->lockForUpdate()->firstOrFail();
+
+                $totalMinutes = (int) $lessons->sum('duration_minutes');
+                // Note: total_hours is derived from exact total minutes (round(totalMinutes / 60, 2)),
+                // which may differ by ±0.01 from the sum of individually rounded item display hours.
                 $totalHours = round($totalMinutes / 60, 2);
                 $hourlyRate = (float) $teacher->hourly_rate;
-                $totalAmount = round($totalHours * $hourlyRate, 2);
                 $lessonCount = count($lessons);
 
-                // Compute sorted item details for Merkle-style canonical integrity
-                $itemTokens = [];
-                foreach ($lessons->sortBy('id') as $lesson) {
-                    $lMinutes = $lesson->duration_minutes;
-                    $lHours = round($lMinutes / 60, 2);
-                    $lAmount = round($lHours * $hourlyRate, 2);
-                    $itemTokens[] = implode(':', [
-                        $lesson->id,
-                        number_format($lHours, 2, '.', ''),
-                        number_format($hourlyRate, 2, '.', ''),
-                        number_format($lAmount, 2, '.', ''),
-                    ]);
+                $totalAmount = 0.0;
+                $preparedItems = [];
+                foreach ($lessons as $lesson) {
+                    $lMinutes = (int) $lesson->duration_minutes;
+                    $exactHours = $lMinutes / 60;
+                    $lHours = round($exactHours, 2);
+                    // Earned pay is calculated from actual duration in minutes, not from rounded display hours
+                    $lAmount = round($exactHours * $hourlyRate, 2);
+                    $totalAmount = round($totalAmount + $lAmount, 2);
+
+                    $preparedItems[] = [
+                        'id' => (string) Str::ulid(),
+                        'lesson_id' => $lesson->id,
+                        'hours' => $lHours,
+                        'hourly_rate' => $hourlyRate,
+                        'amount' => $lAmount,
+                    ];
                 }
-
-                $approvedAt = Carbon::now($this->timezone);
-                $approvedAtIso = Carbon::parse($approvedAt->toDateTimeString(), $this->timezone)->toIso8601String();
-
-                // Compute deterministic canonical SHA-256 snapshot hash
-                $canonicalString = implode('|', [
-                    'v1',
-                    $yearMonth,
-                    $teacher->id,
-                    $lessonCount,
-                    number_format($totalHours, 2, '.', ''),
-                    number_format($totalAmount, 2, '.', ''),
-                    $approvedAtIso,
-                    implode(',', $itemTokens),
-                ]);
-                $snapshotHash = hash('sha256', $canonicalString);
 
                 $payroll = TeacherPayroll::create([
                     'id' => (string) Str::ulid(),
@@ -219,27 +259,27 @@ class PayrollCalculationService
                     'total_completed_lessons' => $lessonCount,
                     'total_hours' => $totalHours,
                     'total_amount' => $totalAmount,
-                    'status' => 'approved',
-                    'approved_at' => $approvedAt,
-                    'approved_by' => $approvedByUserId,
-                    'snapshot_hash' => $snapshotHash,
+                    'status' => 'processing',
+                    'approved_at' => null,
+                    'approved_by' => null,
+                    'snapshot_hash' => null,
                     'snapshot_hash_version' => 1,
                 ]);
 
-                foreach ($lessons as $lesson) {
-                    $lMinutes = $lesson->duration_minutes;
-                    $lHours = round($lMinutes / 60, 2);
-                    $lAmount = round($lHours * $hourlyRate, 2);
-
-                    TeacherPayrollItem::create([
-                        'id' => (string) Str::ulid(),
+                foreach ($preparedItems as $itemData) {
+                    TeacherPayrollItem::create(array_merge($itemData, [
                         'payroll_id' => $payroll->id,
-                        'lesson_id' => $lesson->id,
-                        'hours' => $lHours,
-                        'hourly_rate' => $hourlyRate,
-                        'amount' => $lAmount,
-                    ]);
+                    ]));
                 }
+
+                // Centralized snapshot hash calculation after all items exist in DB
+                $payroll->load('items');
+                $payroll->approved_at = $approvedAt;
+                $payroll->approved_by = $approvedByUserId;
+                $snapshotHash = $payroll->calculateSnapshotHash($this->timezone);
+                $payroll->snapshot_hash = $snapshotHash;
+                $payroll->status = 'approved';
+                $payroll->save();
 
                 $approvedPayrolls[] = $payroll;
             }
